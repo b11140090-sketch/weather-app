@@ -642,6 +642,37 @@ h1 span {
   clip-path: inset(50%);
 }
 
+@media (max-width: 900px) {
+  .app-shell {
+    width: calc(100% - 40px);
+  }
+
+  .intro {
+    margin: 56px auto 42px;
+  }
+
+  .weather-section {
+    padding: 26px;
+  }
+
+  .weather-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .current-card {
+    min-height: 246px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .forecast-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 700px) {
   .app-shell {
     width: min(100% - 32px, 520px);
@@ -656,7 +687,11 @@ h1 span {
   }
 
   .intro {
-    margin: 48px auto 39px;
+    margin: 40px auto 30px;
+  }
+
+  .intro-copy {
+    margin-bottom: 22px;
   }
 
   .weather-section {
@@ -669,25 +704,20 @@ h1 span {
   }
 
   .current-card {
-    min-height: 232px;
+    min-height: 220px;
   }
 
   .metrics-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    gap: 9px;
   }
 
   .metric-card {
-    min-height: 118px;
-    padding: 12px 10px;
+    min-height: 124px;
+    padding: 12px 9px;
   }
 
   .metric-value {
-    font-size: 19px;
-  }
-
-  .forecast-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    font-size: 18px;
   }
 }
 
@@ -701,7 +731,7 @@ h1 span {
   }
 
   .intro {
-    margin-top: 39px;
+    margin-top: 34px;
   }
 
   .intro-copy {
@@ -718,11 +748,24 @@ h1 span {
   }
 
   .weather-section {
-    padding: 16px;
+    padding: 15px;
   }
 
   .metrics-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .metric-card {
+    min-height: 120px;
+    padding: 10px 7px;
+  }
+
+  .metric-value {
+    font-size: 17px;
+  }
+
+  .metric-value span {
+    font-size: 10px;
   }
 
   .forecast-caption {
@@ -730,16 +773,23 @@ h1 span {
   }
 
   .forecast-grid {
-    gap: 7px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .forecast-card {
-    padding-inline: 5px;
+    padding: 11px 4px;
+  }
+
+  .forecast-temperatures {
+    gap: 5px;
+    font-size: 10px;
   }
 
   .footer {
-    gap: 12px;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
     font-size: 9px;
   }
 }
