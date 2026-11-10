@@ -63,6 +63,12 @@ const elements = {
   currentTemperature: document.querySelector("#current-temperature"),
   currentCondition: document.querySelector("#current-condition"),
   feelsLike: document.querySelector("#feels-like"),
+  clothingAdvice: document.querySelector("#clothing-advice"),
+  sunAdvice: document.querySelector("#sun-advice"),
+  rainAdvice: document.querySelector("#rain-advice"),
+  assistantSpeak: document.querySelector("#assistant-speak"),
+  assistantSpeakLabel: document.querySelector("#assistant-speak-label"),
+  assistantSpeakStatus: document.querySelector("#assistant-speak-status"),
   humidity: document.querySelector("#humidity"),
   windSpeed: document.querySelector("#wind-speed"),
   windNote: document.querySelector("#wind-note"),
@@ -99,6 +105,9 @@ let radarRequestId = 0;
 let radarTimeZone = "UTC";
 let radarTileHost = RADAR_TILE_URL;
 let weatherBackground;
+let weatherBulletin;
+let weatherAdvice;
+let speechGeneration = 0;
 
 const WEATHER_BACKGROUND_VERTEX_SHADER = `
   attribute float aSize;
@@ -498,12 +507,234 @@ function getWindDescription(speed) {
   return "風勢較強，留意戶外活動";
 }
 
+function getLifestyleAdvice(temperature, uvIndex, rainProbability) {
+  const clothing = getClothingAdvice(temperature);
+  const sun = getSunAdvice(uvIndex);
+  const rain = getRainAdvice(rainProbability);
+
+  return {
+    clothing: clothing.text,
+    sun: sun.text,
+    rain: rain.text,
+    spoken: [clothing.spoken, sun.spoken, rain.spoken].join(" "),
+  };
+}
+
+function getClothingAdvice(temperature) {
+  if (temperature < 10) {
+    return {
+      text: "氣溫偏低，建議穿著保暖外套，留意早晚溫差。",
+      spoken: "Trời lạnh, bạn nên mặc áo khoác ấm và chú ý chênh lệch nhiệt độ sáng tối.",
+    };
+  }
+  if (temperature < 18) {
+    return {
+      text: "天氣微涼，帶件薄外套或採洋蔥式穿搭更舒適。",
+      spoken: "Trời hơi se lạnh, hãy mang theo áo khoác mỏng hoặc mặc nhiều lớp.",
+    };
+  }
+  if (temperature < 25) {
+    return {
+      text: "氣溫舒適，穿著輕便即可，怕冷可加件薄外套。",
+      spoken: "Thời tiết dễ chịu, bạn có thể mặc đồ nhẹ; nếu sợ lạnh, hãy mang áo khoác mỏng.",
+    };
+  }
+  return {
+    text: "氣溫偏暖，選擇透氣輕薄的衣物，記得補充水分。",
+    spoken: "Trời ấm, hãy chọn quần áo mỏng nhẹ, thoáng mát và nhớ uống đủ nước.",
+  };
+}
+
+function getSunAdvice(uvIndex) {
+  if (uvIndex < 3) {
+    return {
+      text: `紫外線指數 ${uvIndex.toFixed(1)}，目前偏低，長時間戶外活動仍建議做好防曬。`,
+      spoken: `Chỉ số tia cực tím là ${uvIndex.toFixed(1)}, hiện ở mức thấp. Nếu ở ngoài trời lâu, bạn vẫn nên chống nắng.`,
+    };
+  }
+  if (uvIndex < 6) {
+    return {
+      text: `紫外線指數 ${uvIndex.toFixed(1)}，外出可擦防曬乳並適時補擦。`,
+      spoken: `Chỉ số tia cực tím là ${uvIndex.toFixed(1)}. Hãy thoa kem chống nắng và thoa lại khi cần.`,
+    };
+  }
+  if (uvIndex < 8) {
+    return {
+      text: `紫外線指數 ${uvIndex.toFixed(1)}，建議擦防曬、戴帽子並尋找陰涼處。`,
+      spoken: `Chỉ số tia cực tím là ${uvIndex.toFixed(1)}, khá cao. Hãy dùng kem chống nắng, đội mũ và tìm bóng râm.`,
+    };
+  }
+  return {
+    text: `紫外線指數 ${uvIndex.toFixed(1)}，紫外線很強，請加強防曬並避免久曬。`,
+    spoken: `Chỉ số tia cực tím là ${uvIndex.toFixed(1)}, rất cao. Hãy bảo vệ da kỹ và tránh ở ngoài nắng lâu.`,
+  };
+}
+
+function getRainAdvice(rainProbability) {
+  if (rainProbability >= 60) {
+    return {
+      text: `今日降雨機率 ${rainProbability}%，建議帶傘，戶外行程記得準備備案。`,
+      spoken: `Khả năng mưa hôm nay là ${rainProbability} phần trăm. Bạn nên mang ô và chuẩn bị phương án dự phòng cho hoạt động ngoài trời.`,
+    };
+  }
+  if (rainProbability >= 30) {
+    return {
+      text: `今日降雨機率 ${rainProbability}%，外出帶把摺疊傘較安心。`,
+      spoken: `Khả năng mưa hôm nay là ${rainProbability} phần trăm. Mang theo ô gấp sẽ yên tâm hơn.`,
+    };
+  }
+  return {
+    text: `今日降雨機率 ${rainProbability}%，適合安排戶外活動，仍可留意天氣變化。`,
+    spoken: `Khả năng mưa hôm nay là ${rainProbability} phần trăm. Thời tiết phù hợp cho hoạt động ngoài trời, nhưng bạn vẫn nên theo dõi diễn biến thời tiết.`,
+  };
+}
+
+function renderLifestyleAdvice(place, current, rainProbability) {
+  const temperature = current.temperature_2m;
+  const uvIndex = current.uv_index;
+  const validRainProbability = rainProbability;
+  const hasTemperature = Number.isFinite(temperature);
+  const hasUvIndex = Number.isFinite(uvIndex);
+  const hasRainProbability = Number.isFinite(validRainProbability);
+  const clothingAdvice = hasTemperature ? getClothingAdvice(temperature) : undefined;
+  const sunAdvice = hasUvIndex ? getSunAdvice(uvIndex) : undefined;
+  const rainAdvice = hasRainProbability ? getRainAdvice(validRainProbability) : undefined;
+
+  elements.clothingAdvice.textContent =
+    clothingAdvice?.text ?? "目前無法取得氣溫資料，暫時無法提供穿搭建議。";
+  elements.sunAdvice.textContent =
+    sunAdvice?.text ?? "目前無法取得紫外線指數，外出時建議做好防曬。";
+  elements.rainAdvice.textContent =
+    rainAdvice?.text ?? "目前無法取得降雨機率，出門前請查看最新天氣。";
+
+  const apparentTemperature = current.apparent_temperature;
+  const hasApparentTemperature = Number.isFinite(apparentTemperature);
+  weatherAdvice =
+    hasTemperature && hasUvIndex && hasRainProbability
+      ? getLifestyleAdvice(temperature, uvIndex, validRainProbability)
+      : undefined;
+
+  if (!weatherAdvice || !hasApparentTemperature) {
+    elements.assistantSpeak.disabled = true;
+    elements.assistantSpeakStatus.textContent = "部分天氣資料暫缺，暫時無法產生完整語音播報。";
+    return;
+  }
+
+  const temperatureText = Math.round(temperature);
+  const uvText = uvIndex.toFixed(1);
+  const conditionText = getVietnameseWeatherDescription(current.weather_code);
+  weatherBulletin =
+    `Thời tiết tại ${getVietnamesePlaceName(place)} hiện tại ${temperatureText} độ C, ${conditionText}. ` +
+    `Cảm giác như ${Math.round(apparentTemperature)} độ C. ` +
+    `Chỉ số tia cực tím là ${uvText}. Khả năng mưa hôm nay là ${Math.round(validRainProbability)} phần trăm. ` +
+    weatherAdvice.spoken;
+  if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
+    elements.assistantSpeak.disabled = true;
+    elements.assistantSpeakStatus.textContent = "此瀏覽器不支援 Web Speech API，無法使用語音播報。";
+    return;
+  }
+  elements.assistantSpeak.disabled = false;
+  elements.assistantSpeakStatus.textContent =
+    "Nhấn nút loa để nghe bản tin thời tiết và lời khuyên bằng tiếng Việt.";
+}
+
+function getVietnameseWeatherDescription(code) {
+  if (code === 0) return "trời nắng";
+  if (code === 1) return "trời quang đãng";
+  if (code === 2) return "trời có mây từng đám";
+  if (code === 3) return "trời nhiều mây";
+  if (code === 45 || code === 48) return "có sương mù";
+  if (code >= 51 && code <= 57) return "có mưa phùn";
+  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return "có mưa";
+  if (code >= 71 && code <= 77) return "có tuyết";
+  if (code === 85 || code === 86) return "có mưa tuyết";
+  if (code >= 95 && code <= 99) return "có dông";
+  return "thời tiết thay đổi";
+}
+
+function resetSpeechStatus(message = "天氣資料載入後，即可聆聽越南語天氣播報。") {
+  speechGeneration += 1;
+  elements.assistantSpeak.setAttribute("aria-pressed", "false");
+  elements.assistantSpeakLabel.textContent = "越南語播報";
+  elements.assistantSpeakStatus.textContent = message;
+}
+
+function toggleWeatherSpeech() {
+  if (!("speechSynthesis" in window) || !weatherBulletin) {
+    elements.assistantSpeakStatus.textContent =
+      "此瀏覽器不支援語音播報，請改用支援 Web Speech API 的瀏覽器。";
+    return;
+  }
+
+  if (window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+    resetSpeechStatus("已停止語音播報。");
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(weatherBulletin);
+  const currentSpeechGeneration = ++speechGeneration;
+  utterance.lang = "vi-VN";
+  utterance.rate = 0.94;
+  const vietnameseVoice = window.speechSynthesis
+    .getVoices()
+    .find((voice) => voice.lang.toLowerCase().startsWith("vi"));
+  if (vietnameseVoice) utterance.voice = vietnameseVoice;
+
+  utterance.onstart = () => {
+    if (currentSpeechGeneration !== speechGeneration) return;
+    elements.assistantSpeak.setAttribute("aria-pressed", "true");
+    elements.assistantSpeakLabel.textContent = "停止播報";
+    elements.assistantSpeakStatus.textContent = "正在以越南語朗讀天氣與生活建議…";
+  };
+  utterance.onend = () => {
+    if (currentSpeechGeneration === speechGeneration) {
+      resetSpeechStatus("語音播報已完成。");
+    }
+  };
+  utterance.onerror = (event) => {
+    if (currentSpeechGeneration === speechGeneration) {
+      resetSpeechStatus(`語音播報失敗：${event.error}。請檢查瀏覽器的語音設定後重試。`);
+    }
+  };
+
+  elements.assistantSpeakStatus.textContent = "正在準備越南語語音…";
+  window.speechSynthesis.speak(utterance);
+}
+
 function getLocationName(place) {
   if (place.country_code === "TW" && /[區区]$/.test(place.name) && place.admin2) {
     return place.admin2;
   }
   return place.name;
 }
+
+function getVietnamesePlaceName(place) {
+  const placeName = getLocationName(place);
+  const translated = VIETNAMESE_PLACE_NAMES.get(place.admin2) ?? VIETNAMESE_PLACE_NAMES.get(placeName);
+  if (translated) return translated;
+  return /[\u3400-\u9fff]/u.test(placeName) ? "thành phố bạn đang xem" : placeName;
+}
+
+const VIETNAMESE_PLACE_NAMES = new Map([
+  ["桃園市", "Đào Viên"],
+  ["臺北市", "Đài Bắc"],
+  ["台北市", "Đài Bắc"],
+  ["新北市", "Tân Bắc"],
+  ["臺中市", "Đài Trung"],
+  ["台中市", "Đài Trung"],
+  ["臺南市", "Đài Nam"],
+  ["台南市", "Đài Nam"],
+  ["高雄市", "Cao Hùng"],
+  ["香港", "Hồng Kông"],
+  ["澳門", "Ma Cao"],
+  ["北京市", "Bắc Kinh"],
+  ["上海市", "Thượng Hải"],
+  ["東京", "Tokyo"],
+  ["大阪市", "Osaka"],
+  ["首爾", "Seoul"],
+  ["新加坡", "Singapore"],
+]);
 
 function getLocationDetail(place) {
   const region = place.country_code === "TW" ? place.admin2 : place.admin1;
@@ -678,6 +909,13 @@ function renderWeather(place, data) {
     ? getUvDescription(uv)
     : "日光防護提醒";
   elements.currentCard.setAttribute("aria-busy", "false");
+  if (window.speechSynthesis?.speaking) window.speechSynthesis.cancel();
+  resetSpeechStatus("天氣資料已更新，點選喇叭可聆聽越南語播報。");
+  renderLifestyleAdvice(
+    place,
+    current,
+    data.daily.precipitation_probability_max?.[0],
+  );
   setWeatherBackground(current.weather_code, current.is_day);
   renderForecast(data.daily);
 }
@@ -836,10 +1074,15 @@ elements.radarTimeline.addEventListener("input", () => {
   renderRadarFrame(Number(elements.radarTimeline.value));
 });
 
+elements.assistantSpeak.addEventListener("click", toggleWeatherSpeech);
+
 async function loadWeather(place) {
   const currentRequestId = ++requestId;
   weatherController?.abort();
   weatherController = new AbortController();
+  if (window.speechSynthesis?.speaking) window.speechSynthesis.cancel();
+  elements.assistantSpeak.disabled = true;
+  resetSpeechStatus("正在更新天氣資料與生活建議…");
   elements.pageMessage.textContent = "";
   elements.locationName.textContent = getLocationName(place);
   elements.locationDetail.textContent = getLocationDetail(place);
@@ -852,7 +1095,8 @@ async function loadWeather(place) {
     longitude: String(place.longitude),
     current:
       "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,uv_index",
-    daily: "weather_code,temperature_2m_max,temperature_2m_min",
+    daily:
+      "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
     temperature_unit: "celsius",
     wind_speed_unit: "kmh",
     timezone: "auto",

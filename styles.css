@@ -547,6 +547,168 @@ h1 span {
   font-size: 9px;
 }
 
+.assistant-section {
+  margin-top: 24px;
+  padding: 21px 22px 16px;
+  border: 1px solid rgb(190 185 255 / 15%);
+  border-radius: 19px;
+  background:
+    radial-gradient(ellipse at 2% 0%, rgb(148 132 255 / 12%), transparent 48%),
+    linear-gradient(135deg, rgb(41 48 83 / 78%), rgb(29 40 68 / 78%));
+  box-shadow: inset 0 1px rgb(255 255 255 / 4%), 0 12px 34px rgb(3 8 24 / 14%);
+}
+
+.assistant-heading,
+.assistant-title-group {
+  display: flex;
+  align-items: center;
+}
+
+.assistant-heading {
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.assistant-title-group {
+  gap: 12px;
+}
+
+.assistant-icon {
+  display: grid;
+  width: 39px;
+  height: 39px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(196 184 255 / 20%);
+  border-radius: 13px;
+  color: #e0d4ff;
+  background: rgb(166 145 255 / 13%);
+  font-size: 20px;
+}
+
+.assistant-heading .section-kicker {
+  margin-bottom: 4px;
+}
+
+.assistant-heading h2 {
+  margin: 0;
+  color: #f0efff;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.assistant-speak {
+  display: inline-flex;
+  min-height: 39px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 13px;
+  border: 1px solid rgb(194 187 255 / 22%);
+  border-radius: 11px;
+  color: #e4e3ff;
+  background: rgb(157 145 255 / 13%);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.assistant-speak:hover:not(:disabled) {
+  border-color: rgb(194 187 255 / 42%);
+  background: rgb(157 145 255 / 22%);
+}
+
+.assistant-speak:focus-visible {
+  outline: 2px solid #d5d4ff;
+  outline-offset: 3px;
+}
+
+.assistant-speak:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.assistant-speak-icon {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.assistant-tips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.assistant-tip {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 13px 12px;
+  border: 1px solid rgb(190 205 255 / 9%);
+  border-radius: 14px;
+  background: rgb(20 30 53 / 43%);
+}
+
+.assistant-tip-icon {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(193 204 255 / 12%);
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.clothing-tip-icon {
+  color: #b7d7ff;
+  background: rgb(88 163 231 / 10%);
+}
+
+.uv-tip-icon {
+  color: #f4d28f;
+  background: rgb(239 189 100 / 10%);
+}
+
+.rain-tip-icon {
+  color: #a5e1da;
+  background: rgb(91 196 179 / 10%);
+  font-size: 18px;
+}
+
+.assistant-tip-label {
+  margin-bottom: 5px;
+  color: #c4cce1;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.assistant-tip-text {
+  margin: 0;
+  color: #97a4c0;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.assistant-speak-status {
+  min-height: 14px;
+  margin: 12px 0 0;
+  color: #7f8dab;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
 .forecast-section {
   margin-top: 34px;
 }
@@ -884,6 +1046,20 @@ h1 span {
     gap: 9px;
   }
 
+  .assistant-section {
+    padding: 17px 15px 13px;
+  }
+
+  .assistant-tips {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .assistant-tip {
+    align-items: center;
+    padding: 11px;
+  }
+
   .metric-card {
     min-height: 124px;
     padding: 12px 9px;
@@ -926,6 +1102,40 @@ h1 span {
 
   .weather-section {
     padding: 15px;
+  }
+
+  .assistant-section {
+    padding: 15px 12px 11px;
+  }
+
+  .assistant-heading {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .assistant-title-group {
+    gap: 9px;
+  }
+
+  .assistant-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .assistant-heading h2 {
+    font-size: 15px;
+  }
+
+  .assistant-speak {
+    min-height: 36px;
+    gap: 6px;
+    padding-inline: 9px;
+    font-size: 9px;
+  }
+
+  .assistant-speak-icon {
+    width: 15px;
+    height: 15px;
   }
 
   .metrics-grid {
