@@ -76,6 +76,7 @@ const elements = {
   radarPlayLabel: document.querySelector("#radar-play-label"),
   radarTimeline: document.querySelector("#radar-timeline"),
   radarTime: document.querySelector("#radar-time"),
+  weatherBackground: document.querySelector("#weather-bg"),
 };
 
 const weekdayFormatter = new Intl.DateTimeFormat("zh-TW", {
@@ -97,6 +98,371 @@ let radarController;
 let radarRequestId = 0;
 let radarTimeZone = "UTC";
 let radarTileHost = RADAR_TILE_URL;
+let weatherBackground;
+
+const WEATHER_BACKGROUND_VERTEX_SHADER = `
+  attribute float aSize;
+  attribute float aOpacity;
+  uniform float uPixelRatio;
+  varying float vOpacity;
+
+  void main() {
+    vOpacity = aOpacity;
+    vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+    gl_Position = projectionMatrix * viewPosition;
+    gl_PointSize = clamp(aSize * uPixelRatio, 1.0, 260.0);
+  }
+`;
+
+const WEATHER_BACKGROUND_FRAGMENT_SHADER = `
+  uniform float uMode;
+  uniform vec3 uColor;
+  varying float vOpacity;
+
+  void main() {
+    vec2 point = gl_PointCoord - 0.5;
+    float alpha;
+
+    if (uMode < 0.5) {
+      alpha = 1.0 - smoothstep(0.04, 0.5, length(point));
+    } else if (uMode < 1.5) {
+      float streak = 1.0 - smoothstep(0.025, 0.13, abs(point.x + point.y * 0.12));
+      float ends = smoothstep(-0.5, -0.36, point.y) * (1.0 - smoothstep(0.32, 0.5, point.y));
+      alpha = streak * ends;
+    } else {
+      alpha = 1.0 - smoothstep(0.12, 0.5, length(point));
+    }
+
+    if (alpha < 0.015) discard;
+    gl_FragColor = vec4(uColor, alpha * vOpacity);
+  }
+`;
+
+function createRadialTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 128;
+  canvas.height = 128;
+  const context = canvas.getContext("2d");
+  if (!context) return undefined;
+
+  const gradient = context.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gradient.addColorStop(0, "rgba(255,255,255,0.72)");
+  gradient.addColorStop(0.2, "rgba(238,235,255,0.3)");
+  gradient.addColorStop(1, "rgba(224,231,255,0)");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createCloudTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 144;
+  const context = canvas.getContext("2d");
+  if (!context) return undefined;
+
+  context.filter = "blur(13px)";
+  const puffs = [
+    [65, 78, 42, 25],
+    [101, 57, 48, 34],
+    [148, 72, 49, 31],
+    [192, 84, 37, 22],
+  ];
+  for (const [x, y, radiusX, radiusY] of puffs) {
+    const gradient = context.createRadialGradient(x, y, 4, x, y, radiusX);
+    gradient.addColorStop(0, "rgba(201,211,239,0.17)");
+    gradient.addColorStop(1, "rgba(153,170,208,0)");
+    context.fillStyle = gradient;
+    context.beginPath();
+    context.ellipse(x, y, radiusX, radiusY, 0, 0, Math.PI * 2);
+    context.fill();
+  }
+  context.filter = "none";
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createWeatherBackground() {
+  const canvas = elements.weatherBackground;
+  if (!canvas) return;
+  if (!window.THREE) {
+    console.error("Three.js did not load; weather background effects are disabled.");
+    canvas.hidden = true;
+    return;
+  }
+
+  try {
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: false,
+      powerPreference: "low-power",
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setClearColor(0x000000, 0);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+    camera.position.z = 2;
+    const particles = new THREE.Points(
+      new THREE.BufferGeometry(),
+      new THREE.ShaderMaterial({
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+        uniforms: {
+          uPixelRatio: { value: renderer.getPixelRatio() },
+          uMode: { value: 2 },
+          uColor: { value: new THREE.Color("#aebcdb") },
+        },
+        vertexShader: WEATHER_BACKGROUND_VERTEX_SHADER,
+        fragmentShader: WEATHER_BACKGROUND_FRAGMENT_SHADER,
+      }),
+    );
+    particles.frustumCulled = false;
+    scene.add(particles);
+
+    const spriteTexture = createRadialTexture();
+    const cloudTexture = createCloudTexture();
+    const sprites = [];
+    if (spriteTexture && cloudTexture) {
+      for (let index = 0; index < 5; index += 1) {
+        const material = new THREE.SpriteMaterial({
+          map: index < 2 ? spriteTexture : cloudTexture,
+          color: index < 2 ? "#e5d7b6" : "#b5c3de",
+          transparent: true,
+          opacity: 0,
+          depthTest: false,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        });
+        const sprite = new THREE.Sprite(material);
+        sprite.position.z = -0.2;
+        sprite.scale.set(250, 140, 1);
+        scene.add(sprite);
+        sprites.push(sprite);
+      }
+    } else {
+      console.error("Could not create weather background textures.");
+    }
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
+    const clock = new THREE.Clock();
+    let mode;
+    let animationFrame;
+    let previousFrameTime = 0;
+    let width = 1;
+    let height = 1;
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      renderer.setSize(width, height, false);
+      camera.left = -width / 2;
+      camera.right = width / 2;
+      camera.top = height / 2;
+      camera.bottom = -height / 2;
+      camera.updateProjectionMatrix();
+      particles.material.uniforms.uPixelRatio.value = renderer.getPixelRatio();
+      if (particles.geometry.attributes.position) {
+        const positions = particles.geometry.attributes.position.array;
+        for (let index = 0; index < positions.length; index += 3) {
+          positions[index] = THREE.MathUtils.clamp(positions[index], -width / 2, width / 2);
+          positions[index + 1] = THREE.MathUtils.clamp(
+            positions[index + 1],
+            -height / 2,
+            height / 2,
+          );
+        }
+        particles.geometry.attributes.position.needsUpdate = true;
+      }
+      render(clock.getElapsedTime());
+    }
+
+    function setMode(nextMode) {
+      if (mode === nextMode) return;
+      mode = nextMode;
+      canvas.dataset.weatherMode = mode;
+      const isRain = mode === "rain";
+      const isSun = mode === "sun";
+      const isCloud = mode === "clouds";
+      const count = isRain
+        ? Math.min(210, Math.round((width * height) / 4200))
+        : isSun
+          ? Math.min(120, Math.round((width * height) / 7000))
+          : Math.min(36, Math.round((width * height) / 28000));
+      const positions = new Float32Array(count * 3);
+      const sizes = new Float32Array(count);
+      const opacities = new Float32Array(count);
+      const velocities = new Float32Array(count * 2);
+
+      for (let index = 0; index < count; index += 1) {
+        const offset = index * 3;
+        positions[offset] = (Math.random() - 0.5) * width;
+        positions[offset + 1] = (Math.random() - 0.5) * height;
+        positions[offset + 2] = 0;
+        sizes[index] = isRain
+          ? 14 + Math.random() * 22
+          : isSun
+            ? 1.3 + Math.random() * 3
+            : 90 + Math.random() * 150;
+        opacities[index] = isRain
+          ? 0.2 + Math.random() * 0.42
+          : isSun
+            ? 0.25 + Math.random() * 0.65
+            : 0.09 + Math.random() * 0.1;
+        velocities[index * 2] = isRain
+          ? -18 - Math.random() * 32
+          : isCloud
+            ? 3 + Math.random() * 8
+            : (Math.random() - 0.5) * 2;
+        velocities[index * 2 + 1] = isRain
+          ? -190 - Math.random() * 260
+          : isSun
+            ? 2 + Math.random() * 8
+            : (Math.random() - 0.5) * 3;
+      }
+
+      particles.geometry.dispose();
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
+      geometry.setAttribute("aOpacity", new THREE.BufferAttribute(opacities, 1));
+      particles.geometry = geometry;
+      particles.material.uniforms.uMode.value = isSun ? 0 : isRain ? 1 : 2;
+      particles.material.uniforms.uColor.value.set(
+        isSun ? "#ffe5b1" : isRain ? "#b9d4f5" : "#aebcdb",
+      );
+
+      sprites.forEach((sprite, index) => {
+        const isFlare = isSun && index < 2;
+        const isMist = isCloud && index >= 2;
+        sprite.visible = isFlare || isMist;
+        sprite.material.opacity = isFlare ? 0.12 + index * 0.025 : isMist ? 0.5 : 0;
+        sprite.material.color.set(isFlare ? "#f2d5a5" : "#a9b8d5");
+        sprite.scale.set(
+          isFlare ? width * (0.66 + index * 0.14) : width * 0.67,
+          isFlare ? height * (0.55 + index * 0.1) : height * 0.37,
+          1,
+        );
+        sprite.position.x = isFlare
+          ? width * (0.35 - index * 0.06)
+          : (index - 3) * width * 0.19;
+        sprite.position.y = isFlare
+          ? height * (0.31 - index * 0.11)
+          : (index % 2 === 0 ? 1 : -1) * height * 0.22;
+      });
+
+      particles.userData.velocities = velocities;
+      render(clock.getElapsedTime());
+    }
+
+    function render(time) {
+      const velocities = particles.userData.velocities;
+      const positions = particles.geometry.attributes.position;
+      if (velocities && positions) {
+        const delta = Math.min(clock.getDelta(), 0.05);
+        const halfWidth = width / 2;
+        const halfHeight = height / 2;
+        for (let index = 0; index < positions.count; index += 1) {
+          const offset = index * 3;
+          positions.array[offset] += velocities[index * 2] * delta;
+          positions.array[offset + 1] += velocities[index * 2 + 1] * delta;
+          if (mode === "rain") {
+            if (positions.array[offset + 1] < -halfHeight - 24) {
+              positions.array[offset + 1] = halfHeight + Math.random() * 40;
+              positions.array[offset] = (Math.random() - 0.5) * width;
+            }
+            if (positions.array[offset] < -halfWidth - 24) {
+              positions.array[offset] = halfWidth + 12;
+            }
+          } else {
+            if (positions.array[offset] > halfWidth + 150) {
+              positions.array[offset] = -halfWidth - 150;
+            } else if (positions.array[offset] < -halfWidth - 150) {
+              positions.array[offset] = halfWidth + 150;
+            }
+            if (positions.array[offset + 1] > halfHeight + 150) {
+              positions.array[offset + 1] = -halfHeight - 150;
+            } else if (positions.array[offset + 1] < -halfHeight - 150) {
+              positions.array[offset + 1] = halfHeight + 150;
+            }
+          }
+        }
+        positions.needsUpdate = true;
+      }
+
+      pointer.x += (pointer.targetX - pointer.x) * 0.025;
+      pointer.y += (pointer.targetY - pointer.y) * 0.025;
+      scene.position.set(pointer.x, pointer.y, 0);
+      if (mode === "sun") {
+        sprites.slice(0, 2).forEach((sprite, index) => {
+          sprite.material.opacity = 0.1 + (Math.sin(time * 0.35 + index) + 1) * 0.035;
+        });
+      } else if (mode === "clouds") {
+        sprites.slice(2).forEach((sprite, index) => {
+          sprite.position.x += Math.sin(time * 0.08 + index) * 0.08;
+        });
+      }
+      renderer.render(scene, camera);
+    }
+
+    function animate(timestamp) {
+      if (document.hidden || reducedMotion.matches) {
+        animationFrame = undefined;
+        return;
+      }
+      if (timestamp - previousFrameTime >= 1000 / 30) {
+        previousFrameTime = timestamp;
+        render(clock.getElapsedTime());
+      }
+      animationFrame = window.requestAnimationFrame(animate);
+    }
+
+    function startAnimation() {
+      if (document.hidden || reducedMotion.matches || animationFrame !== undefined) return;
+      animationFrame = window.requestAnimationFrame(animate);
+    }
+
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        window.cancelAnimationFrame(animationFrame);
+        animationFrame = undefined;
+      } else {
+        startAnimation();
+      }
+    }
+
+    window.addEventListener("resize", resize, { passive: true });
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener(
+      "pointermove",
+      (event) => {
+        pointer.targetX = ((event.clientX / width) * 2 - 1) * 7;
+        pointer.targetY = (1 - (event.clientY / height) * 2) * 7;
+      },
+      { passive: true },
+    );
+    reducedMotion.addEventListener("change", handleVisibilityChange);
+    resize();
+    setMode("clouds");
+    startAnimation();
+    weatherBackground = { setMode };
+  } catch (error) {
+    console.error("Could not initialize the weather background effect.", error);
+    canvas.hidden = true;
+  }
+}
+
+function setWeatherBackground(weatherCode, isDay) {
+  if (!weatherBackground) return;
+  const isRain =
+    (weatherCode >= 51 && weatherCode <= 67) ||
+    (weatherCode >= 80 && weatherCode <= 82) ||
+    (weatherCode >= 95 && weatherCode <= 99);
+  const isClear = weatherCode >= 0 && weatherCode <= 2 && isDay === 1;
+  weatherBackground.setMode(isRain ? "rain" : isClear ? "sun" : "clouds");
+}
 
 function getWeatherDescription(code) {
   if (code === 0) return { text: "晴朗", icon: "☀️" };
@@ -312,6 +678,7 @@ function renderWeather(place, data) {
     ? getUvDescription(uv)
     : "日光防護提醒";
   elements.currentCard.setAttribute("aria-busy", "false");
+  setWeatherBackground(current.weather_code, current.is_day);
   renderForecast(data.daily);
 }
 
@@ -543,6 +910,8 @@ async function submitSearch(query) {
       error instanceof Error ? error.message : "城市搜尋失敗，請稍後再試。";
   }
 }
+
+createWeatherBackground();
 
 elements.searchInput.addEventListener("input", () => {
   window.clearTimeout(debounceTimer);
