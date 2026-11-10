@@ -3,184 +3,134 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#101522">
-    <meta name="description" content="個人作品集與天氣資訊">
-    <title>作品集 — 個人首頁</title>
-    <style>
-      :root {
-        color-scheme: dark;
-        font-family: Inter, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
-        color: #f4f7ff;
-        background: #101522;
-        font-synthesis: none;
-        text-rendering: optimizeLegibility;
-        -webkit-font-smoothing: antialiased;
-        --muted: #aab4ca;
-        --glass: rgba(255, 255, 255, 0.075);
-        --line: rgba(255, 255, 255, 0.13);
-        --accent: #9db8ff;
-      }
-
-      * { box-sizing: border-box; }
-
-      body {
-        min-width: 320px;
-        min-height: 100vh;
-        margin: 0;
-        background:
-          radial-gradient(ellipse at 14% 9%, rgba(80, 107, 190, 0.27), transparent 38rem),
-          radial-gradient(ellipse at 90% 84%, rgba(40, 135, 160, 0.16), transparent 34rem),
-          #101522;
-      }
-
-      a { color: inherit; }
-
-      .shell {
-        width: min(1120px, calc(100% - 40px));
-        margin-inline: auto;
-      }
-
-      .topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        min-height: 84px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      }
-
-      .brand {
-        color: #fff;
-        font-size: 0.94rem;
-        font-weight: 750;
-        letter-spacing: 0.08em;
-        text-decoration: none;
-      }
-
-      .nav {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-
-      .nav a {
-        padding: 10px 15px;
-        border: 1px solid transparent;
-        border-radius: 999px;
-        color: var(--muted);
-        font-size: 0.9rem;
-        text-decoration: none;
-        transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
-      }
-
-      .nav a:hover, .nav a[aria-current="page"] {
-        border-color: var(--line);
-        background: var(--glass);
-        color: #fff;
-      }
-
-      main {
-        display: grid;
-        min-height: calc(100vh - 85px);
-        align-items: center;
-        padding-block: 70px;
-      }
-
-      .hero {
-        position: relative;
-        overflow: hidden;
-        padding: clamp(32px, 7vw, 82px);
-        border: 1px solid var(--line);
-        border-radius: 32px;
-        background: linear-gradient(135deg, rgba(255,255,255,.11), rgba(255,255,255,.035));
-        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.28);
-        backdrop-filter: blur(22px);
-      }
-
-      .hero::after {
-        position: absolute;
-        top: -110px;
-        right: -80px;
-        width: 340px;
-        height: 340px;
-        border-radius: 50%;
-        background: rgba(116, 150, 255, 0.13);
-        content: "";
-        filter: blur(3px);
-        pointer-events: none;
-      }
-
-      .eyebrow {
-        margin: 0 0 18px;
-        color: var(--accent);
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.19em;
-        text-transform: uppercase;
-      }
-
-      h1 {
-        max-width: 720px;
-        margin: 0;
-        font-size: clamp(2.7rem, 8vw, 5.7rem);
-        letter-spacing: -0.055em;
-        line-height: 1.06;
-      }
-
-      .intro {
-        max-width: 570px;
-        margin: 24px 0 0;
-        color: var(--muted);
-        font-size: clamp(1rem, 2vw, 1.13rem);
-        line-height: 1.8;
-      }
-
-      .hero-link {
-        display: inline-flex;
-        position: relative;
-        z-index: 1;
-        align-items: center;
-        gap: 10px;
-        margin-top: 34px;
-        padding: 13px 19px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.12);
-        color: #fff;
-        font-weight: 650;
-        text-decoration: none;
-        transition: transform 160ms ease, background 160ms ease;
-      }
-
-      .hero-link:hover { transform: translateY(-2px); background: rgba(255,255,255,.19); }
-      .hero-link span { font-size: 1.2rem; }
-
-      @media (max-width: 540px) {
-        .shell { width: min(100% - 28px, 1120px); }
-        .topbar { min-height: 72px; }
-        .brand { font-size: 0.8rem; }
-        .nav { gap: 0; }
-        .nav a { padding: 9px 10px; font-size: 0.8rem; }
-        .hero { border-radius: 24px; }
-      }
-    </style>
+    <meta name="theme-color" content="#10172b">
+    <meta
+      name="description"
+      content="即時天氣、生活氣象與未來七日預報，陪你掌握每一天。"
+    >
+    <title>晴時 — 天氣，剛剛好</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
   </head>
   <body>
-    <div class="shell">
+    <main class="app-shell">
       <header class="topbar">
-        <a class="brand" href="index.html">個人作品集</a>
-        <nav class="nav" aria-label="主要導覽">
-          <a href="index.html" aria-current="page">首頁</a>
-          <a href="weather.html">天氣</a>
-        </nav>
+        <a class="brand" href="#" aria-label="晴時首頁">
+          <span class="brand-mark" aria-hidden="true">☼</span>
+          <span>晴時<span class="brand-period">.</span></span>
+        </a>
+        <p class="topbar-note">讓每一天，都有好天氣的預感</p>
+        <div class="live-indicator">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span>即時天氣</span>
+        </div>
       </header>
-      <main>
-        <section class="hero" aria-labelledby="welcome-title">
-          <p class="eyebrow">PERSONAL PORTFOLIO</p>
-          <h1 id="welcome-title">你好，<br>歡迎來到我的網站。</h1>
-          <p class="intro">探索我的個人作品集，或查看即時天氣與未來一週的預報。</p>
-          <a class="hero-link" href="weather.html">探索天氣 App <span aria-hidden="true">→</span></a>
+
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow"><span aria-hidden="true">✦</span> 你的每日氣象指南</p>
+        <h1 id="page-title">天氣，<span>剛剛好。</span></h1>
+        <p class="intro-copy">下一場陽光，或一陣微風，都為你準備好了。</p>
+
+        <form class="search-form" id="search-form" role="search">
+          <label class="sr-only" for="city-search">搜尋城市</label>
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input
+            id="city-search"
+            name="city"
+            type="search"
+            placeholder="搜尋城市，例如：臺北、東京"
+            autocomplete="off"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-controls="suggestions"
+            aria-expanded="false"
+          >
+          <button class="search-button" type="submit">
+            <span>搜尋</span>
+            <span aria-hidden="true">↗</span>
+          </button>
+          <ul class="suggestions" id="suggestions" role="listbox" hidden></ul>
+        </form>
+        <p class="search-hint">試試搜尋一座城市，看看那裡的天空。</p>
+      </section>
+
+      <section class="weather-section" aria-label="目前天氣與未來預報">
+        <div class="section-heading">
+          <div class="location-heading">
+            <span class="section-kicker">你所在的天空</span>
+            <h2 id="location-name">桃園</h2>
+            <p id="location-detail">正在取得天氣資料…</p>
+          </div>
+          <div class="updated-label">
+            <span class="updated-dot" aria-hidden="true"></span>
+            <span id="updated-at">即時更新</span>
+          </div>
+        </div>
+
+        <div class="weather-grid">
+          <article class="current-card glass-card" aria-labelledby="current-title" aria-busy="true">
+            <div class="current-card-top">
+              <div>
+                <p class="card-eyebrow" id="current-title">現在的天氣</p>
+                <p class="weather-date" id="current-date">—</p>
+              </div>
+              <span class="weather-symbol" id="current-icon" aria-hidden="true">☀️</span>
+            </div>
+            <div class="temperature-row">
+              <p class="temperature" id="current-temperature">--<span>°C</span></p>
+              <div class="current-summary">
+                <p class="condition" id="current-condition">載入中</p>
+                <p class="feels-like">體感 <span id="feels-like">--</span>°C</p>
+              </div>
+            </div>
+            <div class="current-card-footer">
+              <span><span class="footer-icon" aria-hidden="true">⌁</span> 今日天氣，一目瞭然</span>
+              <span class="footer-sparkle" aria-hidden="true">✳</span>
+            </div>
+          </article>
+
+          <div class="metrics-grid" aria-label="天氣詳細資訊">
+            <article class="metric-card glass-card">
+              <span class="metric-icon humidity-icon" aria-hidden="true">◉</span>
+              <p class="metric-label">相對濕度</p>
+              <p class="metric-value" id="humidity">--<span>%</span></p>
+              <p class="metric-note">空氣中的水分</p>
+            </article>
+            <article class="metric-card glass-card">
+              <span class="metric-icon wind-icon" aria-hidden="true">≋</span>
+              <p class="metric-label">風速</p>
+              <p class="metric-value" id="wind-speed">--<span> km/h</span></p>
+              <p class="metric-note" id="wind-note">微風狀態</p>
+            </article>
+            <article class="metric-card glass-card">
+              <span class="metric-icon uv-icon" aria-hidden="true">☼</span>
+              <p class="metric-label">紫外線指數</p>
+              <p class="metric-value" id="uv-index">--</p>
+              <p class="metric-note" id="uv-note">日光防護提醒</p>
+            </article>
+          </div>
+        </div>
+
+        <section class="forecast-section" aria-labelledby="forecast-title">
+          <div class="forecast-heading">
+            <div>
+              <p class="section-kicker">接下來的日子</p>
+              <h2 id="forecast-title">未來七日</h2>
+            </div>
+            <span class="forecast-caption">七天的天氣，提前掌握</span>
+          </div>
+          <div class="forecast-grid" id="forecast-list" aria-live="polite">
+            <p class="forecast-placeholder">正在為你準備一週的天氣…</p>
+          </div>
         </section>
-      </main>
-    </div>
+      </section>
+
+      <p class="page-message" id="page-message" role="status" aria-live="polite"></p>
+
+      <footer class="footer">
+        <span>把天氣收進日常，讓出門從容一點。</span>
+        <span>氣象資料由 Open-Meteo 提供</span>
+      </footer>
+    </main>
   </body>
 </html>
