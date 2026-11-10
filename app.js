@@ -1,6 +1,12 @@
 const GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
+const RAINVIEWER_URL = "https://api.rainviewer.com/public/weather-maps.json";
 const DEFAULT_CITY = "Taoyuan";
+const RADAR_WINDOW_SECONDS = 2 * 60 * 60;
+const RADAR_FRAME_INTERVAL_MS = 600;
+const BASE_MAP_URL =
+  "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}";
+const RADAR_TILE_URL = "https://tilecache.rainviewer.com";
 const CITY_ALIASES = new Map([
   ["桃園", "Taoyuan"],
   ["桃園市", "Taoyuan"],
@@ -64,6 +70,12 @@ const elements = {
   uvNote: document.querySelector("#uv-note"),
   forecastList: document.querySelector("#forecast-list"),
   pageMessage: document.querySelector("#page-message"),
+  radarMap: document.querySelector("#radar-map"),
+  radarStatus: document.querySelector("#radar-status"),
+  radarPlay: document.querySelector("#radar-play"),
+  radarPlayLabel: document.querySelector("#radar-play-label"),
+  radarTimeline: document.querySelector("#radar-timeline"),
+  radarTime: document.querySelector("#radar-time"),
 };
 
 const weekdayFormatter = new Intl.DateTimeFormat("zh-TW", {
@@ -76,6 +88,15 @@ let suggestionController;
 let weatherController;
 let debounceTimer;
 let requestId = 0;
+let radarMap;
+let radarLayer;
+let radarFrames = [];
+let radarFrameIndex = 0;
+let radarTimer;
+let radarController;
+let radarRequestId = 0;
+let radarTimeZone = "UTC";
+let radarTileHost = RADAR_TILE_URL;
 
 function getWeatherDescription(code) {
   if (code === 0) return { text: "晴朗", icon: "☀️" };
@@ -138,10 +159,10 @@ function getPreferredPlace(places) {
   );
 }
 
-async function fetchJson(url, signal) {
+async function fetchJson(url, signal, serviceName = "天氣服務") {
   const response = await fetch(url, { signal });
   if (!response.ok) {
-    throw new Error(`天氣服務回應錯誤（${response.status}）。請稍後再試。`);
+    throw new Error(`${serviceName}回應錯誤（${response.status}）。請稍後再試。`);
   }
   return response.json();
 }
@@ -294,6 +315,160 @@ function renderWeather(place, data) {
   renderForecast(data.daily);
 }
 
+function stopRadarPlayback() {
+  window.clearInterval(radarTimer);
+  radarTimer = undefined;
+  elements.radarPlayLabel.textContent = "播放";
+  elements.radarPlay.querySelector("[aria-hidden='true']").textContent = "▶";
+  elements.radarPlay.setAttribute("aria-label", "播放雷達動畫");
+}
+
+function renderRadarFrame(index) {
+  const frame = radarFrames[index];
+  if (!frame || !radarMap) return;
+
+  radarFrameIndex = index;
+  if (radarLayer) radarMap.removeLayer(radarLayer);
+  radarLayer = L.tileLayer(
+    `${radarTileHost}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
+    {
+      opacity: 0.72,
+      tileSize: 256,
+      zIndex: 10,
+      maxNativeZoom: 7,
+      attribution:
+        '<a href="https://www.rainviewer.com/" target="_blank" rel="noopener noreferrer">RainViewer</a>',
+    },
+  ).addTo(radarMap);
+  elements.radarTimeline.value = String(index);
+  elements.radarTime.textContent = new Intl.DateTimeFormat("zh-TW", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: radarTimeZone,
+  }).format(new Date(frame.time * 1000));
+}
+
+function setRadarFrames(frames) {
+  stopRadarPlayback();
+  radarFrames = frames;
+  elements.radarTimeline.max = String(Math.max(0, frames.length - 1));
+  elements.radarTimeline.disabled = frames.length === 0;
+  elements.radarPlay.disabled = frames.length < 2;
+
+  if (frames.length === 0) {
+    elements.radarStatus.textContent = "目前沒有可用的降雨雷達影格。";
+    elements.radarTime.textContent = "--:--";
+    return;
+  }
+
+  renderRadarFrame(frames.length - 1);
+  elements.radarStatus.textContent = `顯示過去兩小時的降雨動態，共 ${frames.length} 個影格`;
+}
+
+function initializeRadarMap(place) {
+  if (radarMap) {
+    radarMap.setView([place.latitude, place.longitude], radarMap.getZoom(), {
+      animate: true,
+    });
+    return true;
+  }
+  if (!window.L) {
+    elements.radarStatus.textContent = "地圖元件載入失敗，請重新整理頁面再試一次。";
+    return false;
+  }
+
+  radarMap = L.map(elements.radarMap, {
+    center: [place.latitude, place.longitude],
+    zoom: 7,
+    minZoom: 2,
+    maxZoom: 12,
+    scrollWheelZoom: false,
+  });
+  L.tileLayer(BASE_MAP_URL, {
+    maxZoom: 16,
+    attribution:
+      "Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors, and the GIS user community",
+  }).addTo(radarMap);
+  radarMap.attributionControl.setPrefix("");
+  return true;
+}
+
+async function updateRadar(place) {
+  const currentRadarRequestId = ++radarRequestId;
+  radarController?.abort();
+  radarController = new AbortController();
+  radarTimeZone = place.timezone || "UTC";
+  stopRadarPlayback();
+  elements.radarStatus.textContent = "正在載入雷達資料…";
+  elements.radarPlay.disabled = true;
+  elements.radarTimeline.disabled = true;
+
+  if (!initializeRadarMap(place)) return;
+  window.requestAnimationFrame(() => radarMap?.invalidateSize());
+
+  try {
+    const data = await fetchJson(
+      RAINVIEWER_URL,
+      radarController.signal,
+      "雷達服務",
+    );
+    if (currentRadarRequestId !== radarRequestId) return;
+    const tileHost = new URL(data.host);
+    if (tileHost.protocol !== "https:") {
+      throw new Error("雷達服務提供了無效的地圖來源。");
+    }
+    radarTileHost = tileHost.origin;
+    const pastFrames = data.radar?.past ?? [];
+    const latestTime = pastFrames.at(-1)?.time ?? data.generated;
+    const cutoff = latestTime - RADAR_WINDOW_SECONDS;
+    const recentFrames = pastFrames.filter((frame) => frame.time >= cutoff);
+    if (recentFrames.length > 0) {
+      setRadarFrames(recentFrames);
+    } else {
+      if (radarLayer) {
+        radarMap.removeLayer(radarLayer);
+        radarLayer = undefined;
+      }
+      setRadarFrames([]);
+    }
+  } catch (error) {
+    if (error.name === "AbortError" || currentRadarRequestId !== radarRequestId) return;
+    stopRadarPlayback();
+    radarFrames = [];
+    if (radarLayer) {
+      radarMap?.removeLayer(radarLayer);
+      radarLayer = undefined;
+    }
+    elements.radarPlay.disabled = true;
+    elements.radarTimeline.disabled = true;
+    elements.radarStatus.textContent =
+      error instanceof Error ? error.message : "雷達資料載入失敗，請稍後再試。";
+  }
+}
+
+elements.radarPlay.addEventListener("click", () => {
+  if (radarFrames.length < 2) return;
+  if (radarTimer) {
+    stopRadarPlayback();
+    return;
+  }
+
+  if (radarFrameIndex >= radarFrames.length - 1) renderRadarFrame(0);
+  elements.radarPlayLabel.textContent = "暫停";
+  elements.radarPlay.querySelector("[aria-hidden='true']").textContent = "Ⅱ";
+  elements.radarPlay.setAttribute("aria-label", "暫停雷達動畫");
+  radarTimer = window.setInterval(() => {
+    const nextIndex = (radarFrameIndex + 1) % radarFrames.length;
+    renderRadarFrame(nextIndex);
+  }, RADAR_FRAME_INTERVAL_MS);
+});
+
+elements.radarTimeline.addEventListener("input", () => {
+  stopRadarPlayback();
+  renderRadarFrame(Number(elements.radarTimeline.value));
+});
+
 async function loadWeather(place) {
   const currentRequestId = ++requestId;
   weatherController?.abort();
@@ -302,6 +477,7 @@ async function loadWeather(place) {
   elements.locationName.textContent = getLocationName(place);
   elements.locationDetail.textContent = getLocationDetail(place);
   elements.currentCard.setAttribute("aria-busy", "true");
+  void updateRadar(place);
 
   const url = new URL(FORECAST_URL);
   url.search = new URLSearchParams({

@@ -9,7 +9,19 @@
       content="即時天氣、生活氣象與未來七日預報，陪你掌握每一天。"
     >
     <title>晴時 — 天氣，剛剛好</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    >
     <link rel="stylesheet" href="styles.css">
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+      defer
+    ></script>
     <script src="app.js" defer></script>
   </head>
   <body>
@@ -110,6 +122,44 @@
             </article>
           </div>
         </div>
+
+        <section class="radar-section" aria-labelledby="radar-title">
+          <div class="radar-heading">
+            <div>
+              <p class="section-kicker">即時雷達回波</p>
+              <h2 id="radar-title">雨雲動態</h2>
+            </div>
+            <span class="radar-live"><span aria-hidden="true"></span> RainViewer</span>
+          </div>
+          <div class="radar-map-shell">
+            <div
+              id="radar-map"
+              role="application"
+              aria-label="雨雲雷達地圖，可拖曳與縮放"
+              aria-describedby="radar-status"
+            ></div>
+            <p class="radar-status" id="radar-status" role="status" aria-live="polite">
+              正在載入雷達資料…
+            </p>
+          </div>
+          <div class="radar-controls">
+            <button class="radar-play" id="radar-play" type="button" disabled>
+              <span aria-hidden="true">▶</span>
+              <span id="radar-play-label">播放</span>
+            </button>
+            <input
+              class="radar-timeline"
+              id="radar-timeline"
+              type="range"
+              min="0"
+              max="0"
+              value="0"
+              aria-label="雷達時間軸"
+              disabled
+            >
+            <span class="radar-time" id="radar-time">--:--</span>
+          </div>
+        </section>
 
         <section class="forecast-section" aria-labelledby="forecast-title">
           <div class="forecast-heading">
