@@ -819,62 +819,140 @@ h1 span {
 }
 
 .assistant-response-drawer {
-  display: grid;
-  gap: 12px;
-  min-height: 42px;
-  padding: 11px 12px;
+  min-width: 0;
+  padding: 10px;
   border: 1px solid rgb(190 205 255 / 9%);
   border-radius: 12px;
-  background: rgb(20 30 53 / 38%);
+  background: rgb(14 22 40 / 48%);
+}
+
+.assistant-chat-history {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  max-height: 330px;
+  min-height: 96px;
+  flex-direction: column;
+  gap: 12px;
+  overflow: auto;
+  padding: 4px;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  scrollbar-color: rgb(174 166 255 / 36%) transparent;
+  scrollbar-width: thin;
+}
+
+.assistant-chat-message {
+  width: fit-content;
+  max-width: min(88%, 680px);
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgb(190 205 255 / 10%);
+  border-radius: 14px;
   font-size: 10px;
   line-height: 1.7;
 }
 
-.assistant-response-label {
-  margin: 0 0 4px;
+.assistant-chat-message-ai {
+  align-self: flex-start;
+  border-top-left-radius: 5px;
+  color: #d3dbee;
+  background: linear-gradient(135deg, rgb(41 55 86 / 72%), rgb(25 36 61 / 80%));
+  box-shadow: inset 0 1px rgb(255 255 255 / 4%);
+}
+
+.assistant-chat-message-user {
+  align-self: flex-end;
+  border-color: rgb(179 207 255 / 35%);
+  border-top-right-radius: 5px;
+  color: #17243b;
+  background: linear-gradient(135deg, #dce8ff, #b9d1f6);
+  box-shadow: 0 6px 18px rgb(5 10 25 / 15%);
+}
+
+.assistant-chat-role {
+  margin: 0 0 3px;
   color: #8996b3;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-.assistant-response-question,
-.assistant-response-answer {
-  margin: 0 0 10px;
-  color: #c1cbe0;
+.assistant-chat-message-user .assistant-chat-role {
+  color: #526785;
+}
+
+.assistant-chat-text {
+  margin: 0;
+  overflow-wrap: anywhere;
   white-space: pre-line;
 }
 
-.assistant-response-question[hidden] {
-  display: none;
+.assistant-chat-composer {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.assistant-response-question:not([hidden]) {
-  padding: 8px 10px;
-  border: 1px solid rgb(190 205 255 / 8%);
-  border-radius: 9px;
-  color: #d7ddf0;
-  background: rgb(255 255 255 / 3%);
+.assistant-chat-composer input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgb(190 205 255 / 15%);
+  border-radius: 11px;
+  outline: 0;
+  color: var(--ink);
+  background: rgb(20 30 53 / 62%);
+  font-size: 10px;
 }
 
-.assistant-response-answer {
-  margin-bottom: 0;
+.assistant-chat-composer input::placeholder {
+  color: #7886a5;
+}
+
+.assistant-chat-composer input:focus {
+  border-color: rgb(188 184 255 / 52%);
+  box-shadow: 0 0 0 3px rgb(157 145 255 / 10%);
+}
+
+.assistant-chat-send {
+  min-width: 58px;
+  padding: 0 13px;
+  border: 1px solid rgb(194 187 255 / 25%);
+  border-radius: 11px;
+  color: #efedff;
+  background: rgb(157 145 255 / 18%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.assistant-chat-send:hover {
+  border-color: rgb(194 187 255 / 48%);
+  background: rgb(157 145 255 / 29%);
+}
+
+.assistant-chat-send:focus-visible {
+  outline: 2px solid #d5d4ff;
+  outline-offset: 3px;
 }
 
 .assistant-action-card {
   display: flex;
+  max-width: 100%;
+  min-width: 0;
   align-items: flex-start;
   gap: 10px;
-  padding: 11px;
+  margin-top: 10px;
+  padding: 9px;
   border: 1px solid rgb(154 190 255 / 18%);
-  border-radius: 11px;
+  border-radius: 10px;
   background: linear-gradient(120deg, rgb(81 113 165 / 19%), rgb(118 99 180 / 15%));
   box-shadow: inset 0 1px rgb(255 255 255 / 4%);
-}
-
-.assistant-action-card[hidden] {
-  display: none;
 }
 
 .assistant-action-icon {
@@ -900,6 +978,7 @@ h1 span {
 }
 
 .assistant-action-card h3 {
+  overflow-wrap: anywhere;
   margin: 0 0 3px;
   color: #e7e9ff;
   font-size: 10px;
@@ -1035,6 +1114,16 @@ h1 span {
   background: linear-gradient(135deg, rgb(189 55 76 / 82%), rgb(128 38 63 / 88%));
 }
 
+.assistant-microphone.is-processing {
+  border-color: rgb(188 184 255 / 54%);
+  background: linear-gradient(135deg, rgb(121 111 210 / 36%), rgb(80 105 165 / 30%));
+}
+
+.assistant-microphone.is-speaking {
+  border-color: rgb(148 196 255 / 52%);
+  background: linear-gradient(135deg, rgb(89 143 193 / 36%), rgb(82 98 170 / 31%));
+}
+
 .assistant-microphone.is-listening::before,
 .assistant-microphone.is-listening::after {
   position: absolute;
@@ -1084,6 +1173,10 @@ h1 span {
   .assistant-microphone.is-listening::before,
   .assistant-microphone.is-listening::after {
     animation: none;
+  }
+
+  .assistant-chat-history {
+    scroll-behavior: auto;
   }
 }
 

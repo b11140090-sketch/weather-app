@@ -59,8 +59,17 @@ const translations = {
     weatherSpeechReady: "Dữ liệu thời tiết đã sẵn sàng. Nhấn nút để nghe bản tin.",
     statusLabel: "Trạng thái:",
     ready: "Sẵn sàng",
-    listening: "Đang nghe",
+    listening: "Đang nghe…",
+    processing: "AI đang trả lời…",
+    speaking: "AI đang trả lời…",
     askAssistant: "Hỏi Trợ lý AI",
+    micStateAccessible: "Hỏi Trợ lý AI, trạng thái: {state}",
+    chatInputLabel: "Nhập câu hỏi cho Trợ lý AI",
+    chatInputPlaceholder: "Nhập câu hỏi về thời tiết…",
+    chatSend: "Gửi",
+    chatUserRole: "Bạn",
+    chatAssistantRole: "Trợ lý AI",
+    chatHistoryLabel: "Lịch sử trò chuyện",
     quickPromptLabel: "Câu hỏi gợi ý",
     promptHealthRain: "Hôm nay có mưa không, nên mặc gì?",
     promptHealthUv: "UV hôm nay có ảnh hưởng da không?",
@@ -328,8 +337,17 @@ const translations = {
     weatherSpeechReady: "Weather data is ready. Press the button to hear the briefing.",
     statusLabel: "Status:",
     ready: "Ready",
-    listening: "Listening",
+    listening: "Listening…",
+    processing: "AI is responding…",
+    speaking: "AI is responding…",
     askAssistant: "Ask AI Assistant",
+    micStateAccessible: "Ask the AI assistant, status: {state}",
+    chatInputLabel: "Enter a question for the AI assistant",
+    chatInputPlaceholder: "Ask a weather question…",
+    chatSend: "Send",
+    chatUserRole: "You",
+    chatAssistantRole: "AI assistant",
+    chatHistoryLabel: "Chat history",
     quickPromptLabel: "Quick questions",
     promptHealthRain: "Will it rain today, and what should I wear?",
     promptHealthUv: "Could today's UV affect my skin?",
@@ -597,8 +615,17 @@ const translations = {
     weatherSpeechReady: "天氣資料載入後，即可聆聽中文天氣播報。",
     statusLabel: "狀態：",
     ready: "準備就緒",
-    listening: "正在聆聽",
+    listening: "正在聆聽…",
+    processing: "AI 正在回覆…",
+    speaking: "AI 正在回覆…",
     askAssistant: "詢問 AI 助理",
+    micStateAccessible: "詢問 AI 助理，狀態：{state}",
+    chatInputLabel: "輸入問題詢問 AI 助理",
+    chatInputPlaceholder: "輸入天氣問題…",
+    chatSend: "送出",
+    chatUserRole: "你",
+    chatAssistantRole: "AI 助理",
+    chatHistoryLabel: "對話紀錄",
     quickPromptLabel: "快速提問",
     promptHealthRain: "今天會下雨嗎？該穿什麼？",
     promptHealthUv: "今天的紫外線會影響皮膚嗎？",
@@ -855,17 +882,23 @@ function applyTranslations() {
 
 function changeLanguage(language) {
   if (!Object.hasOwn(translations, language)) return;
-  if (window.speechSynthesis?.speaking) window.speechSynthesis.cancel();
+  if (window.speechSynthesis?.speaking) {
+    speechGeneration += 1;
+    window.speechSynthesis.cancel();
+    if (assistantState === ASSISTANT_STATES.SPEAKING) {
+      setAssistantState(ASSISTANT_STATES.IDLE);
+    }
+  }
   currentLanguage = language;
   localStorage.setItem("selected_lang", language);
   applyTranslations();
+  setAssistantState(assistantState);
   renderAssistantQuickPrompts();
   routeAutocomplete.forEach((state) => {
     window.clearTimeout(state.timer);
     state.controller?.abort();
     closeRouteSuggestions(state);
   });
-  setVoiceState(isListening);
   if (speechRecognition) speechRecognition.lang = getSpeechLanguage();
   if (weatherContext) renderWeather(weatherContext.place, weatherContext.data);
   if (routeView) {
@@ -874,9 +907,7 @@ function changeLanguage(language) {
   }
   if (radarFrames.length) setRadarFrames(radarFrames);
   elements.assistantVoiceMessage.textContent = "";
-  if (lastVoiceQuestion) {
-    processAIQuery(lastVoiceQuestion, { speak: false });
-  }
+  renderAssistantChatHistory();
 }
 
 const CITY_ALIASES = new Map([
@@ -951,12 +982,11 @@ const elements = {
   assistantPersonaTabs: document.querySelector("#assistant-persona-tabs"),
   assistantMicrophone: document.querySelector("#assistant-microphone"),
   assistantVoiceState: document.querySelector("#assistant-voice-state"),
-  assistantVoiceAnswer: document.querySelector("#assistant-voice-answer"),
-  assistantResponseQuestion: document.querySelector("#assistant-response-question"),
+  assistantResponseDrawer: document.querySelector("#assistant-response-drawer"),
+  assistantChatHistory: document.querySelector("#assistant-chat-history"),
+  assistantChatForm: document.querySelector("#assistant-chat-form"),
+  assistantChatInput: document.querySelector("#assistant-chat-input"),
   assistantQuickPrompts: document.querySelector("#assistant-quick-prompts"),
-  assistantActionCard: document.querySelector("#assistant-action-card"),
-  assistantActionTitle: document.querySelector("#assistant-action-title"),
-  assistantActionSummary: document.querySelector("#assistant-action-summary"),
   assistantVoiceMessage: document.querySelector("#assistant-voice-message"),
   humidity: document.querySelector("#humidity"),
   windSpeed: document.querySelector("#wind-speed"),
@@ -1031,7 +1061,15 @@ let assistantPersona = "health";
 let speechRecognition;
 let isListening = false;
 let receivedVoiceResult = false;
-let lastVoiceQuestion = "";
+const ASSISTANT_STATES = Object.freeze({
+  IDLE: "IDLE",
+  LISTENING: "LISTENING",
+  PROCESSING: "PROCESSING",
+  SPEAKING: "SPEAKING",
+});
+let assistantState = ASSISTANT_STATES.IDLE;
+let assistantQueryId = 0;
+const assistantChatTurns = [];
 
 const WEATHER_BACKGROUND_VERTEX_SHADER = `
   attribute float aSize;
@@ -1565,10 +1603,10 @@ function analyzeAssistantIntent(text, persona) {
     if (isMatch([/\b(tam nhin|suong mu|nhin xa|visibility|fog)\b/, /能見度|能见度|霧|大霧/])) {
       return "logistics-visibility";
     }
-    if (isMatch([/\b(gio|cong trinh|giao hang|toc do|wind|construction|delivery|speed)\b/, /風速|大風|強風|風勢|风速|大风|强风|风势/])) {
+    if (isMatch([/\b(gio|cong trinh|toc do|wind|construction|speed)\b/, /風速|大風|強風|風勢|风速|大风|强风|风势/])) {
       return "logistics-wind";
     }
-    if (isMatch([/\b(an toan|di chuyen|di lai|duong di|van tai|van chuyen|giao thong|tai xe|route|travel|transport|traffic|road|safe|safety)\b/, /道路|工地|運輸|交通|安全/])) {
+    if (isMatch([/\b(an toan|di chuyen|di lai|duong di|giao hang|van tai|van chuyen|giao thong|tai xe|route|travel|transport|traffic|road|delivery|safe|safety)\b/, /道路|工地|運輸|交通|安全/])) {
       return "logistics-safety";
     }
   }
@@ -1602,18 +1640,18 @@ function getAssistantWeatherValues() {
   };
 }
 
-function getAssistantAnswer(text) {
+function getAssistantAnswer(text, persona = assistantPersona) {
   const values = getAssistantWeatherValues();
   if (!values) return t("noWeatherData");
 
-  const intent = analyzeAssistantIntent(text, assistantPersona);
+  const intent = analyzeAssistantIntent(text, persona);
   const temperature = values.currentTemperature;
   const uv = values.uvIndex;
   const rain = values.rainProbability;
   const wind = values.windSpeed;
   const range = values.temperatureRange;
 
-  if (assistantPersona === "health") {
+  if (persona === "health") {
     if (intent === "health-rain") {
       if (rain === undefined) return t("healthRainAnswerUnavailable");
       return t(rain >= 40 ? "healthRainAnswerHigh" : "healthRainAnswerLow", {
@@ -1650,7 +1688,7 @@ function getAssistantAnswer(text) {
     });
   }
 
-  if (assistantPersona === "fnb") {
+  if (persona === "fnb") {
     if (intent === "fnb-stock" || intent === "fnb-business") {
       return t("fnbBusinessAnswer", {
         temperature: temperature === undefined
@@ -1677,7 +1715,7 @@ function getAssistantAnswer(text) {
     });
   }
 
-  if (assistantPersona === "logistics") {
+  if (persona === "logistics") {
     if (intent === "logistics-safety") {
       return t("logisticsSafetyAnswer", {
         wind: wind === undefined ? t("noWindData") : Math.round(wind),
@@ -1747,34 +1785,134 @@ function getAssistantAction(intent) {
   return { title: t(titleKey), summary: t(summaryKey) };
 }
 
-function processAIQuery(queryText, { speak = true } = {}) {
-  const query = queryText.trim();
-  if (!query) return;
-  if (!weatherContext) {
-    elements.assistantVoiceMessage.textContent = t("weatherNotReady");
-    return;
-  }
-
-  lastVoiceQuestion = query;
-  const intent = analyzeAssistantIntent(query, assistantPersona);
-  const answer = getAssistantAnswer(query);
-  const action = getAssistantAction(intent);
-  elements.assistantResponseQuestion.textContent = query;
-  elements.assistantResponseQuestion.hidden = false;
-  elements.assistantVoiceAnswer.textContent = answer;
-  elements.assistantActionTitle.textContent = action.title;
-  elements.assistantActionSummary.textContent = action.summary;
-  elements.assistantActionCard.hidden = false;
-  elements.assistantVoiceMessage.textContent = "";
-  if (speak) speakAssistantAnswer(answer);
+function appendAssistantMessage(className, roleKey, text) {
+  const message = document.createElement("article");
+  const role = document.createElement("p");
+  const content = document.createElement("p");
+  message.className = `assistant-chat-message ${className}`;
+  role.className = "assistant-chat-role";
+  role.textContent = t(roleKey);
+  content.className = "assistant-chat-text";
+  content.textContent = text;
+  message.append(role, content);
+  return message;
 }
 
-function setVoiceState(listening) {
-  isListening = listening;
-  elements.assistantVoiceState.textContent = listening ? t("listening") : t("ready");
-  elements.assistantMicrophone.setAttribute("aria-pressed", String(listening));
-  elements.assistantMicrophone.classList.toggle("is-listening", listening);
-  elements.assistantSection.classList.toggle("is-listening", listening);
+function renderAssistantChatTurn(turn) {
+  const intent = analyzeAssistantIntent(turn.question, turn.persona);
+  const answer = getAssistantAnswer(turn.question, turn.persona);
+  const action = getAssistantAction(intent);
+  const assistantMessage = appendAssistantMessage(
+    "assistant-chat-message-ai",
+    "chatAssistantRole",
+    answer,
+  );
+  const actionCard = document.createElement("article");
+  const icon = document.createElement("span");
+  const content = document.createElement("div");
+  const eyebrow = document.createElement("p");
+  const title = document.createElement("h3");
+  const summary = document.createElement("p");
+
+  actionCard.className = "assistant-action-card";
+  icon.className = "assistant-action-icon";
+  icon.setAttribute("aria-hidden", "true");
+  icon.textContent = "✦";
+  eyebrow.className = "assistant-action-eyebrow";
+  eyebrow.textContent = t("actionCardLabel");
+  title.textContent = action.title;
+  summary.textContent = action.summary;
+  content.append(eyebrow, title, summary);
+  actionCard.append(icon, content);
+  assistantMessage.append(actionCard);
+  turn.answer = answer;
+  turn.action = action;
+  return [
+    appendAssistantMessage("assistant-chat-message-user", "chatUserRole", turn.question),
+    assistantMessage,
+  ];
+}
+
+function renderAssistantChatHistory() {
+  const fragment = document.createDocumentFragment();
+  if (assistantChatTurns.length === 0) {
+    const greeting = document.createElement("article");
+    greeting.className = "assistant-chat-message assistant-chat-message-ai assistant-chat-greeting";
+    greeting.textContent = t("voiceGreeting");
+    fragment.append(greeting);
+  } else {
+    for (const turn of assistantChatTurns) {
+      fragment.append(...renderAssistantChatTurn(turn));
+    }
+  }
+  elements.assistantChatHistory.replaceChildren(fragment);
+}
+
+function scrollAssistantChatToLatest() {
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  elements.assistantChatHistory.scrollTo({
+    top: elements.assistantChatHistory.scrollHeight,
+    behavior: reduceMotion ? "auto" : "smooth",
+  });
+}
+
+async function processAIQuery(queryText) {
+  const query = queryText.trim();
+  if (!query) return;
+  if (assistantState === ASSISTANT_STATES.LISTENING) stopVoiceRecognition();
+  const currentQueryId = ++assistantQueryId;
+  if (window.speechSynthesis?.speaking) {
+    speechGeneration += 1;
+    window.speechSynthesis.cancel();
+  }
+  assistantChatTurns.push({ question: query, persona: assistantPersona });
+  renderAssistantChatHistory();
+  setAssistantState(ASSISTANT_STATES.PROCESSING);
+  elements.assistantVoiceMessage.textContent = "";
+  await new Promise((resolve) => window.requestAnimationFrame(resolve));
+  if (currentQueryId !== assistantQueryId) return;
+  const turn = assistantChatTurns.at(-1);
+  const answer = getAssistantAnswer(query, turn.persona);
+  if ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window) {
+    speakAssistantAnswer(answer);
+  } else {
+    setAssistantState(ASSISTANT_STATES.IDLE);
+    elements.assistantVoiceMessage.textContent = t("voiceSpeakUnsupported");
+  }
+  scrollAssistantChatToLatest();
+}
+
+function setAssistantState(state) {
+  assistantState = state;
+  isListening = state === ASSISTANT_STATES.LISTENING;
+  const stateKey = {
+    [ASSISTANT_STATES.IDLE]: "ready",
+    [ASSISTANT_STATES.LISTENING]: "listening",
+    [ASSISTANT_STATES.PROCESSING]: "processing",
+    [ASSISTANT_STATES.SPEAKING]: "speaking",
+  }[state];
+  elements.assistantVoiceState.textContent = t(stateKey);
+  elements.assistantVoiceState.dataset.state = state;
+  elements.assistantMicrophone.setAttribute("aria-label", t("micStateAccessible", {
+    state: t(stateKey),
+  }));
+  elements.assistantMicrophone.dataset.state = state;
+  elements.assistantMicrophone.setAttribute("aria-pressed", String(isListening));
+  elements.assistantMicrophone.classList.toggle("is-listening", isListening);
+  elements.assistantMicrophone.classList.toggle("is-processing", state === ASSISTANT_STATES.PROCESSING);
+  elements.assistantMicrophone.classList.toggle("is-speaking", state === ASSISTANT_STATES.SPEAKING);
+  elements.assistantSection.classList.toggle("is-listening", isListening);
+}
+
+function finishVoiceRecognition() {
+  if (assistantState === ASSISTANT_STATES.LISTENING) {
+    setAssistantState(ASSISTANT_STATES.IDLE);
+  } else {
+    isListening = false;
+    elements.assistantMicrophone.setAttribute("aria-pressed", "false");
+    elements.assistantMicrophone.classList.remove("is-listening");
+    elements.assistantSection.classList.remove("is-listening");
+  }
 }
 
 function stopVoiceRecognition() {
@@ -1782,7 +1920,7 @@ function stopVoiceRecognition() {
   try {
     speechRecognition.stop();
   } catch (error) {
-    setVoiceState(false);
+    finishVoiceRecognition();
     elements.assistantVoiceMessage.textContent =
       t("voiceStopError", {
         error: error instanceof Error ? error.message : "unknown",
@@ -1794,28 +1932,37 @@ function speakAssistantAnswer(answer) {
   if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
     elements.assistantVoiceMessage.textContent =
       `${answer} ${t("voiceSpeakUnsupported")}`;
+    setAssistantState(ASSISTANT_STATES.IDLE);
     return;
   }
 
   if (window.speechSynthesis.speaking) {
+    speechGeneration += 1;
     window.speechSynthesis.cancel();
-    resetSpeechStatus(t("speakStopped"));
   }
   const utterance = new SpeechSynthesisUtterance(answer);
   const currentSpeechGeneration = ++speechGeneration;
   utterance.lang = getSpeechLanguage();
   utterance.rate = 0.96;
+  setAssistantState(ASSISTANT_STATES.SPEAKING);
   const vietnameseVoice = window.speechSynthesis
     .getVoices()
     .find((voice) => voice.lang.toLowerCase().startsWith(currentLanguage));
   if (vietnameseVoice) utterance.voice = vietnameseVoice;
+  utterance.onstart = () => {
+    if (currentSpeechGeneration === speechGeneration) {
+      setAssistantState(ASSISTANT_STATES.SPEAKING);
+    }
+  };
   utterance.onend = () => {
     if (currentSpeechGeneration === speechGeneration) {
+      setAssistantState(ASSISTANT_STATES.IDLE);
       elements.assistantVoiceMessage.textContent = t("voiceSpeakDone");
     }
   };
   utterance.onerror = (event) => {
     if (currentSpeechGeneration === speechGeneration) {
+      setAssistantState(ASSISTANT_STATES.IDLE);
       elements.assistantVoiceMessage.textContent = t("voiceSpeakError", { error: event.error });
     }
   };
@@ -1824,8 +1971,7 @@ function speakAssistantAnswer(answer) {
 
 function handleVoiceQuestion(transcript) {
   receivedVoiceResult = true;
-  stopVoiceRecognition();
-  processAIQuery(transcript);
+  void processAIQuery(transcript);
 }
 
 function configureVoiceAssistant() {
@@ -1843,7 +1989,7 @@ function configureVoiceAssistant() {
   speechRecognition.maxAlternatives = 1;
   speechRecognition.onstart = () => {
     receivedVoiceResult = false;
-    setVoiceState(true);
+    setAssistantState(ASSISTANT_STATES.LISTENING);
     elements.assistantVoiceMessage.textContent = t("voiceStart");
   };
   speechRecognition.onresult = (event) => {
@@ -1855,6 +2001,7 @@ function configureVoiceAssistant() {
     handleVoiceQuestion(transcript);
   };
   speechRecognition.onerror = (event) => {
+    setAssistantState(ASSISTANT_STATES.IDLE);
     const messages = {
       "not-allowed": "voiceNoPermission",
       "no-speech": "voiceNoSpeech",
@@ -1867,40 +2014,47 @@ function configureVoiceAssistant() {
         : t("voiceGenericError", { error: event.error });
   };
   speechRecognition.onend = () => {
-    setVoiceState(false);
-    if (!receivedVoiceResult && !elements.assistantVoiceMessage.textContent) {
+    const wasListening = assistantState === ASSISTANT_STATES.LISTENING;
+    finishVoiceRecognition();
+    if (wasListening && !receivedVoiceResult && !elements.assistantVoiceMessage.textContent) {
       elements.assistantVoiceMessage.textContent = t("voiceStopped");
     }
   };
 }
 
-function toggleVoiceRecognition() {
+function startVoiceRecognition() {
   if (!speechRecognition) {
     elements.assistantVoiceMessage.textContent = t("voiceUnavailable");
-    return;
+    return false;
   }
-  if (isListening) {
-    stopVoiceRecognition();
-    return;
-  }
-  if (!weatherContext) {
-    elements.assistantVoiceMessage.textContent = t("weatherNotReady");
-    return;
-  }
+  assistantQueryId += 1;
   receivedVoiceResult = false;
   elements.assistantVoiceMessage.textContent = "";
   if (window.speechSynthesis?.speaking) {
+    speechGeneration += 1;
     window.speechSynthesis.cancel();
-    resetSpeechStatus(t("speakStopped"));
   }
   try {
+    speechRecognition.lang = getSpeechLanguage();
+    setAssistantState(ASSISTANT_STATES.LISTENING);
     speechRecognition.start();
+    return true;
   } catch (error) {
+    setAssistantState(ASSISTANT_STATES.IDLE);
     elements.assistantVoiceMessage.textContent =
       t("voiceMicError", {
         error: error instanceof Error ? error.message : "unknown",
       });
+    return false;
   }
+}
+
+function toggleVoiceRecognition() {
+  if (assistantState === ASSISTANT_STATES.LISTENING) {
+    stopVoiceRecognition();
+    return;
+  }
+  startVoiceRecognition();
 }
 
 function selectAssistantPersona(persona) {
@@ -1918,12 +2072,7 @@ function selectAssistantPersona(persona) {
   const selectedTab = elements.assistantPersonaTabs.querySelector(
     `[data-persona="${persona}"]`,
   );
-  elements.assistantVoiceAnswer.setAttribute("aria-labelledby", selectedTab.id);
-  lastVoiceQuestion = "";
-  elements.assistantResponseQuestion.textContent = "";
-  elements.assistantResponseQuestion.hidden = true;
-  elements.assistantVoiceAnswer.textContent = t("voiceGreeting");
-  elements.assistantActionCard.hidden = true;
+  elements.assistantResponseDrawer.setAttribute("aria-labelledby", selectedTab.id);
   renderAssistantQuickPrompts();
   elements.assistantVoiceMessage.textContent = t(messages[persona]);
 }
@@ -2823,10 +2972,17 @@ elements.radarTimeline.addEventListener("input", () => {
 
 elements.assistantSpeak.addEventListener("click", toggleWeatherSpeech);
 elements.assistantMicrophone.addEventListener("click", toggleVoiceRecognition);
+elements.assistantChatForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const query = elements.assistantChatInput.value.trim();
+  if (!query) return;
+  elements.assistantChatInput.value = "";
+  void processAIQuery(query);
+});
 elements.assistantQuickPrompts.addEventListener("click", (event) => {
   const chip = event.target.closest("[data-prompt-key]");
   if (!chip || !elements.assistantQuickPrompts.contains(chip)) return;
-  processAIQuery(t(chip.dataset.promptKey));
+  void processAIQuery(t(chip.dataset.promptKey));
 });
 elements.languageSelect.addEventListener("change", (event) => {
   changeLanguage(event.target.value);
@@ -3083,5 +3239,6 @@ async function initialize() {
 }
 
 applyTranslations();
+setAssistantState(ASSISTANT_STATES.IDLE);
 renderAssistantQuickPrompts();
 initialize();

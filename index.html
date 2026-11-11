@@ -188,7 +188,7 @@
                 type="button"
                 role="tab"
                 aria-selected="true"
-                aria-controls="assistant-voice-answer"
+                aria-controls="assistant-response-drawer"
                 data-persona="health"
                 data-i18n="personaHealth"
               >Sức khỏe</button>
@@ -198,7 +198,7 @@
                 type="button"
                 role="tab"
                 aria-selected="false"
-                aria-controls="assistant-voice-answer"
+                aria-controls="assistant-response-drawer"
                 data-persona="fnb"
                 tabindex="-1"
                 data-i18n="personaFnb"
@@ -209,7 +209,7 @@
                 type="button"
                 role="tab"
                 aria-selected="false"
-                aria-controls="assistant-voice-answer"
+                aria-controls="assistant-response-drawer"
                 data-persona="logistics"
                 tabindex="-1"
                 data-i18n="personaLogistics"
@@ -251,29 +251,37 @@
             id="assistant-response-drawer"
             role="tabpanel"
             aria-labelledby="persona-health"
-            aria-live="polite"
           >
-            <div class="assistant-response-copy">
-              <p class="assistant-response-label" data-i18n="chatQuestionLabel">Câu hỏi của bạn</p>
-              <p class="assistant-response-question" id="assistant-response-question" hidden></p>
-              <p class="assistant-response-label" data-i18n="chatAnswerLabel">Trợ lý AI trả lời</p>
-              <p
-                class="assistant-response-answer"
-                id="assistant-voice-answer"
-                data-i18n="voiceGreeting"
-              >Chọn chuyên gia rồi nhấn “Hỏi Trợ lý AI” để bắt đầu.</p>
-            </div>
-            <article class="assistant-action-card" id="assistant-action-card" hidden>
-              <span class="assistant-action-icon" aria-hidden="true">✦</span>
-              <div>
-                <p class="assistant-action-eyebrow" data-i18n="actionCardLabel">Gợi ý hành động</p>
-                <h3 id="assistant-action-title"></h3>
-                <p id="assistant-action-summary"></p>
+            <div
+              class="assistant-chat-history"
+              id="assistant-chat-history"
+              role="log"
+              aria-live="polite"
+              aria-relevant="additions"
+              aria-label="Lịch sử trò chuyện"
+              data-i18n="chatHistoryLabel"
+              data-i18n-attr="aria-label"
+            >
+              <div class="assistant-chat-message assistant-chat-message-ai assistant-chat-greeting" data-i18n="voiceGreeting">
+                Chọn chuyên gia rồi nhấn “Hỏi Trợ lý AI” để bắt đầu.
               </div>
-            </article>
+            </div>
           </div>
+          <form class="assistant-chat-composer" id="assistant-chat-form">
+            <label class="sr-only" for="assistant-chat-input" data-i18n="chatInputLabel">Nhập câu hỏi cho Trợ lý AI</label>
+            <input
+              id="assistant-chat-input"
+              name="query"
+              type="text"
+              autocomplete="off"
+              placeholder="Nhập câu hỏi về thời tiết…"
+              data-i18n="chatInputPlaceholder"
+              data-i18n-attr="placeholder"
+            >
+            <button type="submit" class="assistant-chat-send" data-i18n="chatSend">Gửi</button>
+          </form>
           <div class="assistant-voice-controls">
-            <p class="assistant-voice-state">
+            <p class="assistant-voice-state" role="status" aria-live="polite">
               <span class="assistant-voice-indicator" aria-hidden="true"></span>
               <span data-i18n="statusLabel">Trạng thái:</span>
               <strong id="assistant-voice-state" data-i18n="ready">Sẵn sàng</strong>
