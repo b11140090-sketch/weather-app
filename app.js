@@ -63,7 +63,11 @@ const translations = {
     ready: "Sẵn sàng",
     listening: "Đang nghe…",
     processing: "AI đang trả lời…",
-    speaking: "AI đang trả lời…",
+    speaking: "AI đang nói…",
+    voiceListeningReply: "Micro đang lắng nghe câu trả lời của bạn…",
+    voiceConversationEnded: "Đã kết thúc cuộc trò chuyện bằng giọng nói.",
+    endVoiceConversation: "Dừng trò chuyện",
+    voiceChimeError: "Không thể phát âm báo: {error}",
     askAssistant: "Hỏi Trợ lý AI",
     micStateAccessible: "Hỏi Trợ lý AI, trạng thái: {state}",
     chatInputLabel: "Nhập câu hỏi cho Trợ lý AI",
@@ -353,7 +357,11 @@ const translations = {
     ready: "Ready",
     listening: "Listening…",
     processing: "AI is responding…",
-    speaking: "AI is responding…",
+    speaking: "AI is speaking…",
+    voiceListeningReply: "Microphone is listening for your reply…",
+    voiceConversationEnded: "Voice conversation ended.",
+    endVoiceConversation: "End conversation",
+    voiceChimeError: "Could not play the listening chime: {error}",
     askAssistant: "Ask AI Assistant",
     micStateAccessible: "Ask the AI assistant, status: {state}",
     chatInputLabel: "Enter a question for the AI assistant",
@@ -643,7 +651,11 @@ const translations = {
     ready: "準備就緒",
     listening: "正在聆聽…",
     processing: "AI 正在回覆…",
-    speaking: "AI 正在回覆…",
+    speaking: "AI 正在說話…",
+    voiceListeningReply: "麥克風正在聆聽你的回覆…",
+    voiceConversationEnded: "語音對話已結束。",
+    endVoiceConversation: "結束對話",
+    voiceChimeError: "無法播放提示音：{error}",
     askAssistant: "詢問 AI 助理",
     micStateAccessible: "詢問 AI 助理，狀態：{state}",
     chatInputLabel: "輸入問題詢問 AI 助理",
@@ -920,6 +932,8 @@ function applyTranslations() {
 
 function changeLanguage(language) {
   if (!Object.hasOwn(translations, language)) return;
+  const endedVoiceConversation = voiceConversationActive;
+  if (endedVoiceConversation) endVoiceConversation();
   if (window.speechSynthesis?.speaking) {
     speechGeneration += 1;
     window.speechSynthesis.cancel();
@@ -930,6 +944,9 @@ function changeLanguage(language) {
   currentLanguage = language;
   localStorage.setItem("selected_lang", language);
   applyTranslations();
+  if (endedVoiceConversation) {
+    elements.assistantVoiceMessage.textContent = t("voiceConversationEnded");
+  }
   elements.assistantGeminiStatus.textContent = geminiApiKeyForSession
     ? t("geminiKeyReady")
     : t("geminiKeyMissing");
@@ -1022,6 +1039,7 @@ const elements = {
   assistantSpeakStatus: document.querySelector("#assistant-speak-status"),
   assistantPersonaTabs: document.querySelector("#assistant-persona-tabs"),
   assistantMicrophone: document.querySelector("#assistant-microphone"),
+  assistantEndConversation: document.querySelector("#assistant-end-conversation"),
   assistantVoiceState: document.querySelector("#assistant-voice-state"),
   assistantResponseDrawer: document.querySelector("#assistant-response-drawer"),
   assistantChatHistory: document.querySelector("#assistant-chat-history"),
@@ -1104,6 +1122,9 @@ let routeView;
 let assistantPersona = "health";
 let speechRecognition;
 let isListening = false;
+let voiceConversationActive = false;
+let voiceRestartTimer;
+let conversationAudioContext;
 let receivedVoiceResult = false;
 const ASSISTANT_STATES = Object.freeze({
   IDLE: "IDLE",
@@ -1116,6 +1137,7 @@ let assistantQueryId = 0;
 let assistantController;
 let geminiApiKeyForSession = "";
 const assistantChatTurns = [];
+const conversationHistory = [];
 
 const WEATHER_BACKGROUND_VERTEX_SHADER = `
   attribute float aSize;
@@ -1710,7 +1732,13 @@ function getGeminiWeatherData() {
   };
 }
 
-async function askGeminiAI(userQuery, weatherData, currentPersona, currentLang) {
+async function askGeminiAI(
+  userQuery,
+  weatherData,
+  currentPersona,
+  currentLang,
+  history = conversationHistory,
+) {
   if (!geminiApiKeyForSession) {
     throw new Error(t("geminiFallbackNoKey"));
   }
@@ -1729,10 +1757,11 @@ async function askGeminiAI(userQuery, weatherData, currentPersona, currentLang) 
   };
   const languageName = languageNames[currentLang] ?? "English";
   const systemPrompt =
-    `Bạn là Cố vấn Quyết định (MIS Decision Support AI) cho phân khúc ${personaName}. ` +
+    `Bạn là Trợ lý AI Cố vấn Đa đàm thoại (Conversational Decision Support AI) cho mảng ${personaName}. ` +
     `Dữ liệu thời tiết realtime: ${JSON.stringify(weatherData)}. ` +
-    `Trả lời câu hỏi của người dùng bằng ngôn ngữ ${languageName}. ` +
-    "Hãy phân tích tác động rủi ro và đưa ra lời khuyên thiết thực dưới 3 câu ngắn gọn để trợ lý đọc bằng giọng nói.";
+    `Lịch sử đàm thoại: ${JSON.stringify(history)}. ` +
+    `Trả lời bằng ${languageName} ngắn gọn (dưới 3 câu ngắn). ` +
+    "ĐẶC BIỆT: Cuối câu trả lời, hãy LUÔN CHỦ ĐỘNG HỎI NGƯỢC LẠI NGƯỜI DÙNG 1 câu hỏi tình huống thực tế liên quan đến thời tiết và bài toán của họ để tiếp tục cuộc trò chuyện.";
   const url = new URL(GEMINI_API_URL);
   url.searchParams.set("key", geminiApiKeyForSession);
   const response = await fetch(url, {
@@ -1743,7 +1772,13 @@ async function askGeminiAI(userQuery, weatherData, currentPersona, currentLang) 
       systemInstruction: {
         parts: [{ text: systemPrompt }],
       },
-      contents: [{ role: "user", parts: [{ text: userQuery }] }],
+      contents: [
+        ...history.map(({ role, text }) => ({
+          role: role === "assistant" ? "model" : "user",
+          parts: [{ text }],
+        })),
+        { role: "user", parts: [{ text: userQuery }] },
+      ],
       generationConfig: {
         temperature: 0.4,
         maxOutputTokens: 180,
@@ -2072,6 +2107,10 @@ async function processAIQuery(queryText) {
   if (currentQueryId !== assistantQueryId) return;
   turn.answer = answer;
   turn.provider = provider;
+  conversationHistory.push(
+    { role: "user", text: query },
+    { role: "assistant", text: answer },
+  );
   renderAssistantChatHistory();
   if (fallbackMessage) {
     elements.assistantVoiceMessage.textContent = fallbackMessage;
@@ -2105,6 +2144,9 @@ function setAssistantState(state) {
   elements.assistantMicrophone.classList.toggle("is-processing", state === ASSISTANT_STATES.PROCESSING);
   elements.assistantMicrophone.classList.toggle("is-speaking", state === ASSISTANT_STATES.SPEAKING);
   elements.assistantSection.classList.toggle("is-listening", isListening);
+  elements.assistantSection.classList.toggle("is-speaking", state === ASSISTANT_STATES.SPEAKING);
+  elements.assistantSection.classList.toggle("is-processing", state === ASSISTANT_STATES.PROCESSING);
+  elements.assistantEndConversation.disabled = !voiceConversationActive;
 }
 
 function finishVoiceRecognition() {
@@ -2131,8 +2173,59 @@ function stopVoiceRecognition() {
   }
 }
 
+function playConversationChime() {
+  if (!conversationAudioContext) return;
+  void conversationAudioContext
+    .resume()
+    .then(() => {
+      if (!voiceConversationActive) return;
+      const oscillator = conversationAudioContext.createOscillator();
+      const gain = conversationAudioContext.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.value = 740;
+      gain.gain.setValueAtTime(0.0001, conversationAudioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(
+        0.12,
+        conversationAudioContext.currentTime + 0.015,
+      );
+      gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        conversationAudioContext.currentTime + 0.16,
+      );
+      oscillator.connect(gain);
+      gain.connect(conversationAudioContext.destination);
+      oscillator.start();
+      oscillator.stop(conversationAudioContext.currentTime + 0.17);
+    })
+    .catch((error) => {
+      elements.assistantVoiceMessage.textContent = t("voiceChimeError", {
+        error: error instanceof Error ? error.message : "unknown",
+      });
+    });
+}
+
+function endVoiceConversation() {
+  voiceConversationActive = false;
+  window.clearTimeout(voiceRestartTimer);
+  voiceRestartTimer = undefined;
+  assistantQueryId += 1;
+  assistantController?.abort();
+  assistantController = undefined;
+  resolvePendingAssistantTurns();
+  if (window.speechSynthesis?.speaking) {
+    speechGeneration += 1;
+    window.speechSynthesis.cancel();
+  }
+  stopVoiceRecognition();
+  setAssistantState(ASSISTANT_STATES.IDLE);
+  elements.assistantVoiceMessage.textContent = t("voiceConversationEnded");
+}
+
 function speakAssistantAnswer(answer) {
   if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
+    voiceConversationActive = false;
+    window.clearTimeout(voiceRestartTimer);
+    voiceRestartTimer = undefined;
     elements.assistantVoiceMessage.textContent =
       `${answer} ${t("voiceSpeakUnsupported")}`;
     setAssistantState(ASSISTANT_STATES.IDLE);
@@ -2159,12 +2252,25 @@ function speakAssistantAnswer(answer) {
   };
   utterance.onend = () => {
     if (currentSpeechGeneration === speechGeneration) {
-      setAssistantState(ASSISTANT_STATES.IDLE);
-      elements.assistantVoiceMessage.textContent = t("voiceSpeakDone");
+      if (voiceConversationActive) {
+        setAssistantState(ASSISTANT_STATES.IDLE);
+        elements.assistantVoiceMessage.textContent = t("voiceListeningReply");
+        playConversationChime();
+        voiceRestartTimer = window.setTimeout(() => {
+          voiceRestartTimer = undefined;
+          if (voiceConversationActive) startVoiceRecognition();
+        }, 800);
+      } else {
+        setAssistantState(ASSISTANT_STATES.IDLE);
+        elements.assistantVoiceMessage.textContent = t("voiceSpeakDone");
+      }
     }
   };
   utterance.onerror = (event) => {
     if (currentSpeechGeneration === speechGeneration) {
+      voiceConversationActive = false;
+      window.clearTimeout(voiceRestartTimer);
+      voiceRestartTimer = undefined;
       setAssistantState(ASSISTANT_STATES.IDLE);
       elements.assistantVoiceMessage.textContent = t("voiceSpeakError", { error: event.error });
     }
@@ -2193,7 +2299,9 @@ function configureVoiceAssistant() {
   speechRecognition.onstart = () => {
     receivedVoiceResult = false;
     setAssistantState(ASSISTANT_STATES.LISTENING);
-    elements.assistantVoiceMessage.textContent = t("voiceStart");
+    elements.assistantVoiceMessage.textContent = t(
+      voiceConversationActive ? "voiceListeningReply" : "voiceStart",
+    );
   };
   speechRecognition.onresult = (event) => {
     const transcript = event.results?.[0]?.[0]?.transcript?.trim();
@@ -2204,6 +2312,9 @@ function configureVoiceAssistant() {
     handleVoiceQuestion(transcript);
   };
   speechRecognition.onerror = (event) => {
+    voiceConversationActive = false;
+    window.clearTimeout(voiceRestartTimer);
+    voiceRestartTimer = undefined;
     setAssistantState(ASSISTANT_STATES.IDLE);
     const messages = {
       "not-allowed": "voiceNoPermission",
@@ -2231,6 +2342,7 @@ function startVoiceRecognition() {
     return false;
   }
   assistantQueryId += 1;
+  voiceConversationActive = true;
   receivedVoiceResult = false;
   elements.assistantVoiceMessage.textContent = "";
   if (window.speechSynthesis?.speaking) {
@@ -2238,11 +2350,23 @@ function startVoiceRecognition() {
     window.speechSynthesis.cancel();
   }
   try {
+    const AudioContextConstructor = window.AudioContext ?? window.webkitAudioContext;
+    if (!conversationAudioContext && AudioContextConstructor) {
+      conversationAudioContext = new AudioContextConstructor();
+    }
+    if (conversationAudioContext?.state === "suspended") {
+      void conversationAudioContext.resume().catch((error) => {
+        elements.assistantVoiceMessage.textContent = t("voiceChimeError", {
+          error: error instanceof Error ? error.message : "unknown",
+        });
+      });
+    }
     speechRecognition.lang = getSpeechLanguage();
     setAssistantState(ASSISTANT_STATES.LISTENING);
     speechRecognition.start();
     return true;
   } catch (error) {
+    voiceConversationActive = false;
     setAssistantState(ASSISTANT_STATES.IDLE);
     elements.assistantVoiceMessage.textContent =
       t("voiceMicError", {
@@ -2254,6 +2378,9 @@ function startVoiceRecognition() {
 
 function toggleVoiceRecognition() {
   if (assistantState === ASSISTANT_STATES.LISTENING) {
+    voiceConversationActive = false;
+    window.clearTimeout(voiceRestartTimer);
+    voiceRestartTimer = undefined;
     stopVoiceRecognition();
     return;
   }
@@ -3175,6 +3302,7 @@ elements.radarTimeline.addEventListener("input", () => {
 
 elements.assistantSpeak.addEventListener("click", toggleWeatherSpeech);
 elements.assistantMicrophone.addEventListener("click", toggleVoiceRecognition);
+elements.assistantEndConversation.addEventListener("click", endVoiceConversation);
 elements.assistantGeminiKeyForm.addEventListener("submit", (event) => {
   event.preventDefault();
   geminiApiKeyForSession = elements.assistantGeminiKey.value.trim();
@@ -3289,6 +3417,7 @@ document.addEventListener("click", (event) => {
 
 async function loadWeather(place) {
   const currentRequestId = ++requestId;
+  if (voiceConversationActive) endVoiceConversation();
   assistantQueryId += 1;
   assistantController?.abort();
   assistantController = undefined;
@@ -3439,6 +3568,9 @@ document.addEventListener("click", (event) => {
 });
 
 window.addEventListener("pagehide", () => {
+  voiceConversationActive = false;
+  window.clearTimeout(voiceRestartTimer);
+  conversationAudioContext?.close();
   geminiApiKeyForSession = "";
   assistantController?.abort();
 });

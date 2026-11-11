@@ -1107,6 +1107,12 @@ h1 span {
   font-weight: 600;
 }
 
+.assistant-voice-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
 .assistant-voice-indicator {
   width: 7px;
   height: 7px;
@@ -1119,6 +1125,63 @@ h1 span {
 .assistant-section.is-listening .assistant-voice-indicator {
   background: #ff6d79;
   box-shadow: 0 0 12px rgb(255 109 121 / 68%);
+}
+
+.assistant-section.is-speaking .assistant-voice-indicator,
+.assistant-section.is-processing .assistant-voice-indicator {
+  background: #9dc8ff;
+  box-shadow: 0 0 12px rgb(157 200 255 / 68%);
+}
+
+.assistant-voice-wave {
+  display: inline-flex;
+  height: 15px;
+  align-items: center;
+  gap: 2px;
+}
+
+.assistant-voice-wave i {
+  width: 2px;
+  height: 4px;
+  border-radius: 2px;
+  background: #ff8992;
+  transform: scaleY(0.6);
+}
+
+.assistant-section.is-listening .assistant-voice-wave i,
+.assistant-section.is-speaking .assistant-voice-wave i,
+.assistant-section.is-processing .assistant-voice-wave i {
+  animation: assistant-wave 700ms ease-in-out infinite alternate;
+}
+
+.assistant-section.is-speaking .assistant-voice-wave i,
+.assistant-section.is-processing .assistant-voice-wave i {
+  background: #9dc8ff;
+}
+
+.assistant-voice-wave i:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.assistant-voice-wave i:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.assistant-voice-wave i:nth-child(4) {
+  animation-delay: 360ms;
+}
+
+.assistant-voice-wave i:nth-child(5) {
+  animation-delay: 480ms;
+}
+
+.assistant-section.is-listening .assistant-voice-wave i:nth-child(2),
+.assistant-section.is-listening .assistant-voice-wave i:nth-child(4) {
+  animation-delay: 180ms;
+}
+
+.assistant-voice-wave i:nth-child(3) {
+  height: 9px;
 }
 
 .assistant-microphone {
@@ -1151,6 +1214,34 @@ h1 span {
 .assistant-microphone:disabled {
   cursor: not-allowed;
   opacity: 0.48;
+}
+
+.assistant-end-conversation {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgb(255 123 135 / 28%);
+  border-radius: 12px;
+  color: #ffd9dd;
+  background: rgb(145 48 67 / 17%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.assistant-end-conversation:hover:not(:disabled) {
+  border-color: rgb(255 123 135 / 58%);
+  background: rgb(145 48 67 / 30%);
+}
+
+.assistant-end-conversation:focus-visible {
+  outline: 2px solid #ffc1c8;
+  outline-offset: 3px;
+}
+
+.assistant-end-conversation:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .assistant-microphone.is-listening {
@@ -1214,10 +1305,24 @@ h1 span {
   }
 }
 
+@keyframes assistant-wave {
+  from {
+    transform: scaleY(0.6);
+  }
+
+  to {
+    transform: scaleY(2.4);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .assistant-microphone.is-listening::before,
   .assistant-microphone.is-listening::after {
     animation: none;
+  }
+
+  .assistant-voice-wave i {
+    animation: none !important;
   }
 
   .assistant-chat-history {
@@ -2077,6 +2182,18 @@ h1 span {
 
   .assistant-voice-controls {
     align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .assistant-voice-actions {
+    width: 100%;
+  }
+
+  .assistant-voice-actions > button {
+    flex: 1 1 0;
+    padding-inline: 8px;
+    font-size: 9px;
   }
 
   .assistant-title-group {

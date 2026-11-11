@@ -304,24 +304,36 @@
           <div class="assistant-voice-controls">
             <p class="assistant-voice-state" role="status" aria-live="polite">
               <span class="assistant-voice-indicator" aria-hidden="true"></span>
+              <span class="assistant-voice-wave" aria-hidden="true">
+                <i></i><i></i><i></i><i></i><i></i>
+              </span>
               <span data-i18n="statusLabel">Trạng thái:</span>
               <strong id="assistant-voice-state" data-i18n="ready">Sẵn sàng</strong>
             </p>
-            <button
-              class="assistant-microphone"
-              id="assistant-microphone"
-              type="button"
-              aria-label="Hỏi Trợ lý AI bằng giọng nói"
-              data-i18n="askAssistant"
-              data-i18n-attr="aria-label"
-              aria-pressed="false"
-            >
-              <svg class="assistant-microphone-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path>
-                <path d="M19 11a7 7 0 0 1-14 0M12 18v4m-4 0h8"></path>
-              </svg>
-              <span data-i18n="askAssistant">Hỏi Trợ lý AI</span>
-            </button>
+            <div class="assistant-voice-actions">
+              <button
+                class="assistant-microphone"
+                id="assistant-microphone"
+                type="button"
+                aria-label="Hỏi Trợ lý AI bằng giọng nói"
+                data-i18n="askAssistant"
+                data-i18n-attr="aria-label"
+                aria-pressed="false"
+              >
+                <svg class="assistant-microphone-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path>
+                  <path d="M19 11a7 7 0 0 1-14 0M12 18v4m-4 0h8"></path>
+                </svg>
+                <span data-i18n="askAssistant">Hỏi Trợ lý AI</span>
+              </button>
+              <button
+                class="assistant-end-conversation"
+                id="assistant-end-conversation"
+                type="button"
+                data-i18n="endVoiceConversation"
+                disabled
+              >Dừng trò chuyện</button>
+            </div>
           </div>
           <div class="assistant-quick-prompts">
             <p class="assistant-quick-prompts-label" data-i18n="quickPromptLabel">Câu hỏi gợi ý</p>
