@@ -1,14 +1,16 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="vi">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#10172b">
     <meta
       name="description"
-      content="即時天氣、生活氣象與未來七日預報，陪你掌握每一天。"
+      content="Thời tiết hiện tại, lời khuyên hữu ích và dự báo bảy ngày, đồng hành cùng bạn mỗi ngày."
+      data-i18n="metaDescription"
+      data-i18n-attr="content"
     >
-    <title>晴時 — 天氣，剛剛好</title>
+    <title data-i18n="pageTitle">Weather, just right</title>
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -32,30 +34,40 @@
     <canvas id="weather-bg" aria-hidden="true"></canvas>
     <main class="app-shell">
       <header class="topbar">
-        <a class="brand" href="#" aria-label="晴時首頁">
+        <a class="brand" href="#" aria-label="Trang chủ Weather" data-i18n="home" data-i18n-attr="aria-label">
           <span class="brand-mark" aria-hidden="true">☼</span>
-          <span>晴時<span class="brand-period">.</span></span>
+          <span>Weather<span class="brand-period">.</span></span>
         </a>
-        <p class="topbar-note">讓每一天，都有好天氣的預感</p>
+        <p class="topbar-note" data-i18n="topbarNote">Để mỗi ngày bắt đầu với dự báo thời tiết tốt lành</p>
         <div class="live-indicator">
           <span class="live-dot" aria-hidden="true"></span>
-          <span>即時天氣</span>
+          <span data-i18n="liveWeather">Thời tiết trực tiếp</span>
         </div>
+        <label class="language-picker">
+          <span class="sr-only" data-i18n="languageLabel">Ngôn ngữ</span>
+          <select id="language-select" aria-label="Chọn ngôn ngữ" data-i18n="languageLabel" data-i18n-attr="aria-label">
+            <option value="vi">🇻🇳 Tiếng Việt</option>
+            <option value="en">🇬🇧 English</option>
+            <option value="zh">🇨🇳 中文</option>
+          </select>
+        </label>
       </header>
 
       <section class="intro" aria-labelledby="page-title">
-        <p class="eyebrow"><span aria-hidden="true">✦</span> 你的每日氣象指南</p>
-        <h1 id="page-title">天氣，<span>剛剛好。</span></h1>
-        <p class="intro-copy">下一場陽光，或一陣微風，都為你準備好了。</p>
+        <p class="eyebrow"><span aria-hidden="true">✦</span> <span data-i18n="eyebrow">Cẩm nang thời tiết mỗi ngày</span></p>
+        <h1 id="page-title"><span data-i18n="headline">Thời tiết,</span> <span data-i18n="headlineAccent">vừa đúng lúc.</span></h1>
+        <p class="intro-copy" data-i18n="introCopy">Nắng nhẹ hay làn gió mát, hãy sẵn sàng cho ngày mới.</p>
 
         <form class="search-form" id="search-form" role="search">
-          <label class="sr-only" for="city-search">搜尋城市</label>
+          <label class="sr-only" for="city-search" data-i18n="searchCity">Tìm thành phố</label>
           <span class="search-icon" aria-hidden="true">⌕</span>
           <input
             id="city-search"
             name="city"
             type="search"
-            placeholder="搜尋城市，例如：臺北、東京"
+            placeholder="Tìm thành phố, ví dụ: Hà Nội, Tokyo"
+            data-i18n="searchPlaceholder"
+            data-i18n-attr="placeholder"
             autocomplete="off"
             role="combobox"
             aria-autocomplete="list"
@@ -63,24 +75,24 @@
             aria-expanded="false"
           >
           <button class="search-button" type="submit">
-            <span>搜尋</span>
+            <span data-i18n="searchButton">Tìm kiếm</span>
             <span aria-hidden="true">↗</span>
           </button>
           <ul class="suggestions" id="suggestions" role="listbox" hidden></ul>
         </form>
-        <p class="search-hint">試試搜尋一座城市，看看那裡的天空。</p>
+        <p class="search-hint" data-i18n="searchHint">Tìm một thành phố để khám phá thời tiết nơi đó.</p>
       </section>
 
-      <section class="weather-section" aria-label="目前天氣與未來預報">
+      <section class="weather-section" aria-label="Thời tiết hiện tại và dự báo" data-i18n="weatherSection" data-i18n-attr="aria-label">
         <div class="section-heading">
           <div class="location-heading">
-            <span class="section-kicker">你所在的天空</span>
+            <span class="section-kicker" data-i18n="yourSky">Thời tiết tại đây</span>
             <h2 id="location-name">桃園</h2>
-            <p id="location-detail">正在取得天氣資料…</p>
+            <p id="location-detail" data-i18n="loadingWeather">Đang tải dữ liệu thời tiết…</p>
           </div>
           <div class="updated-label">
             <span class="updated-dot" aria-hidden="true"></span>
-            <span id="updated-at">即時更新</span>
+            <span id="updated-at" data-i18n="liveUpdate">Đang cập nhật</span>
           </div>
         </div>
 
@@ -88,7 +100,7 @@
           <article class="current-card glass-card" aria-labelledby="current-title" aria-busy="true">
             <div class="current-card-top">
               <div>
-                <p class="card-eyebrow" id="current-title">現在的天氣</p>
+                <p class="card-eyebrow" id="current-title" data-i18n="currentWeather">Thời tiết hiện tại</p>
                 <p class="weather-date" id="current-date">—</p>
               </div>
               <span class="weather-symbol" id="current-icon" aria-hidden="true">☀️</span>
@@ -96,34 +108,34 @@
             <div class="temperature-row">
               <p class="temperature" id="current-temperature">--<span>°C</span></p>
               <div class="current-summary">
-                <p class="condition" id="current-condition">載入中</p>
-                <p class="feels-like">體感 <span id="feels-like">--</span>°C</p>
+                <p class="condition" id="current-condition" data-i18n="loading">Đang tải</p>
+                <p class="feels-like"><span data-i18n="feelsLike">Cảm giác như</span> <span id="feels-like">--</span>°C</p>
               </div>
             </div>
             <div class="current-card-footer">
-              <span><span class="footer-icon" aria-hidden="true">⌁</span> 今日天氣，一目瞭然</span>
+              <span><span class="footer-icon" aria-hidden="true">⌁</span> <span data-i18n="weatherAtGlance">Thời tiết hôm nay, dễ dàng nắm bắt</span></span>
               <span class="footer-sparkle" aria-hidden="true">✳</span>
             </div>
           </article>
 
-          <div class="metrics-grid" aria-label="天氣詳細資訊">
+          <div class="metrics-grid" aria-label="Thông tin thời tiết chi tiết" data-i18n="weatherDetails" data-i18n-attr="aria-label">
             <article class="metric-card glass-card">
               <span class="metric-icon humidity-icon" aria-hidden="true">◉</span>
-              <p class="metric-label">相對濕度</p>
+              <p class="metric-label" data-i18n="humidity">Độ ẩm</p>
               <p class="metric-value" id="humidity">--<span>%</span></p>
-              <p class="metric-note">空氣中的水分</p>
+              <p class="metric-note" data-i18n="moistureInAir">Độ ẩm trong không khí</p>
             </article>
             <article class="metric-card glass-card">
               <span class="metric-icon wind-icon" aria-hidden="true">≋</span>
-              <p class="metric-label">風速</p>
+              <p class="metric-label" data-i18n="windSpeed">Tốc độ gió</p>
               <p class="metric-value" id="wind-speed">--<span> km/h</span></p>
-              <p class="metric-note" id="wind-note">微風狀態</p>
+              <p class="metric-note" id="wind-note" data-i18n="lightBreeze">Gió nhẹ</p>
             </article>
             <article class="metric-card glass-card">
               <span class="metric-icon uv-icon" aria-hidden="true">☼</span>
-              <p class="metric-label">紫外線指數</p>
+              <p class="metric-label" data-i18n="uvIndex">Chỉ số UV</p>
               <p class="metric-value" id="uv-index">--</p>
-              <p class="metric-note" id="uv-note">日光防護提醒</p>
+              <p class="metric-note" id="uv-note" data-i18n="sunProtection">Lưu ý chống nắng</p>
             </article>
           </div>
         </div>
@@ -133,15 +145,17 @@
             <div class="assistant-title-group">
               <span class="assistant-icon" aria-hidden="true">✦</span>
               <div>
-                <p class="section-kicker">為你量身整理</p>
-                <h2 id="assistant-title">AI 生活助手</h2>
+                <p class="section-kicker" data-i18n="assistantKicker">Lời khuyên dành riêng cho bạn</p>
+                <h2 id="assistant-title" data-i18n="assistantTitle">Trợ lý thời tiết AI</h2>
               </div>
             </div>
             <button
               class="assistant-speak"
               id="assistant-speak"
               type="button"
-              aria-label="以越南語朗讀天氣與生活建議"
+              aria-label="Đọc dự báo thời tiết và lời khuyên"
+              data-i18n="readWeatherAdvice"
+              data-i18n-attr="aria-label"
               aria-pressed="false"
               disabled
             >
@@ -155,16 +169,18 @@
                 <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
                 <path d="M19 5a10 10 0 0 1 0 14"></path>
               </svg>
-              <span id="assistant-speak-label">越南語播報</span>
+              <span id="assistant-speak-label" data-i18n="speakWeather">Đọc lời khuyên</span>
             </button>
           </div>
           <div class="assistant-persona">
-            <p class="assistant-persona-label">Chọn chế độ trợ lý</p>
+            <p class="assistant-persona-label" data-i18n="choosePersona">Chọn chuyên gia tư vấn</p>
             <div
               class="assistant-persona-tabs"
               id="assistant-persona-tabs"
               role="tablist"
-              aria-label="Chế độ Trợ lý AI"
+              aria-label="Chế độ trợ lý AI"
+              data-i18n="personaSwitcher"
+              data-i18n-attr="aria-label"
             >
               <button
                 class="assistant-persona-tab"
@@ -174,6 +190,7 @@
                 aria-selected="true"
                 aria-controls="assistant-voice-answer"
                 data-persona="health"
+                data-i18n="personaHealth"
               >Sức khỏe</button>
               <button
                 class="assistant-persona-tab"
@@ -184,6 +201,7 @@
                 aria-controls="assistant-voice-answer"
                 data-persona="fnb"
                 tabindex="-1"
+                data-i18n="personaFnb"
               >Kinh doanh F&amp;B</button>
               <button
                 class="assistant-persona-tab"
@@ -194,6 +212,7 @@
                 aria-controls="assistant-voice-answer"
                 data-persona="logistics"
                 tabindex="-1"
+                data-i18n="personaLogistics"
               >Giao vận</button>
             </div>
           </div>
@@ -201,22 +220,22 @@
             <article class="assistant-tip">
               <span class="assistant-tip-icon clothing-tip-icon" aria-hidden="true">衣</span>
               <div>
-                <p class="assistant-tip-label">穿搭建議</p>
-                <p class="assistant-tip-text" id="clothing-advice">正在分析目前氣溫…</p>
+                <p class="assistant-tip-label" data-i18n="clothingLabel">Gợi ý trang phục</p>
+                <p class="assistant-tip-text" id="clothing-advice" data-i18n="analyzingTemperature">Đang phân tích nhiệt độ…</p>
               </div>
             </article>
             <article class="assistant-tip">
               <span class="assistant-tip-icon uv-tip-icon" aria-hidden="true">☼</span>
               <div>
-                <p class="assistant-tip-label">防曬提醒</p>
-                <p class="assistant-tip-text" id="sun-advice">正在分析紫外線指數…</p>
+                <p class="assistant-tip-label" data-i18n="sunAdviceLabel">Lời khuyên chống nắng</p>
+                <p class="assistant-tip-text" id="sun-advice" data-i18n="analyzingUv">Đang phân tích chỉ số UV…</p>
               </div>
             </article>
             <article class="assistant-tip">
               <span class="assistant-tip-icon rain-tip-icon" aria-hidden="true">☂</span>
               <div>
-                <p class="assistant-tip-label">行程提案</p>
-                <p class="assistant-tip-text" id="rain-advice">正在分析降雨機率…</p>
+                <p class="assistant-tip-label" data-i18n="outingAdviceLabel">Gợi ý hoạt động</p>
+                <p class="assistant-tip-text" id="rain-advice" data-i18n="analyzingRain">Đang phân tích khả năng mưa…</p>
               </div>
             </article>
           </div>
@@ -225,34 +244,38 @@
             id="assistant-speak-status"
             role="status"
             aria-live="polite"
-          >天氣資料載入後，即可聆聽越南語天氣播報。</p>
+            data-i18n="weatherSpeechReady"
+          >Tải dữ liệu thời tiết xong, bạn có thể nghe bản tin.</p>
           <div
             class="assistant-voice-answer"
             id="assistant-voice-answer"
             role="tabpanel"
             aria-labelledby="persona-health"
             aria-live="polite"
+            data-i18n="voiceGreeting"
           >
-            Chọn chế độ trợ lý rồi nhấn “Hỏi Trợ lý AI” để bắt đầu.
+            Chọn chuyên gia rồi nhấn “Hỏi Trợ lý AI” để bắt đầu.
           </div>
           <div class="assistant-voice-controls">
             <p class="assistant-voice-state">
               <span class="assistant-voice-indicator" aria-hidden="true"></span>
-              <span>Trạng thái:</span>
-              <strong id="assistant-voice-state">Sẵn sàng</strong>
+              <span data-i18n="statusLabel">Trạng thái:</span>
+              <strong id="assistant-voice-state" data-i18n="ready">Sẵn sàng</strong>
             </p>
             <button
               class="assistant-microphone"
               id="assistant-microphone"
               type="button"
               aria-label="Hỏi Trợ lý AI bằng giọng nói"
+              data-i18n="askAssistant"
+              data-i18n-attr="aria-label"
               aria-pressed="false"
             >
               <svg class="assistant-microphone-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path>
                 <path d="M19 11a7 7 0 0 1-14 0M12 18v4m-4 0h8"></path>
               </svg>
-              <span>Hỏi Trợ lý AI</span>
+              <span data-i18n="askAssistant">Hỏi Trợ lý AI</span>
             </button>
           </div>
           <p class="assistant-voice-message" id="assistant-voice-message" aria-live="polite"></p>
@@ -261,8 +284,8 @@
         <section class="radar-section" aria-labelledby="radar-title">
           <div class="radar-heading">
             <div>
-              <p class="section-kicker">即時雷達回波</p>
-              <h2 id="radar-title">雨雲動態</h2>
+              <p class="section-kicker" data-i18n="liveRadar">Radar mưa trực tiếp</p>
+              <h2 id="radar-title" data-i18n="rainRadar">Radar mưa</h2>
             </div>
             <span class="radar-live"><span aria-hidden="true"></span> RainViewer</span>
           </div>
@@ -270,17 +293,19 @@
             <div
               id="radar-map"
               role="application"
-              aria-label="雨雲雷達地圖，可拖曳與縮放"
+              aria-label="Bản đồ radar mưa, có thể kéo và thu phóng"
+              data-i18n="radarMapLabel"
+              data-i18n-attr="aria-label"
               aria-describedby="radar-status"
             ></div>
             <p class="radar-status" id="radar-status" role="status" aria-live="polite">
-              正在載入雷達資料…
+              <span data-i18n="loadingRadar">Đang tải dữ liệu radar…</span>
             </p>
           </div>
           <div class="radar-controls">
             <button class="radar-play" id="radar-play" type="button" disabled>
               <span aria-hidden="true">▶</span>
-              <span id="radar-play-label">播放</span>
+              <span id="radar-play-label" data-i18n="play">Phát</span>
             </button>
             <input
               class="radar-timeline"
@@ -290,6 +315,8 @@
               max="0"
               value="0"
               aria-label="雷達時間軸"
+              data-i18n="radarTimeline"
+              data-i18n-attr="aria-label"
               disabled
             >
             <span class="radar-time" id="radar-time">--:--</span>
@@ -299,13 +326,13 @@
         <section class="forecast-section" aria-labelledby="forecast-title">
           <div class="forecast-heading">
             <div>
-              <p class="section-kicker">接下來的日子</p>
-              <h2 id="forecast-title">未來七日</h2>
+              <p class="section-kicker" data-i18n="comingDays">Những ngày tới</p>
+              <h2 id="forecast-title" data-i18n="sevenDayForecast">Dự báo 7 ngày</h2>
             </div>
-            <span class="forecast-caption">七天的天氣，提前掌握</span>
+            <span class="forecast-caption" data-i18n="forecastCaption">Chủ động lên kế hoạch với dự báo 7 ngày</span>
           </div>
           <div class="forecast-grid" id="forecast-list" aria-live="polite">
-            <p class="forecast-placeholder">正在為你準備一週的天氣…</p>
+            <p class="forecast-placeholder" data-i18n="preparingForecast">Đang chuẩn bị dự báo tuần…</p>
           </div>
         </section>
       </section>
@@ -313,39 +340,43 @@
       <section class="route-planner" aria-labelledby="route-planner-title">
         <div class="route-heading">
           <div>
-            <p class="section-kicker">規劃旅程</p>
-            <h2 id="route-planner-title">旅遊路線天氣規劃</h2>
+            <p class="section-kicker" data-i18n="routeKicker">Lên kế hoạch chuyến đi</p>
+            <h2 id="route-planner-title" data-i18n="routeTitle">Dự báo thời tiết hành trình</h2>
           </div>
           <span class="route-heading-icon" aria-hidden="true">⌁</span>
         </div>
         <p class="route-description">
-          Dự báo theo giờ tại điểm xuất phát, các chặng dừng và điểm đến; chưa tính thời gian di chuyển.
+          <span data-i18n="routeDescription">Dự báo theo giờ tại điểm xuất phát, các chặng dừng và điểm đến; chưa tính thời gian di chuyển.</span>
         </p>
         <form class="route-form" id="route-form">
           <label class="route-field">
-            <span>Điểm khởi hành</span>
+            <span data-i18n="routeOrigin">Điểm khởi hành</span>
             <input
               id="route-origin"
               name="origin"
               type="text"
               placeholder="Ví dụ: Hà Nội"
+              data-i18n="routeOriginPlaceholder"
+              data-i18n-attr="placeholder"
               autocomplete="off"
               required
             >
           </label>
           <label class="route-field">
-            <span>Điểm đến</span>
+            <span data-i18n="routeDestination">Điểm đến</span>
             <input
               id="route-destination"
               name="destination"
               type="text"
               placeholder="Ví dụ: Đà Nẵng"
+              data-i18n="routeDestinationPlaceholder"
+              data-i18n-attr="placeholder"
               autocomplete="off"
               required
             >
           </label>
           <button class="route-submit" id="route-submit" type="submit">
-            <span>Kiểm tra thời tiết lộ trình</span>
+            <span data-i18n="routeCheck">Kiểm tra thời tiết lộ trình</span>
             <span aria-hidden="true">↗</span>
           </button>
         </form>
@@ -362,8 +393,8 @@
       <p class="page-message" id="page-message" role="status" aria-live="polite"></p>
 
       <footer class="footer">
-        <span>把天氣收進日常，讓出門從容一點。</span>
-        <span>氣象資料由 Open-Meteo 提供</span>
+        <span data-i18n="footerNote">Đưa thời tiết vào nhịp sống, để mỗi chuyến đi thêm an tâm.</span>
+        <span data-i18n="weatherCredit">Dữ liệu thời tiết từ Open-Meteo</span>
       </footer>
     </main>
   </body>

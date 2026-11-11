@@ -7,6 +7,727 @@ const RADAR_FRAME_INTERVAL_MS = 600;
 const BASE_MAP_URL =
   "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}";
 const RADAR_TILE_URL = "https://tilecache.rainviewer.com";
+const SPEECH_LANGUAGES = { vi: "vi-VN", en: "en-US", zh: "zh-CN" };
+const translations = {
+  vi: {
+    metaDescription: "Thời tiết hiện tại, lời khuyên hữu ích và dự báo bảy ngày, đồng hành cùng bạn mỗi ngày.",
+    pageTitle: "Weather — Thời tiết, vừa đúng lúc",
+    home: "Trang chủ Weather",
+    topbarNote: "Để mỗi ngày bắt đầu với dự báo thời tiết tốt lành",
+    liveWeather: "Thời tiết trực tiếp",
+    languageLabel: "Ngôn ngữ",
+    eyebrow: "Cẩm nang thời tiết mỗi ngày",
+    headline: "Thời tiết,",
+    headlineAccent: "vừa đúng lúc.",
+    introCopy: "Nắng nhẹ hay làn gió mát, hãy sẵn sàng cho ngày mới.",
+    searchCity: "Tìm thành phố",
+    searchPlaceholder: "Tìm thành phố, ví dụ: Hà Nội, Tokyo",
+    searchButton: "Tìm kiếm",
+    searchHint: "Tìm một thành phố để khám phá thời tiết nơi đó.",
+    weatherSection: "Thời tiết hiện tại và dự báo",
+    yourSky: "Thời tiết tại đây",
+    loadingWeather: "Đang tải dữ liệu thời tiết…",
+    liveUpdate: "Đang cập nhật",
+    updatedAt: "Cập nhật lúc {time}",
+    currentWeather: "Thời tiết hiện tại",
+    loading: "Đang tải",
+    feelsLike: "Cảm giác như",
+    weatherAtGlance: "Thời tiết hôm nay, dễ dàng nắm bắt",
+    weatherDetails: "Thông tin thời tiết chi tiết",
+    humidity: "Độ ẩm",
+    moistureInAir: "Độ ẩm trong không khí",
+    windSpeed: "Tốc độ gió",
+    lightBreeze: "Gió nhẹ",
+    uvIndex: "Chỉ số UV",
+    sunProtection: "Lưu ý chống nắng",
+    assistantKicker: "Lời khuyên dành riêng cho bạn",
+    assistantTitle: "Trợ lý thời tiết AI",
+    readWeatherAdvice: "Đọc dự báo thời tiết và lời khuyên",
+    speakWeather: "Đọc lời khuyên",
+    choosePersona: "Chọn chuyên gia tư vấn",
+    personaSwitcher: "Chế độ trợ lý AI",
+    personaHealth: "Sức khỏe",
+    personaFnb: "Kinh doanh F&B",
+    personaLogistics: "Giao vận",
+    clothingLabel: "Gợi ý trang phục",
+    analyzingTemperature: "Đang phân tích nhiệt độ…",
+    sunAdviceLabel: "Lời khuyên chống nắng",
+    analyzingUv: "Đang phân tích chỉ số UV…",
+    outingAdviceLabel: "Gợi ý hoạt động",
+    analyzingRain: "Đang phân tích khả năng mưa…",
+    weatherSpeechReady: "Dữ liệu thời tiết đã sẵn sàng. Nhấn nút để nghe bản tin.",
+    statusLabel: "Trạng thái:",
+    ready: "Sẵn sàng",
+    listening: "Đang nghe",
+    askAssistant: "Hỏi Trợ lý AI",
+    voiceStart: "Đang nghe, hãy đặt câu hỏi bằng tiếng Việt.",
+    voiceGreeting: "Chọn chuyên gia rồi nhấn “Hỏi Trợ lý AI” để bắt đầu.",
+    voiceNoResult: "Chưa nhận được câu hỏi. Hãy thử nói lại.",
+    voiceStopped: "Đã dừng nghe. Nhấn micro để thử lại.",
+    voiceNoSupport: "Trình duyệt chưa hỗ trợ nhận dạng giọng nói. Hãy dùng trình duyệt hỗ trợ Web Speech API.",
+    voiceNoPermission: "Bạn chưa cấp quyền sử dụng micro. Hãy cho phép truy cập micro rồi thử lại.",
+    voiceNoSpeech: "Chưa phát hiện giọng nói. Hãy thử lại trong môi trường yên tĩnh hơn.",
+    voiceNoDevice: "Không tìm thấy micro. Hãy kiểm tra thiết bị ghi âm.",
+    voiceNetwork: "Không thể kết nối dịch vụ nhận dạng giọng nói. Hãy thử lại sau.",
+    voiceUnavailable: "Nhận dạng giọng nói hiện không khả dụng trong trình duyệt này.",
+    weatherNotReady: "Đang tải dữ liệu thời tiết. Hãy thử lại sau khi bản tin được cập nhật.",
+    voiceSpeakDone: "Đã đọc xong câu trả lời.",
+    voiceSpeakUnsupported: "Trình duyệt này không hỗ trợ phát giọng nói.",
+    voiceSpeakError: "Không thể phát câu trả lời: {error}. Bạn vẫn có thể đọc nội dung trên màn hình.",
+    voiceMicError: "Không thể bật micro: {error}",
+    voiceStopError: "Không thể dừng ghi âm: {error}",
+    voiceGenericError: "Nhận dạng giọng nói gặp lỗi: {error}.",
+    answerTranscript: "Bạn hỏi: {question}\n{answer}",
+    noWeatherData: "Hiện chưa có dữ liệu thời tiết. Vui lòng đợi bản tin thời tiết tải xong rồi hỏi lại nhé.",
+    healthModeChanged: "Đã chuyển sang chế độ tư vấn Sức khỏe.",
+    fnbModeChanged: "Đã chuyển sang chế độ tư vấn Kinh doanh F&B.",
+    logisticsModeChanged: "Đã chuyển sang chế độ tư vấn Giao vận.",
+    speakPreparing: "Đang chuẩn bị phát bản tin…",
+    speakStarting: "Đang đọc bản tin thời tiết và lời khuyên…",
+    speakFinished: "Đã đọc xong bản tin thời tiết.",
+    speakStopped: "Đã dừng phát bản tin.",
+    weatherUpdatedSpeech: "Thời tiết đã cập nhật. Nhấn nút để nghe bản tin.",
+    partialWeatherData: "Thiếu một số dữ liệu thời tiết nên chưa thể tạo bản tin đầy đủ.",
+    speechUnsupported: "Trình duyệt không hỗ trợ Web Speech API.",
+    uvLow: "thấp, chỉ cần bảo vệ thông thường",
+    uvModerate: "trung bình, nên chống nắng",
+    uvHigh: "cao, cần chú ý chống nắng",
+    uvVeryHigh: "rất cao, hãy tăng cường bảo vệ",
+    uvExtreme: "cực cao, tránh phơi nắng lâu",
+    windGentle: "Gió nhẹ",
+    windBreezy: "Gió thoảng",
+    windStrong: "Gió hơi mạnh",
+    windVeryStrong: "Gió mạnh, chú ý hoạt động ngoài trời",
+    clothingCold: "Trời lạnh, nên mặc áo khoác ấm và chú ý chênh lệch nhiệt độ sáng tối.",
+    clothingCool: "Trời hơi se lạnh, hãy mang theo áo khoác mỏng hoặc mặc nhiều lớp.",
+    clothingMild: "Thời tiết dễ chịu, bạn có thể mặc đồ nhẹ; nếu sợ lạnh, hãy mang áo khoác mỏng.",
+    clothingWarm: "Trời ấm, hãy chọn quần áo mỏng nhẹ, thoáng mát và nhớ uống đủ nước.",
+    sunLow: "UV {uv}, hiện ở mức thấp. Nếu ở ngoài trời lâu, bạn vẫn nên chống nắng.",
+    sunModerate: "UV {uv}. Hãy thoa kem chống nắng và thoa lại khi cần.",
+    sunHigh: "UV {uv}, khá cao. Hãy dùng kem chống nắng, đội mũ và tìm bóng râm.",
+    sunExtreme: "UV {uv}, rất cao. Hãy bảo vệ da kỹ và tránh ở ngoài nắng lâu.",
+    rainHigh: "Khả năng mưa hôm nay {rain}%. Bạn nên mang ô và chuẩn bị phương án dự phòng cho hoạt động ngoài trời.",
+    rainModerate: "Khả năng mưa hôm nay {rain}%. Mang theo ô gấp sẽ yên tâm hơn.",
+    rainLow: "Khả năng mưa hôm nay {rain}%. Thời tiết phù hợp cho hoạt động ngoài trời, nhưng vẫn nên theo dõi dự báo.",
+    adviceUnavailableTemp: "Hiện chưa có dữ liệu nhiệt độ để gợi ý trang phục.",
+    adviceUnavailableUv: "Chưa có dữ liệu UV; hãy chống nắng khi ra ngoài.",
+    adviceUnavailableRain: "Chưa có dữ liệu mưa; hãy kiểm tra dự báo trước khi ra ngoài.",
+    today: "Hôm nay",
+    high: "Cao nhất",
+    low: "Thấp nhất",
+    weatherSummary: "Thời tiết tại {place}: {condition}, {temperature}°C.",
+    weatherSpeechLine: "Cảm giác như {feels}°C. UV {uv}. Khả năng mưa hôm nay {rain}%.",
+    weatherClear: "Trời nắng",
+    weatherMostlyClear: "Trời quang đãng",
+    weatherPartlyCloudy: "Có mây rải rác",
+    weatherOvercast: "Trời nhiều mây",
+    weatherFog: "Có sương mù",
+    weatherDrizzle: "Mưa phùn",
+    weatherFreezingRain: "Mưa đóng băng",
+    weatherRain: "Có mưa",
+    weatherSnow: "Có tuyết",
+    weatherShowers: "Mưa rào",
+    weatherSnowShowers: "Mưa tuyết",
+    weatherThunderstorm: "Có dông",
+    weatherVariable: "Thời tiết thay đổi",
+    routeKicker: "Lên kế hoạch chuyến đi",
+    routeTitle: "Dự báo thời tiết hành trình",
+    routeDescription: "Dự báo theo giờ tại điểm xuất phát, các chặng dừng và điểm đến; chưa tính thời gian di chuyển.",
+    routeOrigin: "Điểm khởi hành",
+    routeOriginPlaceholder: "Ví dụ: Hà Nội",
+    routeDestination: "Điểm đến",
+    routeDestinationPlaceholder: "Ví dụ: Đà Nẵng",
+    routeCheck: "Kiểm tra thời tiết lộ trình",
+    routeFinding: "Đang tìm địa điểm và tải dự báo thời tiết…",
+    routeSuccess: "Đã cập nhật dự báo thời tiết trên tuyến đường.",
+    routeSamePlace: "Điểm khởi hành và điểm đến phải khác nhau.",
+    routeEmpty: "Vui lòng nhập điểm khởi hành và điểm đến.",
+    routeNotFound: "Không tìm thấy địa điểm “{place}”. Vui lòng kiểm tra tên và thử lại.",
+    routeDistance: "Quãng đường đường chim bay khoảng {distance} km · {count} điểm dừng",
+    routeOriginBadge: "Xuất phát",
+    routeStopBadge: "Trạm dừng",
+    routeDestinationBadge: "Điểm đến",
+    routeStopName: "Điểm dừng {number}",
+    routeForecastAt: "Dự báo lúc {time}",
+    routeRainChance: "Khả năng mưa: {probability}%",
+    routeRainLow: "Khả năng mưa thấp",
+    routeRainUnavailable: "Chưa có dữ liệu khả năng mưa",
+    routeWarnSevere: "Mưa lớn, mưa đóng băng, tuyết dày hoặc dông nguy hiểm",
+    routeWarnRain: "Có mưa, đường có thể trơn trượt",
+    routeWarnSnow: "Có tuyết hoặc mưa tuyết",
+    routeWarnProbability: "Khả năng mưa {probability}% trong vài giờ tới",
+    routeWarnWind: "Gió mạnh {speed} km/h",
+    routeWarningLabel: "Cảnh báo: {warnings}",
+    routeInvalid: "Không thể xác định khoảng cách giữa hai địa điểm.",
+    routeWeatherInvalid: "Không nhận được dự báo hợp lệ tại {place}.",
+    routeWeatherIncomplete: "Dự báo tại {place} hiện không có đủ dữ liệu.",
+    routeError: "Không thể tải thời tiết lộ trình. Vui lòng thử lại.",
+    radarLive: "Đang hiển thị mưa trong hai giờ qua · {count} khung hình",
+    radarEmpty: "Hiện không có khung hình radar mưa.",
+    radarLoading: "Đang tải dữ liệu radar…",
+    radarError: "Không thể tải dữ liệu radar. Vui lòng thử lại.",
+    radarMapError: "Không thể tải bản đồ. Hãy làm mới trang và thử lại.",
+    play: "Phát",
+    pause: "Tạm dừng",
+    playRadar: "Phát hoạt ảnh radar",
+    pauseRadar: "Tạm dừng hoạt ảnh radar",
+    radarTimeline: "Dòng thời gian radar",
+    liveRadar: "Radar mưa trực tiếp",
+    rainRadar: "Radar mưa",
+    loadingRadar: "Đang tải dữ liệu radar…",
+    radarMapLabel: "Bản đồ radar mưa, có thể kéo và thu phóng",
+    comingDays: "Những ngày tới",
+    sevenDayForecast: "Dự báo 7 ngày",
+    forecastCaption: "Chủ động lên kế hoạch với dự báo 7 ngày",
+    preparingForecast: "Đang chuẩn bị dự báo tuần…",
+    footerNote: "Đưa thời tiết vào nhịp sống, để mỗi chuyến đi thêm an tâm.",
+    weatherCredit: "Dữ liệu thời tiết từ Open-Meteo",
+    uvAnswerUnavailable: "Hiện chưa có dữ liệu tia cực tím. Hãy dùng kem chống nắng và che chắn khi ở ngoài trời lâu.",
+    uvAnswerHigh: "UV hiện {uv}, mức cao. Hãy dùng kem chống nắng phổ rộng, đội mũ, đeo kính và tìm bóng râm; nếu da nhạy cảm, hãy làm theo hướng dẫn của bác sĩ.",
+    uvAnswerLow: "UV hiện {uv}. Hãy bảo vệ da khi ở ngoài trời lâu và thoa lại kem chống nắng theo hướng dẫn.",
+    temperatureAnswerCold: "Hiện {temperature}°C, nên mặc nhiều lớp và mang theo áo khoác.",
+    temperatureAnswerHot: "Hiện {temperature}°C, nên chọn quần áo thoáng mát và uống đủ nước.",
+    temperatureAnswerMild: "Hiện {temperature}°C, hãy chọn trang phục phù hợp và dễ điều chỉnh.",
+    temperatureRangeHigh: "Biên độ nhiệt ngày khoảng {range}°, nên chuẩn bị thêm áo cho buổi sáng và tối.",
+    temperatureRangeLow: "Biên độ nhiệt ngày khoảng {range}°.",
+    healthDisclaimer: "Thời tiết không thể dùng để chẩn đoán cảm cúm; nếu có triệu chứng nặng hoặc kéo dài, hãy hỏi nhân viên y tế.",
+    fnbRainHigh: "Mưa có xác suất {rain}%. Ưu tiên quảng bá giao hàng và chuẩn bị mái che cho khách ngoài trời; nhớ bảo vệ bao bì và nguyên liệu.",
+    fnbRainMedium: "Mưa có xác suất {rain}%. Cân nhắc ưu đãi giao hàng và chuẩn bị mái che dự phòng.",
+    fnbRainLow: "Mưa có xác suất {rain}%. Có thể ưu tiên phục vụ tại chỗ, nhưng hãy kiểm tra dự báo trước khi sắp xếp khu vực ngoài trời.",
+    fnbRainUnavailable: "Chưa có dữ liệu xác suất mưa. Hãy kiểm tra dự báo trước khi quyết định quảng bá giao hàng hoặc chuẩn bị mái che.",
+    fnbHot: "Nhiệt độ khoảng {temperature}°C. Có thể ưu tiên đồ uống lạnh, nước và đá; nhập theo lượng bán thực tế để hạn chế hao hụt.",
+    fnbCold: "Nhiệt độ khoảng {temperature}°C. Có thể cân nhắc bổ sung nguyên liệu cho đồ uống nóng; hãy đối chiếu nhu cầu và tồn kho.",
+    fnbMild: "Nhiệt độ khoảng {temperature}°C, khá ôn hòa. Nên giữ danh mục cân bằng và nhập nguyên liệu theo lịch sử bán hàng.",
+    logisticsVisibilityUnavailable: "Chưa có dữ liệu tầm nhìn từ dự báo. Hãy theo dõi cảnh báo địa phương trước khi khởi hành.",
+    logisticsVisibilityLow: "Tầm nhìn khoảng {visibility} km, hạn chế. Giảm tốc độ phù hợp quy định, tăng khoảng cách an toàn và cân nhắc hoãn nếu không an toàn.",
+    logisticsVisibilityMedium: "Tầm nhìn khoảng {visibility} km. Cần quan sát kỹ, giữ khoảng cách an toàn và tuân thủ hướng dẫn giao thông, an toàn công trường.",
+    logisticsVisibilityGood: "Tầm nhìn khoảng {visibility} km. Vẫn cần tuân thủ giới hạn tốc độ và quy trình an toàn tại công trường.",
+    logisticsWindUnavailable: "Chưa có dữ liệu tốc độ gió. Hãy kiểm tra cảnh báo thời tiết và quy định an toàn tại địa phương.",
+    logisticsWindHigh: "Gió khoảng {wind} km/h, có thể ảnh hưởng phương tiện và công việc ngoài trời. Cố định hàng hóa; tạm dừng công việc trên cao nếu vượt ngưỡng an toàn.",
+    logisticsWindLow: "Gió khoảng {wind} km/h. Duy trì tốc độ an toàn, cố định hàng hóa và theo dõi cảnh báo địa phương.",
+    assistantHealthSummary: "Trợ lý sức khỏe: {temperature}, {uv}{range}. Hãy điều chỉnh trang phục và chống nắng phù hợp; đây không phải chẩn đoán y khoa.",
+    assistantFnbSummary: "Trợ lý F&B: {temperature}, {rain}. Điều chỉnh nguyên liệu theo tồn kho và chọn phương án giao hàng hoặc mái che theo nhu cầu.",
+    assistantLogisticsSummary: "Trợ lý giao vận: {temperature}, {wind}. Tuân thủ giới hạn tốc độ và quy trình an toàn.",
+    answerGeneral: "Thời tiết hiện {temperature}, {wind}{rain}. Bạn muốn hỏi sâu hơn về sức khỏe, kinh doanh F&B hay giao vận?",
+    noTemperatureData: "chưa có dữ liệu nhiệt độ",
+    noUvData: "chưa có dữ liệu UV",
+    noRainData: "chưa có dữ liệu mưa",
+    noWindData: "chưa có dữ liệu gió",
+    visibilityNotAvailable: "chưa có dữ liệu tầm nhìn",
+    temperatureValue: "hiện {temperature}°C",
+    uvValue: "UV {uv}",
+    rangeValue: ", biên độ nhiệt ngày {range}°",
+    rainValue: "xác suất mưa {rain}%",
+    windValue: "gió {wind} km/h",
+    errorPrefix: "Lỗi dịch vụ thời tiết ({status}). Vui lòng thử lại.",
+    invalidCity: "Không tìm thấy “{city}”. Hãy kiểm tra chính tả rồi thử lại.",
+    emptyCity: "Vui lòng nhập tên thành phố cần tìm.",
+    searchingCity: "Đang tìm thành phố…",
+    cityNotFound: "Không tìm thấy thành phố",
+    citySearchFailed: "Không thể tìm thành phố",
+    pageWeatherError: "Không thể tải dữ liệu thời tiết. Vui lòng thử lại.",
+    defaultCityError: "Không tìm thấy dữ liệu vị trí. Hãy dùng tìm kiếm để chọn một thành phố.",
+    radarServiceError: "Dịch vụ radar cung cấp nguồn bản đồ không hợp lệ.",
+  },
+  en: {
+    metaDescription: "Current weather, useful advice, and a seven-day forecast to help you plan every day.",
+    pageTitle: "Weather — Just the right forecast",
+    home: "Weather home",
+    topbarNote: "Start every day with a brighter forecast",
+    liveWeather: "Live weather",
+    languageLabel: "Language",
+    eyebrow: "Your daily weather guide",
+    headline: "Weather,",
+    headlineAccent: "just right.",
+    introCopy: "A little sunshine or a gentle breeze—be ready for the day ahead.",
+    searchCity: "Search for a city",
+    searchPlaceholder: "Search a city, e.g. London, Tokyo",
+    searchButton: "Search",
+    searchHint: "Find a city and discover what the sky is like there.",
+    weatherSection: "Current weather and forecast",
+    yourSky: "Your local weather",
+    loadingWeather: "Loading weather data…",
+    liveUpdate: "Updating",
+    updatedAt: "Updated at {time}",
+    currentWeather: "Current weather",
+    loading: "Loading",
+    feelsLike: "Feels like",
+    weatherAtGlance: "Today's weather at a glance",
+    weatherDetails: "Detailed weather information",
+    humidity: "Humidity",
+    moistureInAir: "Moisture in the air",
+    windSpeed: "Wind speed",
+    lightBreeze: "Light breeze",
+    uvIndex: "UV index",
+    sunProtection: "Sun protection",
+    assistantKicker: "Advice tailored for you",
+    assistantTitle: "AI Weather Assistant",
+    readWeatherAdvice: "Read the weather and advice aloud",
+    speakWeather: "Read advice",
+    choosePersona: "Choose an expert",
+    personaSwitcher: "AI assistant mode",
+    personaHealth: "Health",
+    personaFnb: "Food & Beverage",
+    personaLogistics: "Logistics",
+    clothingLabel: "Clothing",
+    analyzingTemperature: "Analyzing temperature…",
+    sunAdviceLabel: "Sun protection",
+    analyzingUv: "Analyzing UV index…",
+    outingAdviceLabel: "Activity ideas",
+    analyzingRain: "Analyzing rain probability…",
+    weatherSpeechReady: "Weather data is ready. Press the button to hear the briefing.",
+    statusLabel: "Status:",
+    ready: "Ready",
+    listening: "Listening",
+    askAssistant: "Ask AI Assistant",
+    voiceStart: "Listening. Ask your question in English.",
+    voiceGreeting: "Choose an expert, then press “Ask AI Assistant” to get started.",
+    voiceNoResult: "I didn't catch that. Please try speaking again.",
+    voiceStopped: "Stopped listening. Press the microphone to try again.",
+    voiceNoSupport: "Speech recognition is not supported in this browser. Use a browser with Web Speech API support.",
+    voiceNoPermission: "Microphone permission was denied. Allow microphone access and try again.",
+    voiceNoSpeech: "No speech detected. Please try again in a quieter environment.",
+    voiceNoDevice: "No microphone found. Check your audio input device.",
+    voiceNetwork: "Unable to connect to speech recognition. Please try again later.",
+    voiceUnavailable: "Speech recognition is unavailable in this browser.",
+    weatherNotReady: "Weather data is loading. Try again after the briefing has updated.",
+    voiceSpeakDone: "Finished reading the answer.",
+    voiceSpeakUnsupported: "This browser does not support speech playback.",
+    voiceSpeakError: "Could not play the answer: {error}. You can still read it on screen.",
+    voiceMicError: "Could not start the microphone: {error}",
+    voiceStopError: "Could not stop recording: {error}",
+    voiceGenericError: "Speech recognition error: {error}.",
+    answerTranscript: "You asked: {question}\n{answer}",
+    noWeatherData: "Weather data is not available yet. Please wait for it to load, then ask again.",
+    healthModeChanged: "Switched to Health advisor.",
+    fnbModeChanged: "Switched to Food & Beverage advisor.",
+    logisticsModeChanged: "Switched to Logistics advisor.",
+    speakPreparing: "Preparing the briefing…",
+    speakStarting: "Reading the weather briefing and advice…",
+    speakFinished: "Finished reading the weather briefing.",
+    speakStopped: "Weather briefing stopped.",
+    weatherUpdatedSpeech: "Weather updated. Press the button to hear the briefing.",
+    partialWeatherData: "Some weather data is unavailable, so a complete briefing cannot be created.",
+    speechUnsupported: "This browser does not support the Web Speech API.",
+    uvLow: "low; routine protection is enough",
+    uvModerate: "moderate; sun protection is recommended",
+    uvHigh: "high; take sun protection seriously",
+    uvVeryHigh: "very high; increase protection",
+    uvExtreme: "extreme; avoid prolonged sun exposure",
+    windGentle: "Light breeze",
+    windBreezy: "Gentle wind",
+    windStrong: "Breezy",
+    windVeryStrong: "Strong wind; take care outdoors",
+    clothingCold: "It's cold. Wear a warm coat and watch for temperature changes between morning and evening.",
+    clothingCool: "It's cool. Bring a light jacket or dress in layers.",
+    clothingMild: "Comfortable weather. Wear light clothes and bring a jacket if you feel chilly.",
+    clothingWarm: "It's warm. Choose light, breathable clothes and stay hydrated.",
+    sunLow: "UV index {uv}, currently low. Use sun protection if you spend a long time outdoors.",
+    sunModerate: "UV index {uv}. Apply sunscreen and reapply as needed.",
+    sunHigh: "UV index {uv}, fairly high. Use sunscreen, wear a hat, and seek shade.",
+    sunExtreme: "UV index {uv}, very high. Protect your skin and avoid prolonged sun exposure.",
+    rainHigh: "Today's chance of rain is {rain}%. Bring an umbrella and have a backup plan for outdoor activities.",
+    rainModerate: "Today's chance of rain is {rain}%. Bringing a compact umbrella is a good idea.",
+    rainLow: "Today's chance of rain is {rain}%. Outdoor activities look suitable, but keep an eye on the forecast.",
+    adviceUnavailableTemp: "Temperature data is unavailable for clothing advice.",
+    adviceUnavailableUv: "UV data is unavailable; protect yourself when outdoors.",
+    adviceUnavailableRain: "Rain data is unavailable; check the forecast before heading out.",
+    today: "Today",
+    high: "High",
+    low: "Low",
+    weatherSummary: "Weather in {place}: {condition}, {temperature}°C.",
+    weatherSpeechLine: "Feels like {feels}°C. UV index {uv}. Today's chance of rain is {rain}%.",
+    weatherClear: "Clear sky",
+    weatherMostlyClear: "Mostly clear",
+    weatherPartlyCloudy: "Partly cloudy",
+    weatherOvercast: "Overcast",
+    weatherFog: "Fog",
+    weatherDrizzle: "Drizzle",
+    weatherFreezingRain: "Freezing rain",
+    weatherRain: "Rain",
+    weatherSnow: "Snow",
+    weatherShowers: "Rain showers",
+    weatherSnowShowers: "Snow showers",
+    weatherThunderstorm: "Thunderstorm",
+    weatherVariable: "Changeable weather",
+    routeKicker: "Plan your trip",
+    routeTitle: "Route weather forecast",
+    routeDescription: "Hourly forecasts for your origin, stops, and destination; travel time is not included.",
+    routeOrigin: "Starting point",
+    routeOriginPlaceholder: "For example: London",
+    routeDestination: "Destination",
+    routeDestinationPlaceholder: "For example: Paris",
+    routeCheck: "Check route weather",
+    routeFinding: "Finding places and loading forecasts…",
+    routeSuccess: "Route weather forecast updated.",
+    routeSamePlace: "The starting point and destination must be different.",
+    routeEmpty: "Enter both a starting point and a destination.",
+    routeNotFound: "Could not find “{place}”. Check the name and try again.",
+    routeDistance: "About {distance} km in a straight line · {count} stops",
+    routeOriginBadge: "Start",
+    routeStopBadge: "Stop",
+    routeDestinationBadge: "Destination",
+    routeStopName: "Stop {number}",
+    routeForecastAt: "Forecast at {time}",
+    routeRainChance: "Chance of rain: {probability}%",
+    routeRainLow: "Low chance of rain",
+    routeRainUnavailable: "Rain probability unavailable",
+    routeWarnSevere: "Heavy rain, freezing rain, heavy snow, or dangerous thunderstorms",
+    routeWarnRain: "Rain expected; roads may be slippery",
+    routeWarnSnow: "Snow or sleet expected",
+    routeWarnProbability: "{probability}% chance of rain in the next few hours",
+    routeWarnWind: "Strong winds at {speed} km/h",
+    routeWarningLabel: "Warning: {warnings}",
+    routeInvalid: "Could not calculate the distance between these places.",
+    routeWeatherInvalid: "No valid forecast was returned for {place}.",
+    routeWeatherIncomplete: "The forecast for {place} is incomplete.",
+    routeError: "Could not load route weather. Please try again.",
+    radarLive: "Rain radar for the past two hours · {count} frames",
+    radarEmpty: "No rain radar frames are currently available.",
+    radarLoading: "Loading radar data…",
+    radarError: "Could not load radar data. Please try again.",
+    radarMapError: "The map could not be loaded. Refresh the page and try again.",
+    play: "Play",
+    pause: "Pause",
+    playRadar: "Play radar animation",
+    pauseRadar: "Pause radar animation",
+    radarTimeline: "Radar timeline",
+    liveRadar: "Live rain radar",
+    rainRadar: "Rain radar",
+    loadingRadar: "Loading radar data…",
+    radarMapLabel: "Rain radar map; drag and zoom to explore",
+    comingDays: "The days ahead",
+    sevenDayForecast: "7-day forecast",
+    forecastCaption: "Plan ahead with a seven-day forecast",
+    preparingForecast: "Preparing your weekly forecast…",
+    footerNote: "Make weather part of your day and travel with confidence.",
+    weatherCredit: "Weather data provided by Open-Meteo",
+    uvAnswerUnavailable: "UV data is unavailable. Use sunscreen and protective clothing during extended outdoor exposure.",
+    uvAnswerHigh: "UV index is {uv}, which is high. Use broad-spectrum sunscreen, a hat and sunglasses, and seek shade. Follow your clinician's advice for sensitive skin.",
+    uvAnswerLow: "UV index is {uv}. Protect your skin during long periods outdoors and reapply sunscreen as directed.",
+    temperatureAnswerCold: "It is {temperature}°C. Wear layers and bring a warm jacket.",
+    temperatureAnswerHot: "It is {temperature}°C. Choose breathable clothing and drink enough water.",
+    temperatureAnswerMild: "It is {temperature}°C. Choose comfortable clothing you can adjust.",
+    temperatureRangeHigh: "The daily temperature range is about {range}°. Bring an extra layer for mornings and evenings.",
+    temperatureRangeLow: "The daily temperature range is about {range}°.",
+    healthDisclaimer: "Weather cannot diagnose flu. Contact a healthcare professional if symptoms are severe or persistent.",
+    fnbRainHigh: "There is a {rain}% chance of rain. Promote delivery and prepare covers for outdoor seating; protect packaging and ingredients.",
+    fnbRainMedium: "There is a {rain}% chance of rain. Consider a delivery promotion and keep a backup canopy ready.",
+    fnbRainLow: "There is a {rain}% chance of rain. On-site service may work well, but check the forecast before arranging outdoor seating.",
+    fnbRainUnavailable: "Rain probability is unavailable. Check the latest forecast before promoting delivery or preparing covers.",
+    fnbHot: "It is about {temperature}°C. Consider prioritizing cold drinks, water, and ice; order based on actual sales to reduce waste.",
+    fnbCold: "It is about {temperature}°C. Consider stocking ingredients for hot drinks based on demand and current inventory.",
+    fnbMild: "It is about {temperature}°C, fairly mild. Keep the menu balanced and order ingredients based on sales history.",
+    logisticsVisibilityUnavailable: "Visibility data is unavailable. Check local alerts before departure.",
+    logisticsVisibilityLow: "Visibility is about {visibility} km and limited. Reduce speed as conditions require, increase following distance, and delay travel if unsafe.",
+    logisticsVisibilityMedium: "Visibility is about {visibility} km. Stay alert, keep a safe distance, and follow traffic and site-safety guidance.",
+    logisticsVisibilityGood: "Visibility is about {visibility} km. Continue to follow speed limits and site-safety procedures.",
+    logisticsWindUnavailable: "Wind data is unavailable. Check local weather alerts and safety rules.",
+    logisticsWindHigh: "Winds are about {wind} km/h and may affect vehicles or outdoor work. Secure loads and pause elevated work if site limits are exceeded.",
+    logisticsWindLow: "Winds are about {wind} km/h. Maintain a safe speed, secure loads, and monitor local alerts.",
+    assistantHealthSummary: "Health advisor: {temperature}, {uv}{range}. Adjust clothing and sun protection as needed; this is not a medical diagnosis.",
+    assistantFnbSummary: "Food & Beverage advisor: {temperature}, {rain}. Adjust stock to inventory and choose delivery or covers based on demand.",
+    assistantLogisticsSummary: "Logistics advisor: {temperature}, {wind}. Follow speed limits and safety procedures.",
+    answerGeneral: "Current weather: {temperature}, {wind}{rain}. Would you like more advice about health, food service, or logistics?",
+    noTemperatureData: "temperature data unavailable",
+    noUvData: "UV data unavailable",
+    noRainData: "rain data unavailable",
+    noWindData: "wind data unavailable",
+    visibilityNotAvailable: "visibility data unavailable",
+    temperatureValue: "currently {temperature}°C",
+    uvValue: "UV {uv}",
+    rangeValue: ", daily range {range}°",
+    rainValue: "{rain}% chance of rain",
+    windValue: "wind at {wind} km/h",
+    errorPrefix: "Weather service error ({status}). Please try again.",
+    invalidCity: "Could not find “{city}”. Check the spelling and try again.",
+    emptyCity: "Enter a city name to search.",
+    searchingCity: "Searching for city…",
+    cityNotFound: "City not found",
+    citySearchFailed: "Could not search for city",
+    pageWeatherError: "Could not load weather data. Please try again.",
+    defaultCityError: "Could not find the default location. Use search to choose a city.",
+    radarServiceError: "The radar service returned an invalid map source.",
+  },
+  zh: {
+    metaDescription: "即時天氣、生活建議與未來七日預報，陪你掌握每一天。",
+    pageTitle: "Weather — 天氣，剛剛好",
+    home: "Weather 首頁",
+    topbarNote: "讓每一天，都有好天氣的預感",
+    liveWeather: "即時天氣",
+    languageLabel: "語言",
+    eyebrow: "你的每日氣象指南",
+    headline: "天氣，",
+    headlineAccent: "剛剛好。",
+    introCopy: "下一場陽光，或一陣微風，都為你準備好了。",
+    searchCity: "搜尋城市",
+    searchPlaceholder: "搜尋城市，例如：臺北、東京",
+    searchButton: "搜尋",
+    searchHint: "試試搜尋一座城市，看看那裡的天空。",
+    weatherSection: "目前天氣與未來預報",
+    yourSky: "你所在的天空",
+    loadingWeather: "正在取得天氣資料…",
+    liveUpdate: "即時更新",
+    updatedAt: "當地時間 {time} 更新",
+    currentWeather: "現在的天氣",
+    loading: "載入中",
+    feelsLike: "體感",
+    weatherAtGlance: "今日天氣，一目瞭然",
+    weatherDetails: "天氣詳細資訊",
+    humidity: "相對濕度",
+    moistureInAir: "空氣中的水分",
+    windSpeed: "風速",
+    lightBreeze: "微風狀態",
+    uvIndex: "紫外線指數",
+    sunProtection: "日光防護提醒",
+    assistantKicker: "為你量身整理",
+    assistantTitle: "AI 生活助手",
+    readWeatherAdvice: "以中文朗讀天氣與生活建議",
+    speakWeather: "中文播報",
+    choosePersona: "選擇顧問角色",
+    personaSwitcher: "AI 助理模式",
+    personaHealth: "健康",
+    personaFnb: "餐飲業",
+    personaLogistics: "運輸物流",
+    clothingLabel: "穿搭建議",
+    analyzingTemperature: "正在分析目前氣溫…",
+    sunAdviceLabel: "防曬提醒",
+    analyzingUv: "正在分析紫外線指數…",
+    outingAdviceLabel: "行程提案",
+    analyzingRain: "正在分析降雨機率…",
+    weatherSpeechReady: "天氣資料載入後，即可聆聽中文天氣播報。",
+    statusLabel: "狀態：",
+    ready: "準備就緒",
+    listening: "正在聆聽",
+    askAssistant: "詢問 AI 助理",
+    voiceStart: "正在聆聽，請用中文提出問題。",
+    voiceGreeting: "選擇顧問後，按下「詢問 AI 助理」即可開始。",
+    voiceNoResult: "沒有收到問題，請再說一次。",
+    voiceStopped: "已停止聆聽，按下麥克風即可重試。",
+    voiceNoSupport: "此瀏覽器不支援語音辨識，請使用支援 Web Speech API 的瀏覽器。",
+    voiceNoPermission: "尚未取得麥克風權限，請允許存取後再試一次。",
+    voiceNoSpeech: "沒有偵測到語音，請在較安靜的環境中重試。",
+    voiceNoDevice: "找不到麥克風，請檢查錄音裝置。",
+    voiceNetwork: "無法連線至語音辨識服務，請稍後再試。",
+    voiceUnavailable: "此瀏覽器目前無法使用語音辨識。",
+    weatherNotReady: "正在載入天氣資料，請在天氣資訊更新後再試。",
+    voiceSpeakDone: "回答已朗讀完畢。",
+    voiceSpeakUnsupported: "此瀏覽器不支援語音播放。",
+    voiceSpeakError: "無法播放回答：{error}。你仍可閱讀畫面上的文字。",
+    voiceMicError: "無法啟動麥克風：{error}",
+    voiceStopError: "無法停止錄音：{error}",
+    voiceGenericError: "語音辨識發生錯誤：{error}。",
+    answerTranscript: "你的問題：{question}\n{answer}",
+    noWeatherData: "目前沒有天氣資料，請稍候資料載入後再詢問。",
+    healthModeChanged: "已切換至健康顧問模式。",
+    fnbModeChanged: "已切換至餐飲業顧問模式。",
+    logisticsModeChanged: "已切換至運輸物流顧問模式。",
+    speakPreparing: "正在準備語音播報…",
+    speakStarting: "正在朗讀天氣與生活建議…",
+    speakFinished: "天氣播報已完成。",
+    speakStopped: "已停止天氣播報。",
+    weatherUpdatedSpeech: "天氣資料已更新，點選按鈕即可聆聽播報。",
+    partialWeatherData: "部分天氣資料暫缺，暫時無法產生完整播報。",
+    speechUnsupported: "此瀏覽器不支援 Web Speech API。",
+    uvLow: "低，日常防護即可",
+    uvModerate: "中等，建議做好防曬",
+    uvHigh: "偏高，請留意防曬",
+    uvVeryHigh: "很高，請加強防護",
+    uvExtreme: "極高，請避免長時間曝曬",
+    windGentle: "微風徐徐",
+    windBreezy: "和風輕拂",
+    windStrong: "風勢稍強",
+    windVeryStrong: "風勢較強，留意戶外活動",
+    clothingCold: "氣溫偏低，建議穿著保暖外套，留意早晚溫差。",
+    clothingCool: "天氣微涼，帶件薄外套或採洋蔥式穿搭更舒適。",
+    clothingMild: "氣溫舒適，穿著輕便即可，怕冷可加件薄外套。",
+    clothingWarm: "氣溫偏暖，選擇透氣輕薄的衣物，記得補充水分。",
+    sunLow: "紫外線指數 {uv}，目前偏低，長時間戶外活動仍建議做好防曬。",
+    sunModerate: "紫外線指數 {uv}，外出可擦防曬乳並適時補擦。",
+    sunHigh: "紫外線指數 {uv}，建議擦防曬、戴帽子並尋找陰涼處。",
+    sunExtreme: "紫外線指數 {uv}，紫外線很強，請加強防曬並避免久曬。",
+    rainHigh: "今日降雨機率 {rain}%，建議帶傘，戶外行程記得準備備案。",
+    rainModerate: "今日降雨機率 {rain}%，外出帶把摺疊傘較安心。",
+    rainLow: "今日降雨機率 {rain}%，適合安排戶外活動，仍可留意天氣變化。",
+    adviceUnavailableTemp: "目前無法取得氣溫資料，暫時無法提供穿搭建議。",
+    adviceUnavailableUv: "目前無法取得紫外線指數，外出時建議做好防曬。",
+    adviceUnavailableRain: "目前無法取得降雨機率，出門前請查看最新天氣。",
+    today: "今天",
+    high: "最高",
+    low: "最低",
+    weatherSummary: "{place}目前{condition}，氣溫 {temperature}°C。",
+    weatherSpeechLine: "體感 {feels}°C。紫外線指數 {uv}。今日降雨機率 {rain}%。",
+    weatherClear: "晴朗",
+    weatherMostlyClear: "大致晴朗",
+    weatherPartlyCloudy: "局部多雲",
+    weatherOvercast: "陰天",
+    weatherFog: "有霧",
+    weatherDrizzle: "毛毛雨",
+    weatherFreezingRain: "凍雨",
+    weatherRain: "下雨",
+    weatherSnow: "下雪",
+    weatherShowers: "陣雨",
+    weatherSnowShowers: "陣雪",
+    weatherThunderstorm: "雷雨",
+    weatherVariable: "天氣多變",
+    routeKicker: "規劃旅程",
+    routeTitle: "旅遊路線天氣規劃",
+    routeDescription: "提供出發地、沿途停靠點與目的地的逐時預報；未計入交通時間。",
+    routeOrigin: "出發地",
+    routeOriginPlaceholder: "例如：臺北",
+    routeDestination: "目的地",
+    routeDestinationPlaceholder: "例如：高雄",
+    routeCheck: "查詢路線天氣",
+    routeFinding: "正在搜尋地點並載入天氣預報…",
+    routeSuccess: "路線天氣預報已更新。",
+    routeSamePlace: "出發地與目的地必須不同。",
+    routeEmpty: "請輸入出發地與目的地。",
+    routeNotFound: "找不到「{place}」，請確認名稱後再試一次。",
+    routeDistance: "直線距離約 {distance} 公里 · {count} 個停靠點",
+    routeOriginBadge: "出發",
+    routeStopBadge: "停靠點",
+    routeDestinationBadge: "目的地",
+    routeStopName: "停靠點 {number}",
+    routeForecastAt: "{time} 預報",
+    routeRainChance: "降雨機率：{probability}%",
+    routeRainLow: "降雨機率低",
+    routeRainUnavailable: "暫無降雨機率資料",
+    routeWarnSevere: "大雨、凍雨、大雪或強烈雷雨",
+    routeWarnRain: "可能降雨，路面濕滑",
+    routeWarnSnow: "可能降雪或雨夾雪",
+    routeWarnProbability: "未來幾小時降雨機率 {probability}%",
+    routeWarnWind: "強風，風速 {speed} 公里/小時",
+    routeWarningLabel: "注意：{warnings}",
+    routeInvalid: "無法計算兩個地點之間的距離。",
+    routeWeatherInvalid: "無法取得 {place} 的有效天氣預報。",
+    routeWeatherIncomplete: "{place} 的天氣預報資料不完整。",
+    routeError: "無法載入路線天氣，請稍後再試。",
+    radarLive: "顯示過去兩小時降雨 · 共 {count} 個影格",
+    radarEmpty: "目前沒有可用的降雨雷達影格。",
+    radarLoading: "正在載入雷達資料…",
+    radarError: "無法載入雷達資料，請稍後再試。",
+    radarMapError: "地圖載入失敗，請重新整理頁面後再試。",
+    play: "播放",
+    pause: "暫停",
+    playRadar: "播放雷達動畫",
+    pauseRadar: "暫停雷達動畫",
+    radarTimeline: "雷達時間軸",
+    liveRadar: "即時雷達回波",
+    rainRadar: "雨雲動態",
+    loadingRadar: "正在載入雷達資料…",
+    radarMapLabel: "雨雲雷達地圖，可拖曳與縮放",
+    comingDays: "接下來的日子",
+    sevenDayForecast: "未來七日",
+    forecastCaption: "七天的天氣，提前掌握",
+    preparingForecast: "正在為你準備一週的天氣…",
+    footerNote: "把天氣收進日常，讓出門從容一點。",
+    weatherCredit: "氣象資料由 Open-Meteo 提供",
+    uvAnswerUnavailable: "目前無法取得紫外線資料。長時間戶外活動請做好防曬與遮蔽。",
+    uvAnswerHigh: "紫外線指數 {uv}，偏高。請使用廣效防曬乳、戴帽與太陽眼鏡並尋找陰涼處；敏感肌膚請遵循醫療專業人員建議。",
+    uvAnswerLow: "紫外線指數 {uv}。長時間戶外活動仍請做好防曬，並依照產品說明補擦。",
+    temperatureAnswerCold: "目前 {temperature}°C，建議採多層穿搭並帶上外套。",
+    temperatureAnswerHot: "目前 {temperature}°C，建議穿著透氣衣物並補充水分。",
+    temperatureAnswerMild: "目前 {temperature}°C，請選擇舒適且方便調整的服裝。",
+    temperatureRangeHigh: "今日溫差約 {range}°，早晚建議多帶一件外套。",
+    temperatureRangeLow: "今日溫差約 {range}°。",
+    healthDisclaimer: "天氣資訊不能用於診斷感冒；若症狀嚴重或持續，請諮詢醫療專業人員。",
+    fnbRainHigh: "今日降雨機率 {rain}%。建議加強外送宣傳並為戶外座位準備遮雨棚，同時保護包材與食材。",
+    fnbRainMedium: "今日降雨機率 {rain}%。可考慮推出外送優惠並準備備用遮雨棚。",
+    fnbRainLow: "今日降雨機率 {rain}%。可優先安排內用，但安排戶外座位前仍請查看最新預報。",
+    fnbRainUnavailable: "目前無降雨機率資料。決定外送宣傳或遮雨安排前，請先查看最新預報。",
+    fnbHot: "目前約 {temperature}°C，可優先準備冷飲、飲用水與冰塊，並依實際銷量進貨以減少耗損。",
+    fnbCold: "目前約 {temperature}°C，可考慮增加熱飲食材，並依需求與庫存調整進貨。",
+    fnbMild: "目前約 {temperature}°C，氣候舒適。建議維持飲品選擇平衡，並參考銷售紀錄備貨。",
+    logisticsVisibilityUnavailable: "目前沒有能見度預報資料。出發前請留意當地警示。",
+    logisticsVisibilityLow: "能見度約 {visibility} 公里，視線受限。請依路況減速、保持安全距離，若不安全應延後行程。",
+    logisticsVisibilityMedium: "能見度約 {visibility} 公里。請提高警覺、保持安全距離並遵守交通與工地安全指引。",
+    logisticsVisibilityGood: "能見度約 {visibility} 公里。仍請遵守速限與工地安全規範。",
+    logisticsWindUnavailable: "目前沒有風速資料。請查看當地天氣警示與安全規定。",
+    logisticsWindHigh: "風速約 {wind} 公里/小時，可能影響交通與戶外作業。請固定貨物，若超過工地安全標準應暫停高處作業。",
+    logisticsWindLow: "風速約 {wind} 公里/小時。請安全行駛、固定貨物並留意當地警示。",
+    assistantHealthSummary: "健康顧問：{temperature}，{uv}{range}。請適度調整穿著與防曬；以上並非醫療診斷。",
+    assistantFnbSummary: "餐飲顧問：{temperature}，{rain}。請依庫存調整備料，並依需求安排外送或遮雨措施。",
+    assistantLogisticsSummary: "物流顧問：{temperature}，{wind}。請遵守速限與安全作業規範。",
+    answerGeneral: "目前天氣：{temperature}，{wind}{rain}。你想進一步了解健康、餐飲或物流建議嗎？",
+    noTemperatureData: "目前沒有氣溫資料",
+    noUvData: "目前沒有紫外線資料",
+    noRainData: "目前沒有降雨資料",
+    noWindData: "目前沒有風速資料",
+    visibilityNotAvailable: "目前沒有能見度資料",
+    temperatureValue: "目前 {temperature}°C",
+    uvValue: "紫外線指數 {uv}",
+    rangeValue: "，今日溫差 {range}°",
+    rainValue: "降雨機率 {rain}%",
+    windValue: "風速 {wind} 公里/小時",
+    errorPrefix: "天氣服務錯誤（{status}），請稍後再試。",
+    invalidCity: "找不到「{city}」，請確認拼寫後再試一次。",
+    emptyCity: "請輸入想查詢的城市名稱。",
+    searchingCity: "正在搜尋城市…",
+    cityNotFound: "找不到這座城市",
+    citySearchFailed: "無法搜尋城市",
+    pageWeatherError: "無法取得天氣資料，請稍後再試。",
+    defaultCityError: "找不到預設地點資料，請使用搜尋功能選擇城市。",
+    radarServiceError: "雷達服務提供了無效的地圖來源。",
+  },
+};
+
+const SAVED_LANGUAGE = localStorage.getItem("selected_lang");
+let currentLanguage = Object.hasOwn(translations, SAVED_LANGUAGE) ? SAVED_LANGUAGE : "vi";
+
+function t(key, values = {}) {
+  const template = translations[currentLanguage][key] ?? translations.en[key] ?? key;
+  return template.replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? ""));
+}
+
+function getSpeechLanguage() {
+  return SPEECH_LANGUAGES[currentLanguage];
+}
+
+function formatNumber(value, options = {}) {
+  return new Intl.NumberFormat(
+    currentLanguage === "zh" ? "zh-TW" : currentLanguage,
+    options,
+  ).format(value);
+}
+
+function applyTranslations() {
+  document.documentElement.lang = currentLanguage === "zh" ? "zh-Hant" : currentLanguage;
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    const key = element.dataset.i18n;
+    const translated = t(key);
+    const attributes = element.dataset.i18nAttr?.split(/\s+/).filter(Boolean) ?? [];
+    if (attributes.length) {
+      for (const attribute of attributes) element.setAttribute(attribute, translated);
+    } else {
+      element.textContent = translated;
+    }
+  });
+  elements.languageSelect.value = currentLanguage;
+}
+
+function changeLanguage(language) {
+  if (!Object.hasOwn(translations, language)) return;
+  if (window.speechSynthesis?.speaking) window.speechSynthesis.cancel();
+  currentLanguage = language;
+  localStorage.setItem("selected_lang", language);
+  applyTranslations();
+  setVoiceState(isListening);
+  if (speechRecognition) speechRecognition.lang = getSpeechLanguage();
+  if (weatherContext) renderWeather(weatherContext.place, weatherContext.data);
+  if (routeView) {
+    renderRouteWeather(routeView.waypoints, routeView.forecasts, routeView.distanceKm);
+    elements.routeStatus.textContent = t("routeSuccess");
+  }
+  if (radarFrames.length) setRadarFrames(radarFrames);
+  elements.assistantVoiceMessage.textContent = "";
+  if (lastVoiceQuestion) {
+    elements.assistantVoiceAnswer.textContent = t("answerTranscript", {
+      question: lastVoiceQuestion,
+      answer: getAssistantAnswer(lastVoiceQuestion),
+    });
+  }
+}
+
 const CITY_ALIASES = new Map([
   ["桃園", "Taoyuan"],
   ["桃園市", "Taoyuan"],
@@ -49,8 +770,14 @@ const COUNTRY_NAMES = {
   MO: "澳門",
   SG: "新加坡",
 };
+const LOCALIZED_COUNTRY_NAMES = {
+  vi: { TW: "Đài Loan", CN: "Trung Quốc", JP: "Nhật Bản", KR: "Hàn Quốc", US: "Hoa Kỳ", GB: "Vương quốc Anh", HK: "Hồng Kông", MO: "Ma Cao", SG: "Singapore" },
+  en: { TW: "Taiwan", CN: "China", JP: "Japan", KR: "South Korea", US: "United States", GB: "United Kingdom", HK: "Hong Kong", MO: "Macau", SG: "Singapore" },
+  zh: COUNTRY_NAMES,
+};
 
 const elements = {
+  languageSelect: document.querySelector("#language-select"),
   searchForm: document.querySelector("#search-form"),
   searchInput: document.querySelector("#city-search"),
   suggestions: document.querySelector("#suggestions"),
@@ -97,10 +824,9 @@ const elements = {
   routeResults: document.querySelector("#route-results"),
 };
 
-const weekdayFormatter = new Intl.DateTimeFormat("zh-TW", {
-  weekday: "short",
-  timeZone: "UTC",
-});
+function getLocale() {
+  return currentLanguage === "zh" ? "zh-TW" : currentLanguage === "en" ? "en-US" : "vi-VN";
+}
 let suggestions = [];
 let activeSuggestion = -1;
 let suggestionController;
@@ -123,10 +849,12 @@ let weatherBulletin;
 let weatherAdvice;
 let speechGeneration = 0;
 let weatherContext;
+let routeView;
 let assistantPersona = "health";
 let speechRecognition;
 let isListening = false;
 let receivedVoiceResult = false;
+let lastVoiceQuestion = "";
 
 const WEATHER_BACKGROUND_VERTEX_SHADER = `
   attribute float aSize;
@@ -493,37 +1221,37 @@ function setWeatherBackground(weatherCode, isDay) {
 }
 
 function getWeatherDescription(code) {
-  if (code === 0) return { text: "晴朗", icon: "☀️" };
-  if (code === 1) return { text: "大致晴朗", icon: "🌤️" };
-  if (code === 2) return { text: "局部多雲", icon: "⛅" };
-  if (code === 3) return { text: "陰天", icon: "☁️" };
-  if (code === 45 || code === 48) return { text: "有霧", icon: "🌫️" };
-  if (code === 51 || code === 53 || code === 55) return { text: "毛毛雨", icon: "🌦️" };
-  if (code === 56 || code === 57) return { text: "凍雨", icon: "🌧️" };
-  if (code === 61 || code === 63 || code === 65) return { text: "下雨", icon: "🌧️" };
-  if (code === 66 || code === 67) return { text: "凍雨", icon: "🌧️" };
+  if (code === 0) return { text: t("weatherClear"), icon: "☀️" };
+  if (code === 1) return { text: t("weatherMostlyClear"), icon: "🌤️" };
+  if (code === 2) return { text: t("weatherPartlyCloudy"), icon: "⛅" };
+  if (code === 3) return { text: t("weatherOvercast"), icon: "☁️" };
+  if (code === 45 || code === 48) return { text: t("weatherFog"), icon: "🌫️" };
+  if (code === 51 || code === 53 || code === 55) return { text: t("weatherDrizzle"), icon: "🌦️" };
+  if (code === 56 || code === 57) return { text: t("weatherFreezingRain"), icon: "🌧️" };
+  if (code === 61 || code === 63 || code === 65) return { text: t("weatherRain"), icon: "🌧️" };
+  if (code === 66 || code === 67) return { text: t("weatherFreezingRain"), icon: "🌧️" };
   if (code === 71 || code === 73 || code === 75 || code === 77) {
-    return { text: "下雪", icon: "🌨️" };
+    return { text: t("weatherSnow"), icon: "🌨️" };
   }
-  if (code === 80 || code === 81 || code === 82) return { text: "陣雨", icon: "🌦️" };
-  if (code === 85 || code === 86) return { text: "陣雪", icon: "🌨️" };
-  if (code === 95 || code === 96 || code === 99) return { text: "雷雨", icon: "⛈️" };
-  return { text: "天氣多變", icon: "🌤️" };
+  if (code === 80 || code === 81 || code === 82) return { text: t("weatherShowers"), icon: "🌦️" };
+  if (code === 85 || code === 86) return { text: t("weatherSnowShowers"), icon: "🌨️" };
+  if (code === 95 || code === 96 || code === 99) return { text: t("weatherThunderstorm"), icon: "⛈️" };
+  return { text: t("weatherVariable"), icon: "🌤️" };
 }
 
 function getUvDescription(value) {
-  if (value < 3) return "低，日常防護即可";
-  if (value < 6) return "中等，建議做好防曬";
-  if (value < 8) return "偏高，請留意防曬";
-  if (value < 11) return "很高，請加強防護";
-  return "極高，請避免長時間曝曬";
+  if (value < 3) return t("uvLow");
+  if (value < 6) return t("uvModerate");
+  if (value < 8) return t("uvHigh");
+  if (value < 11) return t("uvVeryHigh");
+  return t("uvExtreme");
 }
 
 function getWindDescription(speed) {
-  if (speed < 6) return "微風徐徐";
-  if (speed < 20) return "和風輕拂";
-  if (speed < 40) return "風勢稍強";
-  return "風勢較強，留意戶外活動";
+  if (speed < 6) return t("windGentle");
+  if (speed < 20) return t("windBreezy");
+  if (speed < 40) return t("windStrong");
+  return t("windVeryStrong");
 }
 
 function getLifestyleAdvice(temperature, uvIndex, rainProbability) {
@@ -541,71 +1269,31 @@ function getLifestyleAdvice(temperature, uvIndex, rainProbability) {
 
 function getClothingAdvice(temperature) {
   if (temperature < 10) {
-    return {
-      text: "氣溫偏低，建議穿著保暖外套，留意早晚溫差。",
-      spoken: "Trời lạnh, bạn nên mặc áo khoác ấm và chú ý chênh lệch nhiệt độ sáng tối.",
-    };
+    const text = t("clothingCold");
+    return { text, spoken: text };
   }
   if (temperature < 18) {
-    return {
-      text: "天氣微涼，帶件薄外套或採洋蔥式穿搭更舒適。",
-      spoken: "Trời hơi se lạnh, hãy mang theo áo khoác mỏng hoặc mặc nhiều lớp.",
-    };
+    const text = t("clothingCool");
+    return { text, spoken: text };
   }
   if (temperature < 25) {
-    return {
-      text: "氣溫舒適，穿著輕便即可，怕冷可加件薄外套。",
-      spoken: "Thời tiết dễ chịu, bạn có thể mặc đồ nhẹ; nếu sợ lạnh, hãy mang áo khoác mỏng.",
-    };
+    const text = t("clothingMild");
+    return { text, spoken: text };
   }
-  return {
-    text: "氣溫偏暖，選擇透氣輕薄的衣物，記得補充水分。",
-    spoken: "Trời ấm, hãy chọn quần áo mỏng nhẹ, thoáng mát và nhớ uống đủ nước.",
-  };
+  const text = t("clothingWarm");
+  return { text, spoken: text };
 }
 
 function getSunAdvice(uvIndex) {
-  if (uvIndex < 3) {
-    return {
-      text: `紫外線指數 ${uvIndex.toFixed(1)}，目前偏低，長時間戶外活動仍建議做好防曬。`,
-      spoken: `Chỉ số tia cực tím là ${uvIndex.toFixed(1)}, hiện ở mức thấp. Nếu ở ngoài trời lâu, bạn vẫn nên chống nắng.`,
-    };
-  }
-  if (uvIndex < 6) {
-    return {
-      text: `紫外線指數 ${uvIndex.toFixed(1)}，外出可擦防曬乳並適時補擦。`,
-      spoken: `Chỉ số tia cực tím là ${uvIndex.toFixed(1)}. Hãy thoa kem chống nắng và thoa lại khi cần.`,
-    };
-  }
-  if (uvIndex < 8) {
-    return {
-      text: `紫外線指數 ${uvIndex.toFixed(1)}，建議擦防曬、戴帽子並尋找陰涼處。`,
-      spoken: `Chỉ số tia cực tím là ${uvIndex.toFixed(1)}, khá cao. Hãy dùng kem chống nắng, đội mũ và tìm bóng râm.`,
-    };
-  }
-  return {
-    text: `紫外線指數 ${uvIndex.toFixed(1)}，紫外線很強，請加強防曬並避免久曬。`,
-    spoken: `Chỉ số tia cực tím là ${uvIndex.toFixed(1)}, rất cao. Hãy bảo vệ da kỹ và tránh ở ngoài nắng lâu.`,
-  };
+  const key = uvIndex < 3 ? "sunLow" : uvIndex < 6 ? "sunModerate" : uvIndex < 8 ? "sunHigh" : "sunExtreme";
+  const text = t(key, { uv: uvIndex.toFixed(1) });
+  return { text, spoken: text };
 }
 
 function getRainAdvice(rainProbability) {
-  if (rainProbability >= 60) {
-    return {
-      text: `今日降雨機率 ${rainProbability}%，建議帶傘，戶外行程記得準備備案。`,
-      spoken: `Khả năng mưa hôm nay là ${rainProbability} phần trăm. Bạn nên mang ô và chuẩn bị phương án dự phòng cho hoạt động ngoài trời.`,
-    };
-  }
-  if (rainProbability >= 30) {
-    return {
-      text: `今日降雨機率 ${rainProbability}%，外出帶把摺疊傘較安心。`,
-      spoken: `Khả năng mưa hôm nay là ${rainProbability} phần trăm. Mang theo ô gấp sẽ yên tâm hơn.`,
-    };
-  }
-  return {
-    text: `今日降雨機率 ${rainProbability}%，適合安排戶外活動，仍可留意天氣變化。`,
-    spoken: `Khả năng mưa hôm nay là ${rainProbability} phần trăm. Thời tiết phù hợp cho hoạt động ngoài trời, nhưng bạn vẫn nên theo dõi diễn biến thời tiết.`,
-  };
+  const key = rainProbability >= 60 ? "rainHigh" : rainProbability >= 30 ? "rainModerate" : "rainLow";
+  const text = t(key, { rain: Math.round(rainProbability) });
+  return { text, spoken: text };
 }
 
 function renderLifestyleAdvice(place, current, rainProbability) {
@@ -620,11 +1308,11 @@ function renderLifestyleAdvice(place, current, rainProbability) {
   const rainAdvice = hasRainProbability ? getRainAdvice(validRainProbability) : undefined;
 
   elements.clothingAdvice.textContent =
-    clothingAdvice?.text ?? "目前無法取得氣溫資料，暫時無法提供穿搭建議。";
+    clothingAdvice?.text ?? t("adviceUnavailableTemp");
   elements.sunAdvice.textContent =
-    sunAdvice?.text ?? "目前無法取得紫外線指數，外出時建議做好防曬。";
+    sunAdvice?.text ?? t("adviceUnavailableUv");
   elements.rainAdvice.textContent =
-    rainAdvice?.text ?? "目前無法取得降雨機率，出門前請查看最新天氣。";
+    rainAdvice?.text ?? t("adviceUnavailableRain");
 
   const apparentTemperature = current.apparent_temperature;
   const hasApparentTemperature = Number.isFinite(apparentTemperature);
@@ -635,40 +1323,31 @@ function renderLifestyleAdvice(place, current, rainProbability) {
 
   if (!weatherAdvice || !hasApparentTemperature) {
     elements.assistantSpeak.disabled = true;
-    elements.assistantSpeakStatus.textContent = "部分天氣資料暫缺，暫時無法產生完整語音播報。";
+    elements.assistantSpeakStatus.textContent = t("partialWeatherData");
     return;
   }
 
-  const temperatureText = Math.round(temperature);
-  const uvText = uvIndex.toFixed(1);
-  const conditionText = getVietnameseWeatherDescription(current.weather_code);
-  weatherBulletin =
-    `Thời tiết tại ${getVietnamesePlaceName(place)} hiện tại ${temperatureText} độ C, ${conditionText}. ` +
-    `Cảm giác như ${Math.round(apparentTemperature)} độ C. ` +
-    `Chỉ số tia cực tím là ${uvText}. Khả năng mưa hôm nay là ${Math.round(validRainProbability)} phần trăm. ` +
-    weatherAdvice.spoken;
+  const conditionText = getWeatherDescription(current.weather_code).text;
+  weatherBulletin = `${t("weatherSummary", {
+    place: getVietnamesePlaceName(place),
+    condition: conditionText,
+    temperature: Math.round(temperature),
+  })} ${t("weatherSpeechLine", {
+    feels: Math.round(apparentTemperature),
+    uv: uvIndex.toFixed(1),
+    rain: Math.round(validRainProbability),
+  })} ${weatherAdvice.spoken}`;
   if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
     elements.assistantSpeak.disabled = true;
-    elements.assistantSpeakStatus.textContent = "此瀏覽器不支援 Web Speech API，無法使用語音播報。";
+    elements.assistantSpeakStatus.textContent = t("speechUnsupported");
     return;
   }
   elements.assistantSpeak.disabled = false;
-  elements.assistantSpeakStatus.textContent =
-    "Nhấn nút loa để nghe bản tin thời tiết và lời khuyên bằng tiếng Việt.";
+  elements.assistantSpeakStatus.textContent = t("weatherSpeechReady");
 }
 
 function getVietnameseWeatherDescription(code) {
-  if (code === 0) return "trời nắng";
-  if (code === 1) return "trời quang đãng";
-  if (code === 2) return "trời có mây từng đám";
-  if (code === 3) return "trời nhiều mây";
-  if (code === 45 || code === 48) return "có sương mù";
-  if (code >= 51 && code <= 57) return "có mưa phùn";
-  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return "có mưa";
-  if (code >= 71 && code <= 77) return "có tuyết";
-  if (code === 85 || code === 86) return "có mưa tuyết";
-  if (code >= 95 && code <= 99) return "có dông";
-  return "thời tiết thay đổi";
+  return getWeatherDescription(code).text;
 }
 
 function normalizeVoiceText(text) {
@@ -681,23 +1360,26 @@ function normalizeVoiceText(text) {
 
 function analyzeAssistantIntent(text, persona) {
   const query = normalizeVoiceText(text);
+  const isMatch = (patterns) => patterns.some((pattern) => pattern.test(query));
   if (persona === "health") {
-    if (/\b(uv|tia cuc tim|nang|da|chong nang)\b/.test(query)) return "health-sun";
-    if (/\b(lanh|ret|ao|mac|cam|cum|sot|nhiet do|chenh lech)\b/.test(query)) {
+    if (isMatch([/\b(uv|tia cuc tim|nang|da|chong nang)\b/, /\b(sun|skin|sunscreen)\b/, /紫外線|防曬|皮膚|陽光/])) {
+      return "health-sun";
+    }
+    if (isMatch([/\b(lanh|ret|ao|mac|cam|cum|sot|nhiet do|chenh lech)\b/, /\b(cold|flu|temperature|clothes|fever)\b/, /感冒|溫度|穿衣|溫差|發燒/])) {
       return "health-temperature";
     }
   } else if (persona === "fnb") {
-    if (/\b(mua|delivery|giao hang|quang cao|bat|che|ngoai troi)\b/.test(query)) {
+    if (isMatch([/\b(mua|delivery|giao hang|quang cao|bat|che|ngoai troi)\b/, /\b(rain|delivery|advert|canopy|outdoor)\b/, /下雨|外送|外賣|廣告|遮雨|戶外/])) {
       return "fnb-rain";
     }
-    if (/\b(nhiet do|nong|lanh|do uong|nguyen lieu|nhap hang)\b/.test(query)) {
+    if (isMatch([/\b(nhiet do|nong|lanh|do uong|nguyen lieu|nhap hang)\b/, /\b(temperature|hot|cold|drink|ingredient|stock)\b/, /溫度|飲料|飲品|食材|進貨|備貨/])) {
       return "fnb-temperature";
     }
   } else if (persona === "logistics") {
-    if (/\b(tam nhin|suong mu|nhin xa|visibility)\b/.test(query)) {
+    if (isMatch([/\b(tam nhin|suong mu|nhin xa|visibility)\b/, /\b(fog|visibility|see)\b/, /能見度|能见度|霧|大霧/])) {
       return "logistics-visibility";
     }
-    if (/\b(gio|cong trinh|duong|giao hang|toc do|di chuyen|an toan)\b/.test(query)) {
+    if (isMatch([/\b(gio|cong trinh|duong|giao hang|toc do|di chuyen|an toan)\b/, /\b(wind|road|construction|delivery|speed|safe)\b/, /風速|大風|道路|工地|運輸|安全/])) {
       return "logistics-wind";
     }
   }
@@ -733,9 +1415,7 @@ function getAssistantWeatherValues() {
 
 function getAssistantAnswer(text) {
   const values = getAssistantWeatherValues();
-  if (!values) {
-    return "Hiện chưa có dữ liệu thời tiết. Vui lòng đợi bản tin thời tiết tải xong rồi hỏi lại nhé.";
-  }
+  if (!values) return t("noWeatherData");
 
   const intent = analyzeAssistantIntent(text, assistantPersona);
   const temperature = values.currentTemperature;
@@ -746,83 +1426,83 @@ function getAssistantAnswer(text) {
 
   if (assistantPersona === "health") {
     if (intent === "health-sun") {
-      if (uv === undefined) return "Hiện chưa có dữ liệu tia cực tím. Bạn nên dùng kem chống nắng và che chắn khi ở ngoài trời lâu.";
-      if (uv >= 6) {
-        return `Chỉ số UV hiện là ${uv.toFixed(1)}, mức cao. Hãy dùng kem chống nắng phổ rộng, đội mũ, đeo kính và tìm bóng râm; nếu da nhạy cảm hoặc đang điều trị da, hãy làm theo hướng dẫn của bác sĩ.`;
-      }
-      return `Chỉ số UV hiện là ${uv.toFixed(1)}. Dù mức UV chưa cao, hãy bảo vệ da khi ở ngoài trời lâu và thoa lại kem chống nắng theo hướng dẫn.`;
+      if (uv === undefined) return t("uvAnswerUnavailable");
+      return t(uv >= 6 ? "uvAnswerHigh" : "uvAnswerLow", { uv: uv.toFixed(1) });
     }
     if (intent === "health-temperature") {
       const temperatureAdvice =
         temperature === undefined
-          ? "Chưa có dữ liệu nhiệt độ hiện tại."
+          ? t("noTemperatureData")
           : temperature < 18
-            ? `Hiện ${Math.round(temperature)} độ C, nên mặc nhiều lớp và mang theo áo khoác.`
+            ? t("temperatureAnswerCold", { temperature: Math.round(temperature) })
             : temperature >= 27
-              ? `Hiện ${Math.round(temperature)} độ C, nên chọn quần áo thoáng mát và uống đủ nước.`
-              : `Hiện ${Math.round(temperature)} độ C, hãy chọn trang phục phù hợp và dễ điều chỉnh.`;
+              ? t("temperatureAnswerHot", { temperature: Math.round(temperature) })
+              : t("temperatureAnswerMild", { temperature: Math.round(temperature) });
       const rangeAdvice =
         range === undefined
           ? ""
           : range >= 8
-            ? ` Biên độ nhiệt ngày khoảng ${Math.round(range)} độ, nên chuẩn bị thêm một lớp áo cho buổi sáng và tối.`
-            : ` Biên độ nhiệt ngày khoảng ${Math.round(range)} độ.`;
-      return `${temperatureAdvice}${rangeAdvice} Thời tiết không thể dùng để chẩn đoán cảm cúm; nếu có triệu chứng nặng hoặc kéo dài, hãy hỏi nhân viên y tế.`;
+            ? ` ${t("temperatureRangeHigh", { range: Math.round(range) })}`
+            : ` ${t("temperatureRangeLow", { range: Math.round(range) })}`;
+      return `${temperatureAdvice} ${rangeAdvice} ${t("healthDisclaimer")}`.trim();
     }
-    return `Trợ lý sức khỏe: ${temperature === undefined ? "chưa có dữ liệu nhiệt độ" : `hiện ${Math.round(temperature)} độ C`}, ${uv === undefined ? "chưa có dữ liệu UV" : `UV ${uv.toFixed(1)}`}${range === undefined ? "" : `, biên độ nhiệt ngày ${Math.round(range)} độ`}. Hãy điều chỉnh trang phục, chống nắng phù hợp; đây không phải chẩn đoán y khoa.`;
+    return t("assistantHealthSummary", {
+      temperature: temperature === undefined
+        ? t("noTemperatureData")
+        : t("temperatureValue", { temperature: Math.round(temperature) }),
+      uv: uv === undefined ? t("noUvData") : t("uvValue", { uv: uv.toFixed(1) }),
+      range: range === undefined ? "" : t("rangeValue", { range: Math.round(range) }),
+    });
   }
 
   if (assistantPersona === "fnb") {
     if (intent === "fnb-rain") {
-      if (rain === undefined) {
-        return "Hiện chưa có dữ liệu xác suất mưa. Hãy kiểm tra dự báo mới nhất trước khi quyết định chạy quảng cáo giao hàng hoặc chuẩn bị mái che.";
-      }
-      if (rain >= 60) {
-        return `Xác suất mưa hôm nay khoảng ${Math.round(rain)} phần trăm. Nên ưu tiên quảng bá delivery và chuẩn bị mái che, bạt chống mưa cho khách ngồi ngoài trời; nhớ bảo vệ bao bì và nguyên liệu.`;
-      }
-      if (rain >= 30) {
-        return `Xác suất mưa hôm nay khoảng ${Math.round(rain)} phần trăm. Có thể chạy ưu đãi delivery ở mức vừa phải và chuẩn bị sẵn mái che hoặc bạt dự phòng.`;
-      }
-      return `Xác suất mưa hôm nay khoảng ${Math.round(rain)} phần trăm. Có thể ưu tiên phục vụ tại chỗ, nhưng vẫn nên kiểm tra dự báo trước khi sắp xếp khu vực ngoài trời.`;
+      if (rain === undefined) return t("fnbRainUnavailable");
+      const key = rain >= 60 ? "fnbRainHigh" : rain >= 30 ? "fnbRainMedium" : "fnbRainLow";
+      return t(key, { rain: Math.round(rain) });
     }
     if (intent === "fnb-temperature") {
-      if (temperature === undefined) return "Hiện chưa có dữ liệu nhiệt độ để đề xuất nhập nguyên liệu.";
-      if (temperature >= 28) {
-        return `Nhiệt độ hiện khoảng ${Math.round(temperature)} độ C. Có thể ưu tiên nguyên liệu cho đồ uống lạnh, nước và đá; nhập theo lượng bán thực tế để hạn chế hao hụt.`;
-      }
-      if (temperature < 18) {
-        return `Nhiệt độ hiện khoảng ${Math.round(temperature)} độ C. Có thể cân nhắc bổ sung nguyên liệu cho đồ uống nóng; hãy đối chiếu lượng nhập với nhu cầu và tồn kho.`;
-      }
-      return `Nhiệt độ hiện khoảng ${Math.round(temperature)} độ C, khá ôn hòa. Nên giữ danh mục đồ uống cân bằng và nhập nguyên liệu theo lịch sử bán hàng.`;
+      if (temperature === undefined) return t("adviceUnavailableTemp");
+      const key = temperature >= 28 ? "fnbHot" : temperature < 18 ? "fnbCold" : "fnbMild";
+      return t(key, { temperature: Math.round(temperature) });
     }
-    return `Trợ lý F&B: ${temperature === undefined ? "chưa có dữ liệu nhiệt độ" : `nhiệt độ ${Math.round(temperature)} độ C`}, ${rain === undefined ? "chưa có dữ liệu mưa" : `xác suất mưa ${Math.round(rain)} phần trăm`}. Điều chỉnh nguyên liệu theo tồn kho và chọn phương án delivery hoặc mái che theo nhu cầu thực tế.`;
+    return t("assistantFnbSummary", {
+      temperature: temperature === undefined
+        ? t("noTemperatureData")
+        : t("temperatureValue", { temperature: Math.round(temperature) }),
+      rain: rain === undefined ? t("noRainData") : t("rainValue", { rain: Math.round(rain) }),
+    });
   }
 
   if (assistantPersona === "logistics") {
     if (intent === "logistics-visibility") {
-      if (values.visibility === undefined) return "Hiện chưa có dữ liệu tầm nhìn từ dự báo. Hãy theo dõi cảnh báo địa phương trước khi khởi hành.";
+      if (values.visibility === undefined) return t("logisticsVisibilityUnavailable");
       const visibilityKm = values.visibility / 1000;
-      if (visibilityKm < 1) {
-        return `Tầm nhìn hiện khoảng ${visibilityKm.toFixed(1)} km, hạn chế. Giảm tốc độ phù hợp quy định, tăng khoảng cách an toàn, bật đèn cần thiết và cân nhắc hoãn hành trình hoặc công việc ngoài trời nếu không an toàn.`;
-      }
-      if (visibilityKm < 5) {
-        return `Tầm nhìn hiện khoảng ${visibilityKm.toFixed(1)} km. Cần quan sát kỹ, giữ khoảng cách an toàn và tuân thủ hướng dẫn giao thông, an toàn công trường.`;
-      }
-      return `Tầm nhìn hiện khoảng ${visibilityKm.toFixed(1)} km. Dù điều kiện đang khá rõ, vẫn cần tuân thủ giới hạn tốc độ và quy trình an toàn tại công trường.`;
+      const key = visibilityKm < 1
+        ? "logisticsVisibilityLow"
+        : visibilityKm < 5
+          ? "logisticsVisibilityMedium"
+          : "logisticsVisibilityGood";
+      return t(key, { visibility: visibilityKm.toFixed(1) });
     }
-    if (wind === undefined) return "Hiện chưa có dữ liệu tốc độ gió. Hãy kiểm tra cảnh báo thời tiết và quy định an toàn tại địa phương.";
-    if (wind >= 40) {
-      return `Gió hiện khoảng ${Math.round(wind)} km/h, có thể ảnh hưởng phương tiện và công việc ngoài trời. Cần giảm tốc độ phù hợp điều kiện, cố định hàng hóa; tạm dừng công việc trên cao nếu vượt ngưỡng an toàn tại công trường.`;
-    }
-    return `Gió hiện khoảng ${Math.round(wind)} km/h. Duy trì tốc độ an toàn, cố định hàng hóa và theo dõi cảnh báo địa phương trước khi làm việc ngoài trời.`;
+    if (wind === undefined) return t("logisticsWindUnavailable");
+    return t(wind >= 40 ? "logisticsWindHigh" : "logisticsWindLow", {
+      wind: Math.round(wind),
+    });
   }
 
-  return `Thời tiết hiện ${temperature === undefined ? "chưa có dữ liệu nhiệt độ" : `${Math.round(temperature)} độ C`}, ${wind === undefined ? "chưa có dữ liệu gió" : `gió ${Math.round(wind)} km/h`}${rain === undefined ? "" : `, xác suất mưa ${Math.round(rain)} phần trăm`}. Bạn muốn hỏi sâu hơn về sức khỏe, kinh doanh F&B hay giao vận?`;
+  return t("answerGeneral", {
+    temperature: temperature === undefined
+      ? t("noTemperatureData")
+      : t("temperatureValue", { temperature: Math.round(temperature) }),
+    wind: wind === undefined ? t("noWindData") : t("windValue", { wind: Math.round(wind) }),
+    rain: rain === undefined ? "" : `, ${t("rainValue", { rain: Math.round(rain) })}`,
+  });
 }
 
 function setVoiceState(listening) {
   isListening = listening;
-  elements.assistantVoiceState.textContent = listening ? "Đang nghe" : "Sẵn sàng";
+  elements.assistantVoiceState.textContent = listening ? t("listening") : t("ready");
   elements.assistantMicrophone.setAttribute("aria-pressed", String(listening));
   elements.assistantMicrophone.classList.toggle("is-listening", listening);
   elements.assistantSection.classList.toggle("is-listening", listening);
@@ -835,38 +1515,39 @@ function stopVoiceRecognition() {
   } catch (error) {
     setVoiceState(false);
     elements.assistantVoiceMessage.textContent =
-      error instanceof Error ? `Không thể dừng ghi âm: ${error.message}` : "Không thể dừng ghi âm.";
+      t("voiceStopError", {
+        error: error instanceof Error ? error.message : "unknown",
+      });
   }
 }
 
 function speakAssistantAnswer(answer) {
   if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
     elements.assistantVoiceMessage.textContent =
-      `${answer} Trình duyệt này không hỗ trợ phát giọng nói.`;
+      `${answer} ${t("voiceSpeakUnsupported")}`;
     return;
   }
 
   if (window.speechSynthesis.speaking) {
     window.speechSynthesis.cancel();
-    resetSpeechStatus("Bản tin thời tiết đã dừng để phát câu trả lời.");
+    resetSpeechStatus(t("speakStopped"));
   }
   const utterance = new SpeechSynthesisUtterance(answer);
   const currentSpeechGeneration = ++speechGeneration;
-  utterance.lang = "vi-VN";
+  utterance.lang = getSpeechLanguage();
   utterance.rate = 0.96;
   const vietnameseVoice = window.speechSynthesis
     .getVoices()
-    .find((voice) => voice.lang.toLowerCase().startsWith("vi"));
+    .find((voice) => voice.lang.toLowerCase().startsWith(currentLanguage));
   if (vietnameseVoice) utterance.voice = vietnameseVoice;
   utterance.onend = () => {
     if (currentSpeechGeneration === speechGeneration) {
-      elements.assistantVoiceMessage.textContent = "Đã đọc xong câu trả lời.";
+      elements.assistantVoiceMessage.textContent = t("voiceSpeakDone");
     }
   };
   utterance.onerror = (event) => {
     if (currentSpeechGeneration === speechGeneration) {
-      elements.assistantVoiceMessage.textContent =
-        `Không thể phát câu trả lời: ${event.error}. Bạn vẫn có thể đọc nội dung trên màn hình.`;
+      elements.assistantVoiceMessage.textContent = t("voiceSpeakError", { error: event.error });
     }
   };
   window.speechSynthesis.speak(utterance);
@@ -875,8 +1556,12 @@ function speakAssistantAnswer(answer) {
 function handleVoiceQuestion(transcript) {
   receivedVoiceResult = true;
   stopVoiceRecognition();
+  lastVoiceQuestion = transcript;
   const answer = getAssistantAnswer(transcript);
-  elements.assistantVoiceAnswer.textContent = `Bạn hỏi: ${transcript}\n${answer}`;
+  elements.assistantVoiceAnswer.textContent = t("answerTranscript", {
+    question: transcript,
+    answer,
+  });
   speakAssistantAnswer(answer);
 }
 
@@ -884,51 +1569,51 @@ function configureVoiceAssistant() {
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) {
     elements.assistantMicrophone.disabled = true;
-    elements.assistantVoiceMessage.textContent =
-      "Trình duyệt chưa hỗ trợ nhận dạng giọng nói. Hãy dùng trình duyệt hỗ trợ Web Speech API.";
+    elements.assistantVoiceMessage.textContent = t("voiceNoSupport");
     return;
   }
 
   speechRecognition = new Recognition();
-  speechRecognition.lang = "vi-VN";
+  speechRecognition.lang = getSpeechLanguage();
   speechRecognition.continuous = false;
   speechRecognition.interimResults = false;
   speechRecognition.maxAlternatives = 1;
   speechRecognition.onstart = () => {
     receivedVoiceResult = false;
     setVoiceState(true);
-    elements.assistantVoiceMessage.textContent = "Đang nghe, hãy đặt câu hỏi bằng tiếng Việt.";
+    elements.assistantVoiceMessage.textContent = t("voiceStart");
   };
   speechRecognition.onresult = (event) => {
     const transcript = event.results?.[0]?.[0]?.transcript?.trim();
     if (!transcript) {
-      elements.assistantVoiceMessage.textContent = "Chưa nhận được câu hỏi. Hãy thử nói lại.";
+      elements.assistantVoiceMessage.textContent = t("voiceNoResult");
       return;
     }
     handleVoiceQuestion(transcript);
   };
   speechRecognition.onerror = (event) => {
     const messages = {
-      "not-allowed": "Bạn chưa cấp quyền sử dụng micro. Hãy cho phép truy cập micro rồi thử lại.",
-      "no-speech": "Chưa phát hiện giọng nói. Hãy thử lại trong môi trường yên tĩnh hơn.",
-      "audio-capture": "Không tìm thấy micro. Hãy kiểm tra thiết bị ghi âm.",
-      network: "Không thể kết nối dịch vụ nhận dạng giọng nói. Hãy thử lại sau.",
+      "not-allowed": "voiceNoPermission",
+      "no-speech": "voiceNoSpeech",
+      "audio-capture": "voiceNoDevice",
+      network: "voiceNetwork",
     };
     elements.assistantVoiceMessage.textContent =
-      messages[event.error] ?? `Nhận dạng giọng nói gặp lỗi: ${event.error}.`;
+      messages[event.error]
+        ? t(messages[event.error])
+        : t("voiceGenericError", { error: event.error });
   };
   speechRecognition.onend = () => {
     setVoiceState(false);
     if (!receivedVoiceResult && !elements.assistantVoiceMessage.textContent) {
-      elements.assistantVoiceMessage.textContent = "Đã dừng nghe. Nhấn micro để thử lại.";
+      elements.assistantVoiceMessage.textContent = t("voiceStopped");
     }
   };
 }
 
 function toggleVoiceRecognition() {
   if (!speechRecognition) {
-    elements.assistantVoiceMessage.textContent =
-      "Nhận dạng giọng nói hiện không khả dụng trong trình duyệt này.";
+    elements.assistantVoiceMessage.textContent = t("voiceUnavailable");
     return;
   }
   if (isListening) {
@@ -936,23 +1621,22 @@ function toggleVoiceRecognition() {
     return;
   }
   if (!weatherContext) {
-    elements.assistantVoiceMessage.textContent =
-      "Đang tải dữ liệu thời tiết. Hãy thử lại sau khi bản tin được cập nhật.";
+    elements.assistantVoiceMessage.textContent = t("weatherNotReady");
     return;
   }
   receivedVoiceResult = false;
   elements.assistantVoiceMessage.textContent = "";
   if (window.speechSynthesis?.speaking) {
     window.speechSynthesis.cancel();
-    resetSpeechStatus("Đã dừng bản tin để nghe câu hỏi.");
+    resetSpeechStatus(t("speakStopped"));
   }
   try {
     speechRecognition.start();
   } catch (error) {
     elements.assistantVoiceMessage.textContent =
-      error instanceof Error
-        ? `Không thể bật micro: ${error.message}`
-        : "Không thể bật micro. Hãy thử lại.";
+      t("voiceMicError", {
+        error: error instanceof Error ? error.message : "unknown",
+      });
   }
 }
 
@@ -963,66 +1647,64 @@ function selectAssistantPersona(persona) {
     tab.setAttribute("aria-selected", String(isSelected));
     tab.tabIndex = isSelected ? 0 : -1;
   }
-  const names = {
-    health: "Sức khỏe",
-    fnb: "Kinh doanh F&B",
-    logistics: "Giao vận",
+  const messages = {
+    health: "healthModeChanged",
+    fnb: "fnbModeChanged",
+    logistics: "logisticsModeChanged",
   };
   const selectedTab = elements.assistantPersonaTabs.querySelector(
     `[data-persona="${persona}"]`,
   );
   elements.assistantVoiceAnswer.setAttribute("aria-labelledby", selectedTab.id);
-  elements.assistantVoiceMessage.textContent =
-    `Đã chuyển sang chế độ tư vấn ${names[persona]}.`;
+  elements.assistantVoiceMessage.textContent = t(messages[persona]);
 }
 
-function resetSpeechStatus(message = "天氣資料載入後，即可聆聽越南語天氣播報。") {
+function resetSpeechStatus(message = t("weatherSpeechReady")) {
   speechGeneration += 1;
   elements.assistantSpeak.setAttribute("aria-pressed", "false");
-  elements.assistantSpeakLabel.textContent = "越南語播報";
+  elements.assistantSpeakLabel.textContent = t("speakWeather");
   elements.assistantSpeakStatus.textContent = message;
 }
 
 function toggleWeatherSpeech() {
   if (!("speechSynthesis" in window) || !weatherBulletin) {
-    elements.assistantSpeakStatus.textContent =
-      "此瀏覽器不支援語音播報，請改用支援 Web Speech API 的瀏覽器。";
+    elements.assistantSpeakStatus.textContent = t("speechUnsupported");
     return;
   }
 
   if (window.speechSynthesis.speaking) {
     window.speechSynthesis.cancel();
-    resetSpeechStatus("已停止語音播報。");
+    resetSpeechStatus(t("speakStopped"));
     return;
   }
 
   const utterance = new SpeechSynthesisUtterance(weatherBulletin);
   const currentSpeechGeneration = ++speechGeneration;
-  utterance.lang = "vi-VN";
+  utterance.lang = getSpeechLanguage();
   utterance.rate = 0.94;
   const vietnameseVoice = window.speechSynthesis
     .getVoices()
-    .find((voice) => voice.lang.toLowerCase().startsWith("vi"));
+    .find((voice) => voice.lang.toLowerCase().startsWith(currentLanguage));
   if (vietnameseVoice) utterance.voice = vietnameseVoice;
 
   utterance.onstart = () => {
     if (currentSpeechGeneration !== speechGeneration) return;
     elements.assistantSpeak.setAttribute("aria-pressed", "true");
-    elements.assistantSpeakLabel.textContent = "停止播報";
-    elements.assistantSpeakStatus.textContent = "正在以越南語朗讀天氣與生活建議…";
+    elements.assistantSpeakLabel.textContent = t("pause");
+    elements.assistantSpeakStatus.textContent = t("speakStarting");
   };
   utterance.onend = () => {
     if (currentSpeechGeneration === speechGeneration) {
-      resetSpeechStatus("語音播報已完成。");
+      resetSpeechStatus(t("speakFinished"));
     }
   };
   utterance.onerror = (event) => {
     if (currentSpeechGeneration === speechGeneration) {
-      resetSpeechStatus(`語音播報失敗：${event.error}。請檢查瀏覽器的語音設定後重試。`);
+      resetSpeechStatus(t("voiceSpeakError", { error: event.error }));
     }
   };
 
-  elements.assistantSpeakStatus.textContent = "正在準備越南語語音…";
+  elements.assistantSpeakStatus.textContent = t("speakPreparing");
   window.speechSynthesis.speak(utterance);
 }
 
@@ -1035,6 +1717,7 @@ function getLocationName(place) {
 
 function getVietnamesePlaceName(place) {
   const placeName = getLocationName(place);
+  if (currentLanguage !== "vi") return placeName;
   const translated = VIETNAMESE_PLACE_NAMES.get(place.admin2) ?? VIETNAMESE_PLACE_NAMES.get(placeName);
   if (translated) return translated;
   return /[\u3400-\u9fff]/u.test(placeName) ? "thành phố bạn đang xem" : placeName;
@@ -1062,7 +1745,8 @@ const VIETNAMESE_PLACE_NAMES = new Map([
 
 function getLocationDetail(place) {
   const region = place.country_code === "TW" ? place.admin2 : place.admin1;
-  const country = COUNTRY_NAMES[place.country_code] ?? place.country;
+  const country =
+    LOCALIZED_COUNTRY_NAMES[currentLanguage][place.country_code] ?? place.country;
   return [region, country]
     .filter((part, index, list) => part && list.indexOf(part) === index)
     .join("・");
@@ -1083,7 +1767,7 @@ function getPreferredPlace(places) {
 async function fetchJson(url, signal, serviceName = "天氣服務") {
   const response = await fetch(url, { signal });
   if (!response.ok) {
-    throw new Error(`${serviceName}回應錯誤（${response.status}）。請稍後再試。`);
+    throw new Error(t("errorPrefix", { status: response.status }));
   }
   return response.json();
 }
@@ -1095,7 +1779,7 @@ async function searchPlaces(query, signal) {
   url.search = new URLSearchParams({
     name: searchName,
     count: "7",
-    language: "zh",
+    language: currentLanguage,
     format: "json",
   });
   const data = await fetchJson(url, signal, "城市搜尋服務");
@@ -1107,13 +1791,13 @@ async function geocodeRoutePlace(query, signal) {
   url.search = new URLSearchParams({
     name: query.trim(),
     count: "10",
-    language: "vi",
+    language: currentLanguage,
     format: "json",
   });
   const data = await fetchJson(url, signal, "路線地點搜尋服務");
   const places = data.results ?? [];
   if (places.length === 0) {
-    throw new Error(`Không tìm thấy địa điểm “${query.trim()}”. Vui lòng kiểm tra tên và thử lại.`);
+    throw new Error(t("routeNotFound", { place: query.trim() }));
   }
   const normalizedQuery = query.trim().toLocaleLowerCase();
   return (
@@ -1173,14 +1857,14 @@ function getRouteCoordinates(start, end, fraction) {
 function createRouteWaypoints(origin, destination) {
   const distanceKm = getRouteDistanceKm(origin, destination);
   if (!Number.isFinite(distanceKm)) {
-    throw new Error("Không thể xác định khoảng cách giữa hai địa điểm.");
+    throw new Error(t("routeInvalid"));
   }
 
   const stopCount = distanceKm >= 700 ? 3 : 2;
   const waypoints = [{ name: origin.name, kind: "origin", ...origin }];
   for (let index = 1; index <= stopCount; index += 1) {
     waypoints.push({
-      name: `Điểm dừng ${index}`,
+      name: t("routeStopName", { number: index }),
       kind: "stop",
       ...getRouteCoordinates(origin, destination, index / (stopCount + 1)),
     });
@@ -1207,7 +1891,7 @@ async function fetchRouteWeather(waypoint, signal) {
     !data.hourly.weather_code?.length ||
     !data.hourly.wind_speed_10m?.length
   ) {
-    throw new Error(`Không nhận được dự báo hợp lệ tại ${waypoint.name}.`);
+    throw new Error(t("routeWeatherInvalid", { place: waypoint.name }));
   }
   const forecastIndex = getRouteForecastIndex(data);
   if (
@@ -1215,7 +1899,7 @@ async function fetchRouteWeather(waypoint, signal) {
     !Number.isFinite(Number(data.hourly.weather_code[forecastIndex])) ||
     !Number.isFinite(Number(data.hourly.wind_speed_10m[forecastIndex]))
   ) {
-    throw new Error(`Dự báo tại ${waypoint.name} hiện không có đủ dữ liệu.`);
+    throw new Error(t("routeWeatherIncomplete", { place: waypoint.name }));
   }
   return data;
 }
@@ -1245,31 +1929,33 @@ function getRouteWeatherWarnings(data) {
   const warnings = [];
 
   if ([56, 57, 65, 66, 67, 75, 82, 86, 95, 96, 99].includes(weatherCode)) {
-    warnings.push("Mưa lớn, mưa đóng băng, tuyết dày hoặc dông nguy hiểm");
+    warnings.push(t("routeWarnSevere"));
   } else if (weatherCode >= 51 && weatherCode <= 67) {
-    warnings.push("Có mưa, đường có thể trơn trượt");
+    warnings.push(t("routeWarnRain"));
   } else if (weatherCode >= 71 && weatherCode <= 86) {
-    warnings.push("Có tuyết hoặc mưa tuyết");
+    warnings.push(t("routeWarnSnow"));
   }
   if (precipitationProbability !== null && precipitationProbability >= 60) {
-    warnings.push(`Khả năng mưa ${precipitationProbability}% trong vài giờ tới`);
+    warnings.push(t("routeWarnProbability", { probability: precipitationProbability }));
   }
   if (windSpeed >= 50) {
-    warnings.push(`Gió mạnh ${Math.round(windSpeed)} km/h`);
+    warnings.push(t("routeWarnWind", { speed: Math.round(windSpeed) }));
   }
 
   return { warnings, precipitationProbability };
 }
 
 function renderRouteWeather(waypoints, forecasts, distanceKm) {
+  routeView = { waypoints, forecasts, distanceKm };
   const fragment = document.createDocumentFragment();
   const summary = document.createElement("p");
   const timeline = document.createElement("ol");
 
   summary.className = "route-summary";
-  summary.textContent =
-    `Quãng đường đường chim bay khoảng ${Math.round(distanceKm)} km · ` +
-    `${waypoints.length - 2} điểm dừng`;
+  summary.textContent = t("routeDistance", {
+    distance: formatNumber(Math.round(distanceKm)),
+    count: waypoints.length - 2,
+  });
   timeline.className = "route-timeline";
 
   waypoints.forEach((waypoint, index) => {
@@ -1296,14 +1982,17 @@ function renderRouteWeather(waypoints, forecasts, distanceKm) {
     card.className = `route-card${warnings.length ? " has-warning" : ""}`;
     heading.className = "route-card-heading";
     title.className = "route-stop-name";
-    title.textContent = waypoint.name;
+    title.textContent =
+      waypoint.kind === "stop"
+        ? t("routeStopName", { number: index })
+        : waypoint.name;
     badge.className = "route-stop-type";
     badge.textContent =
       waypoint.kind === "origin"
-        ? "Xuất phát"
+        ? t("routeOriginBadge")
         : waypoint.kind === "destination"
-          ? "Điểm đến"
-          : "Trạm dừng";
+          ? t("routeDestinationBadge")
+          : t("routeStopBadge");
     weather.className = "route-weather";
     icon.className = "route-weather-icon";
     icon.setAttribute("aria-hidden", "true");
@@ -1312,16 +2001,18 @@ function renderRouteWeather(waypoints, forecasts, distanceKm) {
     temperature.className = "route-temperature";
     temperature.textContent = `${Math.round(temperatureValue)}°C`;
     forecastTime.className = "route-forecast-time";
-    forecastTime.textContent = `Dự báo lúc ${data.hourly.time[forecastIndex].slice(-5)}`;
+    forecastTime.textContent = t("routeForecastAt", {
+      time: data.hourly.time[forecastIndex].slice(-5),
+    });
     description.className = "route-condition";
     description.textContent = getVietnameseWeatherDescription(weatherCode);
     precipitation.className = "route-precipitation";
     precipitation.textContent =
       precipitationProbability === null
-        ? "Chưa có dữ liệu khả năng mưa"
+        ? t("routeRainUnavailable")
         : precipitationProbability > 0
-          ? `Khả năng mưa: ${precipitationProbability}%`
-          : "Khả năng mưa thấp";
+          ? t("routeRainChance", { probability: precipitationProbability })
+          : t("routeRainLow");
 
     details.append(temperature, forecastTime, description, precipitation);
     weather.append(icon, details);
@@ -1330,7 +2021,9 @@ function renderRouteWeather(waypoints, forecasts, distanceKm) {
     if (warnings.length > 0) {
       const warning = document.createElement("p");
       warning.className = "route-warning";
-      warning.textContent = `⚠ Cảnh báo: ${warnings.join(" · ")}`;
+      warning.textContent = `⚠ ${t("routeWarningLabel", {
+        warnings: warnings.join(" · "),
+      })}`;
       card.append(warning);
     }
     item.append(card);
@@ -1350,7 +2043,7 @@ async function checkRouteWeather(originQuery, destinationQuery) {
   elements.routeSubmit.disabled = true;
   elements.routeSubmit.setAttribute("aria-busy", "true");
   elements.routeResults.setAttribute("aria-busy", "true");
-  elements.routeStatus.textContent = "Đang tìm địa điểm và tải dự báo thời tiết…";
+  elements.routeStatus.textContent = t("routeFinding");
   elements.routeResults.replaceChildren();
   elements.routeResults.hidden = true;
 
@@ -1365,11 +2058,11 @@ async function checkRouteWeather(originQuery, destinationQuery) {
     );
     if (currentRequestId !== routeRequestId) return;
     renderRouteWeather(waypoints, forecasts, distanceKm);
-    elements.routeStatus.textContent = "Đã cập nhật dự báo thời tiết trên tuyến đường.";
+    elements.routeStatus.textContent = t("routeSuccess");
   } catch (error) {
     if (error.name === "AbortError" || currentRequestId !== routeRequestId) return;
     elements.routeStatus.textContent =
-      error instanceof Error ? error.message : "Không thể tải thời tiết lộ trình. Vui lòng thử lại.";
+      error instanceof Error ? error.message : t("routeError");
   } finally {
     if (currentRequestId === routeRequestId) {
       elements.routeSubmit.disabled = false;
@@ -1430,7 +2123,7 @@ function setActiveSuggestion(index) {
 }
 
 function formatPlaceDate(date, timeZone) {
-  return new Intl.DateTimeFormat("zh-TW", {
+  return new Intl.DateTimeFormat(getLocale(), {
     month: "long",
     day: "numeric",
     weekday: "long",
@@ -1453,7 +2146,13 @@ function renderForecast(daily) {
 
     card.className = "forecast-card";
     day.className = "forecast-day";
-    day.textContent = index === 0 ? "今天" : weekdayFormatter.format(date);
+    day.textContent =
+      index === 0
+        ? t("today")
+        : new Intl.DateTimeFormat(getLocale(), {
+            weekday: "short",
+            timeZone: "UTC",
+          }).format(date);
     icon.className = "forecast-icon";
     icon.setAttribute("aria-hidden", "true");
     icon.textContent = condition.icon;
@@ -1464,7 +2163,7 @@ function renderForecast(daily) {
     low.textContent = `${Math.round(daily.temperature_2m_min[index])}°`;
     temperatures.setAttribute(
       "aria-label",
-      `${condition.text}，最高 ${high.textContent}，最低 ${low.textContent}`,
+      `${condition.text}, ${t("high")} ${high.textContent}, ${t("low")} ${low.textContent}`,
     );
     temperatures.append(high, low);
     card.append(day, icon, temperatures);
@@ -1476,7 +2175,7 @@ function renderForecast(daily) {
 
 function renderWeather(place, data) {
   const current = data.current;
-  weatherContext = { place, current, daily: data.daily };
+  weatherContext = { place, current, daily: data.daily, data };
   elements.assistantMicrophone.disabled = !speechRecognition;
   const condition = getWeatherDescription(current.weather_code);
   const timezone =
@@ -1486,7 +2185,7 @@ function renderWeather(place, data) {
   const currentTime = new Date(
     Date.parse(`${current.time}Z`) - timezoneOffset * 1000,
   );
-  const clockFormatter = new Intl.DateTimeFormat("zh-TW", {
+  const clockFormatter = new Intl.DateTimeFormat(getLocale(), {
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
@@ -1495,9 +2194,9 @@ function renderWeather(place, data) {
 
   elements.locationName.textContent = getLocationName(place);
   elements.locationDetail.textContent = getLocationDetail(place);
-  elements.updatedAt.textContent = `當地時間 ${clockFormatter.format(
-    currentTime,
-  )} 更新`;
+  elements.updatedAt.textContent = t("updatedAt", {
+    time: clockFormatter.format(currentTime),
+  });
   elements.currentDate.textContent = formatPlaceDate(currentTime, timezone);
   elements.currentIcon.textContent = condition.icon;
   elements.currentIcon.setAttribute("aria-label", condition.text);
@@ -1510,10 +2209,10 @@ function renderWeather(place, data) {
   elements.uvIndex.textContent = Number.isFinite(uv) ? uv.toFixed(1) : "--";
   elements.uvNote.textContent = Number.isFinite(uv)
     ? getUvDescription(uv)
-    : "日光防護提醒";
+    : t("sunProtection");
   elements.currentCard.setAttribute("aria-busy", "false");
   if (window.speechSynthesis?.speaking) window.speechSynthesis.cancel();
-  resetSpeechStatus("天氣資料已更新，點選喇叭可聆聽越南語播報。");
+  resetSpeechStatus(t("weatherUpdatedSpeech"));
   renderLifestyleAdvice(
     place,
     current,
@@ -1526,9 +2225,9 @@ function renderWeather(place, data) {
 function stopRadarPlayback() {
   window.clearInterval(radarTimer);
   radarTimer = undefined;
-  elements.radarPlayLabel.textContent = "播放";
+  elements.radarPlayLabel.textContent = t("play");
   elements.radarPlay.querySelector("[aria-hidden='true']").textContent = "▶";
-  elements.radarPlay.setAttribute("aria-label", "播放雷達動畫");
+  elements.radarPlay.setAttribute("aria-label", t("playRadar"));
 }
 
 function renderRadarFrame(index) {
@@ -1549,7 +2248,7 @@ function renderRadarFrame(index) {
     },
   ).addTo(radarMap);
   elements.radarTimeline.value = String(index);
-  elements.radarTime.textContent = new Intl.DateTimeFormat("zh-TW", {
+  elements.radarTime.textContent = new Intl.DateTimeFormat(getLocale(), {
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
@@ -1565,13 +2264,13 @@ function setRadarFrames(frames) {
   elements.radarPlay.disabled = frames.length < 2;
 
   if (frames.length === 0) {
-    elements.radarStatus.textContent = "目前沒有可用的降雨雷達影格。";
+    elements.radarStatus.textContent = t("radarEmpty");
     elements.radarTime.textContent = "--:--";
     return;
   }
 
   renderRadarFrame(frames.length - 1);
-  elements.radarStatus.textContent = `顯示過去兩小時的降雨動態，共 ${frames.length} 個影格`;
+  elements.radarStatus.textContent = t("radarLive", { count: frames.length });
 }
 
 function initializeRadarMap(place) {
@@ -1582,7 +2281,7 @@ function initializeRadarMap(place) {
     return true;
   }
   if (!window.L) {
-    elements.radarStatus.textContent = "地圖元件載入失敗，請重新整理頁面再試一次。";
+    elements.radarStatus.textContent = t("radarMapError");
     return false;
   }
 
@@ -1608,7 +2307,7 @@ async function updateRadar(place) {
   radarController = new AbortController();
   radarTimeZone = place.timezone || "UTC";
   stopRadarPlayback();
-  elements.radarStatus.textContent = "正在載入雷達資料…";
+  elements.radarStatus.textContent = t("radarLoading");
   elements.radarPlay.disabled = true;
   elements.radarTimeline.disabled = true;
 
@@ -1624,7 +2323,7 @@ async function updateRadar(place) {
     if (currentRadarRequestId !== radarRequestId) return;
     const tileHost = new URL(data.host);
     if (tileHost.protocol !== "https:") {
-      throw new Error("雷達服務提供了無效的地圖來源。");
+      throw new Error(t("radarServiceError"));
     }
     radarTileHost = tileHost.origin;
     const pastFrames = data.radar?.past ?? [];
@@ -1651,7 +2350,7 @@ async function updateRadar(place) {
     elements.radarPlay.disabled = true;
     elements.radarTimeline.disabled = true;
     elements.radarStatus.textContent =
-      error instanceof Error ? error.message : "雷達資料載入失敗，請稍後再試。";
+      error instanceof Error ? error.message : t("radarError");
   }
 }
 
@@ -1663,9 +2362,9 @@ elements.radarPlay.addEventListener("click", () => {
   }
 
   if (radarFrameIndex >= radarFrames.length - 1) renderRadarFrame(0);
-  elements.radarPlayLabel.textContent = "暫停";
+  elements.radarPlayLabel.textContent = t("pause");
   elements.radarPlay.querySelector("[aria-hidden='true']").textContent = "Ⅱ";
-  elements.radarPlay.setAttribute("aria-label", "暫停雷達動畫");
+  elements.radarPlay.setAttribute("aria-label", t("pauseRadar"));
   radarTimer = window.setInterval(() => {
     const nextIndex = (radarFrameIndex + 1) % radarFrames.length;
     renderRadarFrame(nextIndex);
@@ -1679,6 +2378,9 @@ elements.radarTimeline.addEventListener("input", () => {
 
 elements.assistantSpeak.addEventListener("click", toggleWeatherSpeech);
 elements.assistantMicrophone.addEventListener("click", toggleVoiceRecognition);
+elements.languageSelect.addEventListener("change", (event) => {
+  changeLanguage(event.target.value);
+});
 
 elements.assistantPersonaTabs.addEventListener("click", (event) => {
   const tab = event.target.closest('[role="tab"]');
@@ -1704,11 +2406,11 @@ elements.routeForm.addEventListener("submit", (event) => {
   const origin = elements.routeOrigin.value.trim();
   const destination = elements.routeDestination.value.trim();
   if (!origin || !destination) {
-    elements.routeStatus.textContent = "Vui lòng nhập điểm khởi hành và điểm đến.";
+    elements.routeStatus.textContent = t("routeEmpty");
     return;
   }
   if (origin.toLocaleLowerCase() === destination.toLocaleLowerCase()) {
-    elements.routeStatus.textContent = "Điểm khởi hành và điểm đến phải khác nhau.";
+    elements.routeStatus.textContent = t("routeSamePlace");
     return;
   }
   void checkRouteWeather(origin, destination);
@@ -1723,7 +2425,7 @@ async function loadWeather(place) {
   elements.assistantMicrophone.disabled = true;
   if (window.speechSynthesis?.speaking) window.speechSynthesis.cancel();
   elements.assistantSpeak.disabled = true;
-  resetSpeechStatus("正在更新天氣資料與生活建議…");
+  resetSpeechStatus(t("loadingWeather"));
   elements.pageMessage.textContent = "";
   elements.locationName.textContent = getLocationName(place);
   elements.locationDetail.textContent = getLocationDetail(place);
@@ -1752,9 +2454,8 @@ async function loadWeather(place) {
     if (error.name === "AbortError" || currentRequestId !== requestId) return;
     elements.currentCard.setAttribute("aria-busy", "false");
     elements.pageMessage.textContent =
-      error instanceof Error ? error.message : "無法取得天氣資料，請稍後再試。";
-    elements.assistantVoiceMessage.textContent =
-      "無法載入最新天氣資料，語音顧問暫時無法提供天氣建議。";
+      error instanceof Error ? error.message : t("pageWeatherError");
+    elements.assistantVoiceMessage.textContent = t("pageWeatherError");
   }
 }
 
@@ -1769,14 +2470,14 @@ async function selectPlace(place) {
 async function submitSearch(query) {
   const name = query.trim();
   if (!name) {
-    elements.pageMessage.textContent = "請輸入想查詢的城市名稱。";
+    elements.pageMessage.textContent = t("emptyCity");
     return;
   }
 
   suggestionController?.abort();
   elements.pageMessage.textContent = "";
   closeSuggestions();
-  elements.locationDetail.textContent = "正在搜尋城市…";
+  elements.locationDetail.textContent = t("searchingCity");
 
   const controller = new AbortController();
   suggestionController = controller;
@@ -1785,16 +2486,16 @@ async function submitSearch(query) {
     if (suggestionController !== controller) return;
     const place = getPreferredPlace(places);
     if (!place) {
-      elements.locationDetail.textContent = "找不到這座城市";
-      elements.pageMessage.textContent = `找不到「${name}」，請確認拼寫後再試一次。`;
+      elements.locationDetail.textContent = t("cityNotFound");
+      elements.pageMessage.textContent = t("invalidCity", { city: name });
       return;
     }
     await selectPlace(place);
   } catch (error) {
     if (error.name === "AbortError") return;
-    elements.locationDetail.textContent = "無法搜尋城市";
+    elements.locationDetail.textContent = t("citySearchFailed");
     elements.pageMessage.textContent =
-      error instanceof Error ? error.message : "城市搜尋失敗，請稍後再試。";
+      error instanceof Error ? error.message : t("citySearchFailed");
   }
 }
 
@@ -1824,7 +2525,7 @@ elements.searchInput.addEventListener("input", () => {
       if (error.name !== "AbortError") {
         closeSuggestions();
         elements.pageMessage.textContent =
-          error instanceof Error ? error.message : "城市建議載入失敗，請稍後再試。";
+          error instanceof Error ? error.message : t("citySearchFailed");
       }
     }
   }, 250);
@@ -1865,16 +2566,17 @@ async function initialize() {
     const places = await searchPlaces(DEFAULT_CITY);
     const taoyuan = getPreferredPlace(places);
     if (!taoyuan || taoyuan.country_code !== "TW") {
-      throw new Error("找不到桃園的位置資料，請使用搜尋功能選擇城市。");
+      throw new Error(t("defaultCityError"));
     }
     await loadWeather(taoyuan);
   } catch (error) {
     if (error.name === "AbortError") return;
     elements.currentCard.setAttribute("aria-busy", "false");
-    elements.locationDetail.textContent = "無法載入桃園天氣";
+    elements.locationDetail.textContent = t("pageWeatherError");
     elements.pageMessage.textContent =
-      error instanceof Error ? error.message : "無法取得桃園天氣，請稍後再試。";
+      error instanceof Error ? error.message : t("pageWeatherError");
   }
 }
 
+applyTranslations();
 initialize();
