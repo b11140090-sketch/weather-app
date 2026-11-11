@@ -247,14 +247,30 @@
             data-i18n="weatherSpeechReady"
           >Tải dữ liệu thời tiết xong, bạn có thể nghe bản tin.</p>
           <div
-            class="assistant-voice-answer"
-            id="assistant-voice-answer"
+            class="assistant-response-drawer"
+            id="assistant-response-drawer"
             role="tabpanel"
             aria-labelledby="persona-health"
             aria-live="polite"
-            data-i18n="voiceGreeting"
           >
-            Chọn chuyên gia rồi nhấn “Hỏi Trợ lý AI” để bắt đầu.
+            <div class="assistant-response-copy">
+              <p class="assistant-response-label" data-i18n="chatQuestionLabel">Câu hỏi của bạn</p>
+              <p class="assistant-response-question" id="assistant-response-question" hidden></p>
+              <p class="assistant-response-label" data-i18n="chatAnswerLabel">Trợ lý AI trả lời</p>
+              <p
+                class="assistant-response-answer"
+                id="assistant-voice-answer"
+                data-i18n="voiceGreeting"
+              >Chọn chuyên gia rồi nhấn “Hỏi Trợ lý AI” để bắt đầu.</p>
+            </div>
+            <article class="assistant-action-card" id="assistant-action-card" hidden>
+              <span class="assistant-action-icon" aria-hidden="true">✦</span>
+              <div>
+                <p class="assistant-action-eyebrow" data-i18n="actionCardLabel">Gợi ý hành động</p>
+                <h3 id="assistant-action-title"></h3>
+                <p id="assistant-action-summary"></p>
+              </div>
+            </article>
           </div>
           <div class="assistant-voice-controls">
             <p class="assistant-voice-state">
@@ -277,6 +293,17 @@
               </svg>
               <span data-i18n="askAssistant">Hỏi Trợ lý AI</span>
             </button>
+          </div>
+          <div class="assistant-quick-prompts">
+            <p class="assistant-quick-prompts-label" data-i18n="quickPromptLabel">Câu hỏi gợi ý</p>
+            <div
+              class="assistant-quick-prompt-list"
+              id="assistant-quick-prompts"
+              role="group"
+              aria-label="Câu hỏi nhanh dành cho trợ lý"
+              data-i18n="quickPromptLabel"
+              data-i18n-attr="aria-label"
+            ></div>
           </div>
           <p class="assistant-voice-message" id="assistant-voice-message" aria-live="polite"></p>
         </section>
@@ -349,38 +376,53 @@
           <span data-i18n="routeDescription">Dự báo theo giờ tại điểm xuất phát, các chặng dừng và điểm đến; chưa tính thời gian di chuyển.</span>
         </p>
         <form class="route-form" id="route-form">
-          <label class="route-field">
-            <span data-i18n="routeOrigin">Điểm khởi hành</span>
-            <input
-              id="route-origin"
-              name="origin"
-              type="text"
-              placeholder="Ví dụ: Hà Nội"
-              data-i18n="routeOriginPlaceholder"
-              data-i18n-attr="placeholder"
-              autocomplete="off"
-              required
-            >
-          </label>
-          <label class="route-field">
-            <span data-i18n="routeDestination">Điểm đến</span>
-            <input
-              id="route-destination"
-              name="destination"
-              type="text"
-              placeholder="Ví dụ: Đà Nẵng"
-              data-i18n="routeDestinationPlaceholder"
-              data-i18n-attr="placeholder"
-              autocomplete="off"
-              required
-            >
-          </label>
+          <div class="route-field">
+            <label for="route-origin" data-i18n="routeOrigin">Điểm khởi hành</label>
+            <div class="route-input-wrap">
+              <input
+                id="route-origin"
+                name="origin"
+                type="text"
+                placeholder="Ví dụ: Hà Nội"
+                data-i18n="routeOriginPlaceholder"
+                data-i18n-attr="placeholder"
+                autocomplete="off"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-controls="route-origin-suggestions"
+                aria-expanded="false"
+                required
+              >
+              <ul class="suggestions route-suggestions" id="route-origin-suggestions" role="listbox" hidden></ul>
+            </div>
+          </div>
+          <div class="route-field">
+            <label for="route-destination" data-i18n="routeDestination">Điểm đến</label>
+            <div class="route-input-wrap">
+              <input
+                id="route-destination"
+                name="destination"
+                type="text"
+                placeholder="Ví dụ: Đà Nẵng"
+                data-i18n="routeDestinationPlaceholder"
+                data-i18n-attr="placeholder"
+                autocomplete="off"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-controls="route-destination-suggestions"
+                aria-expanded="false"
+                required
+              >
+              <ul class="suggestions route-suggestions" id="route-destination-suggestions" role="listbox" hidden></ul>
+            </div>
+          </div>
           <button class="route-submit" id="route-submit" type="submit">
             <span data-i18n="routeCheck">Kiểm tra thời tiết lộ trình</span>
             <span aria-hidden="true">↗</span>
           </button>
         </form>
         <p class="route-status" id="route-status" role="status" aria-live="polite"></p>
+        <p class="route-geocoding-credit" data-i18n="routeGeocodingCredit">Tên địa điểm qua Photon · dữ liệu © OpenStreetMap contributors</p>
         <div
           class="route-results"
           id="route-results"

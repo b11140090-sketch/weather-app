@@ -1,4 +1,5 @@
 const GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
+const REVERSE_GEOCODING_URL = "https://photon.komoot.io/reverse";
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 const RAINVIEWER_URL = "https://api.rainviewer.com/public/weather-maps.json";
 const DEFAULT_CITY = "Taoyuan";
@@ -60,6 +61,19 @@ const translations = {
     ready: "Sẵn sàng",
     listening: "Đang nghe",
     askAssistant: "Hỏi Trợ lý AI",
+    quickPromptLabel: "Câu hỏi gợi ý",
+    promptHealthRain: "Hôm nay có mưa không, nên mặc gì?",
+    promptHealthUv: "UV hôm nay có ảnh hưởng da không?",
+    promptHealthClothing: "Thời tiết này nên mặc gì?",
+    promptFnbStock: "Hôm nay nên nhập đồ uống nào?",
+    promptFnbRain: "Có nên đẩy quảng cáo giao hàng không?",
+    promptFnbSales: "Thời tiết ảnh hưởng doanh thu thế nào?",
+    promptLogisticsRoad: "Di chuyển hôm nay có an toàn không?",
+    promptLogisticsWind: "Gió có ảnh hưởng vận tải không?",
+    promptLogisticsVisibility: "Tầm nhìn trên đường thế nào?",
+    chatQuestionLabel: "Câu hỏi của bạn",
+    chatAnswerLabel: "Trợ lý AI trả lời",
+    actionCardLabel: "Gợi ý hành động",
     voiceStart: "Đang nghe, hãy đặt câu hỏi bằng tiếng Việt.",
     voiceGreeting: "Chọn chuyên gia rồi nhấn “Hỏi Trợ lý AI” để bắt đầu.",
     voiceNoResult: "Chưa nhận được câu hỏi. Hãy thử nói lại.",
@@ -132,11 +146,15 @@ const translations = {
     weatherVariable: "Thời tiết thay đổi",
     routeKicker: "Lên kế hoạch chuyến đi",
     routeTitle: "Dự báo thời tiết hành trình",
-    routeDescription: "Dự báo theo giờ tại điểm xuất phát, các chặng dừng và điểm đến; chưa tính thời gian di chuyển.",
+    routeDescription: "Nhập địa điểm để xem gợi ý, rồi kiểm tra dự báo tại điểm đi, các điểm dừng và điểm đến; nhấn thẻ bất kỳ để xem dự báo chi tiết. Chưa tính thời gian di chuyển.",
     routeOrigin: "Điểm khởi hành",
     routeOriginPlaceholder: "Ví dụ: Hà Nội",
     routeDestination: "Điểm đến",
     routeDestinationPlaceholder: "Ví dụ: Đà Nẵng",
+    routeSuggestionsError: "Không thể tải gợi ý địa điểm. Bạn vẫn có thể nhập tên địa điểm rồi tiếp tục.",
+    routeStopNamesPartial: "Không tìm được tên cho một số điểm dừng; tọa độ cụ thể được hiển thị thay thế.",
+    routeStopCoordinates: "Điểm dừng {number} · {latitude}, {longitude}",
+    routeGeocodingCredit: "Tên địa điểm qua Photon · dữ liệu © OpenStreetMap contributors",
     routeCheck: "Kiểm tra thời tiết lộ trình",
     routeFinding: "Đang tìm địa điểm và tải dự báo thời tiết…",
     routeSuccess: "Đã cập nhật dự báo thời tiết trên tuyến đường.",
@@ -149,6 +167,13 @@ const translations = {
     routeDestinationBadge: "Điểm đến",
     routeStopName: "Điểm dừng {number}",
     routeForecastAt: "Dự báo lúc {time}",
+    routeShowDetails: "Xem dự báo chi tiết",
+    routeHideDetails: "Ẩn dự báo chi tiết",
+    routeDetailedForecastLabel: "Xem dự báo chi tiết tại {place}",
+    routeHourlyForecast: "Dự báo 24 giờ tới tại {place}",
+    routeHourlyWind: "Gió {speed} km/h",
+    routeHourlyRain: "Mưa {probability}%",
+    routeHourlyRainUnavailable: "Chưa có dữ liệu mưa",
     routeRainChance: "Khả năng mưa: {probability}%",
     routeRainLow: "Khả năng mưa thấp",
     routeRainUnavailable: "Chưa có dữ liệu khả năng mưa",
@@ -208,6 +233,31 @@ const translations = {
     assistantHealthSummary: "Trợ lý sức khỏe: {temperature}, {uv}{range}. Hãy điều chỉnh trang phục và chống nắng phù hợp; đây không phải chẩn đoán y khoa.",
     assistantFnbSummary: "Trợ lý F&B: {temperature}, {rain}. Điều chỉnh nguyên liệu theo tồn kho và chọn phương án giao hàng hoặc mái che theo nhu cầu.",
     assistantLogisticsSummary: "Trợ lý giao vận: {temperature}, {wind}. Tuân thủ giới hạn tốc độ và quy trình an toàn.",
+    actionHealthRainTitle: "Chuẩn bị trang phục khi có mưa",
+    actionHealthRainSummary: "Mang ô hoặc áo mưa và chọn giày chống trượt nếu cần ra ngoài.",
+    actionHealthUvTitle: "Bảo vệ da khỏi tia UV",
+    actionHealthUvSummary: "Dùng kem chống nắng, đội mũ và tìm bóng râm khi UV cao.",
+    actionHealthClothingTitle: "Điều chỉnh trang phục theo nhiệt độ",
+    actionHealthClothingSummary: "Chọn lớp áo phù hợp và mang thêm áo khoác nếu nhiệt độ thay đổi.",
+    actionFnbRainTitle: "Điều chỉnh kế hoạch phục vụ",
+    actionFnbRainSummary: "Cân nhắc ưu đãi giao hàng và chuẩn bị mái che theo xác suất mưa.",
+    actionFnbStockTitle: "Lên kế hoạch nhập hàng",
+    actionFnbStockSummary: "Ưu tiên đồ uống theo nhiệt độ, kiểm tra tồn kho và đối chiếu lượng bán trước khi nhập.",
+    actionFnbSalesTitle: "Ứng phó nhu cầu khách hàng",
+    actionFnbSalesSummary: "Điều chỉnh kênh quảng bá và sản lượng theo mưa, nhiệt độ cùng doanh số thực tế.",
+    actionLogisticsSafetyTitle: "Kiểm tra an toàn tuyến đường",
+    actionLogisticsSafetySummary: "Theo dõi cảnh báo địa phương, giảm tốc độ phù hợp và giữ khoảng cách an toàn.",
+    actionLogisticsWindTitle: "Chuẩn bị cho gió mạnh",
+    actionLogisticsWindSummary: "Cố định hàng hóa và hoãn công việc ngoài trời nếu vượt ngưỡng an toàn.",
+    actionLogisticsVisibilityTitle: "Lưu ý tầm nhìn",
+    actionLogisticsVisibilitySummary: "Bật đèn phù hợp, giảm tốc độ và tăng khoảng cách an toàn khi tầm nhìn kém.",
+    actionGeneralTitle: "Theo dõi thời tiết",
+    actionGeneralSummary: "Kiểm tra lại dự báo trước khi ra ngoài hoặc lên kế hoạch hoạt động.",
+    healthRainAnswerHigh: "Khả năng mưa hôm nay {rain}%. Mang ô hoặc áo mưa, chọn giày chống trượt và hạn chế để cơ thể bị lạnh ướt.",
+    healthRainAnswerLow: "Khả năng mưa hôm nay {rain}%. Có thể ra ngoài bình thường; mang áo khoác phù hợp nhiệt độ.",
+    healthRainAnswerUnavailable: "Chưa có dữ liệu mưa. Hãy xem dự báo mới nhất trước khi ra ngoài.",
+    fnbBusinessAnswer: "Nhiệt độ hiện {temperature}°C, xác suất mưa {rain}%. Ưu tiên đồ uống phù hợp thời tiết, kiểm tra tồn kho và điều chỉnh khuyến mãi theo lượng bán thực tế.",
+    logisticsSafetyAnswer: "Gió hiện {wind} km/h, tầm nhìn {visibility} km. Theo dõi cảnh báo địa phương, tuân thủ tốc độ an toàn, giữ khoảng cách và cố định hàng hóa.",
     answerGeneral: "Thời tiết hiện {temperature}, {wind}{rain}. Bạn muốn hỏi sâu hơn về sức khỏe, kinh doanh F&B hay giao vận?",
     noTemperatureData: "chưa có dữ liệu nhiệt độ",
     noUvData: "chưa có dữ liệu UV",
@@ -280,6 +330,19 @@ const translations = {
     ready: "Ready",
     listening: "Listening",
     askAssistant: "Ask AI Assistant",
+    quickPromptLabel: "Quick questions",
+    promptHealthRain: "Will it rain today, and what should I wear?",
+    promptHealthUv: "Could today's UV affect my skin?",
+    promptHealthClothing: "What should I wear in this weather?",
+    promptFnbStock: "Which drinks should I stock today?",
+    promptFnbRain: "Should I promote delivery today?",
+    promptFnbSales: "How could weather affect sales?",
+    promptLogisticsRoad: "Is it safe to travel today?",
+    promptLogisticsWind: "Could wind affect transport?",
+    promptLogisticsVisibility: "What is road visibility like?",
+    chatQuestionLabel: "Your question",
+    chatAnswerLabel: "AI assistant",
+    actionCardLabel: "Suggested action",
     voiceStart: "Listening. Ask your question in English.",
     voiceGreeting: "Choose an expert, then press “Ask AI Assistant” to get started.",
     voiceNoResult: "I didn't catch that. Please try speaking again.",
@@ -352,11 +415,15 @@ const translations = {
     weatherVariable: "Changeable weather",
     routeKicker: "Plan your trip",
     routeTitle: "Route weather forecast",
-    routeDescription: "Hourly forecasts for your origin, stops, and destination; travel time is not included.",
+    routeDescription: "Type a place to see suggestions, then check forecasts for your origin, stops, and destination; select any timeline card for its detailed forecast. Travel time is not included.",
     routeOrigin: "Starting point",
     routeOriginPlaceholder: "For example: London",
     routeDestination: "Destination",
     routeDestinationPlaceholder: "For example: Paris",
+    routeSuggestionsError: "Could not load place suggestions. You can still type a place name and continue.",
+    routeStopNamesPartial: "Some stop names could not be found; their exact coordinates are shown instead.",
+    routeStopCoordinates: "Stop {number} · {latitude}, {longitude}",
+    routeGeocodingCredit: "Place names via Photon · data © OpenStreetMap contributors",
     routeCheck: "Check route weather",
     routeFinding: "Finding places and loading forecasts…",
     routeSuccess: "Route weather forecast updated.",
@@ -369,6 +436,13 @@ const translations = {
     routeDestinationBadge: "Destination",
     routeStopName: "Stop {number}",
     routeForecastAt: "Forecast at {time}",
+    routeShowDetails: "Show detailed forecast",
+    routeHideDetails: "Hide detailed forecast",
+    routeDetailedForecastLabel: "Show detailed forecast for {place}",
+    routeHourlyForecast: "Next 24 hours in {place}",
+    routeHourlyWind: "Wind {speed} km/h",
+    routeHourlyRain: "Rain {probability}%",
+    routeHourlyRainUnavailable: "Rain data unavailable",
     routeRainChance: "Chance of rain: {probability}%",
     routeRainLow: "Low chance of rain",
     routeRainUnavailable: "Rain probability unavailable",
@@ -428,6 +502,31 @@ const translations = {
     assistantHealthSummary: "Health advisor: {temperature}, {uv}{range}. Adjust clothing and sun protection as needed; this is not a medical diagnosis.",
     assistantFnbSummary: "Food & Beverage advisor: {temperature}, {rain}. Adjust stock to inventory and choose delivery or covers based on demand.",
     assistantLogisticsSummary: "Logistics advisor: {temperature}, {wind}. Follow speed limits and safety procedures.",
+    actionHealthRainTitle: "Prepare for rain",
+    actionHealthRainSummary: "Bring an umbrella or rain jacket and wear non-slip shoes if heading out.",
+    actionHealthUvTitle: "Protect your skin from UV",
+    actionHealthUvSummary: "Use sunscreen, wear a hat, and seek shade when UV is high.",
+    actionHealthClothingTitle: "Dress for the temperature",
+    actionHealthClothingSummary: "Choose suitable layers and bring an extra jacket if temperatures may change.",
+    actionFnbRainTitle: "Adjust your service plan",
+    actionFnbRainSummary: "Consider a delivery promotion and prepare covers based on rain probability.",
+    actionFnbStockTitle: "Plan inventory",
+    actionFnbStockSummary: "Prioritize drinks for the temperature, check inventory, and compare recent sales before ordering.",
+    actionFnbSalesTitle: "Plan for customer demand",
+    actionFnbSalesSummary: "Adjust promotions and preparation to rain, temperature, and actual sales.",
+    actionLogisticsSafetyTitle: "Check route safety",
+    actionLogisticsSafetySummary: "Monitor local alerts, adjust speed to conditions, and keep a safe following distance.",
+    actionLogisticsWindTitle: "Prepare for strong winds",
+    actionLogisticsWindSummary: "Secure cargo and postpone outdoor work if site safety limits are exceeded.",
+    actionLogisticsVisibilityTitle: "Take care in low visibility",
+    actionLogisticsVisibilitySummary: "Use appropriate lights, slow down, and increase following distance when visibility is poor.",
+    actionGeneralTitle: "Stay weather aware",
+    actionGeneralSummary: "Check the latest forecast before going out or planning activities.",
+    healthRainAnswerHigh: "There is a {rain}% chance of rain today. Bring an umbrella or rain jacket, wear non-slip shoes, and avoid getting chilled and wet.",
+    healthRainAnswerLow: "There is a {rain}% chance of rain today. You can head out as usual; dress for the temperature.",
+    healthRainAnswerUnavailable: "Rain data is unavailable. Check the latest forecast before heading out.",
+    fnbBusinessAnswer: "It is {temperature}°C with a {rain}% chance of rain. Prioritize weather-appropriate drinks, check inventory, and adjust promotions based on actual sales.",
+    logisticsSafetyAnswer: "Winds are {wind} km/h and visibility is {visibility} km. Monitor local alerts, follow safe speed limits, keep distance, and secure cargo.",
     answerGeneral: "Current weather: {temperature}, {wind}{rain}. Would you like more advice about health, food service, or logistics?",
     noTemperatureData: "temperature data unavailable",
     noUvData: "UV data unavailable",
@@ -500,6 +599,19 @@ const translations = {
     ready: "準備就緒",
     listening: "正在聆聽",
     askAssistant: "詢問 AI 助理",
+    quickPromptLabel: "快速提問",
+    promptHealthRain: "今天會下雨嗎？該穿什麼？",
+    promptHealthUv: "今天的紫外線會影響皮膚嗎？",
+    promptHealthClothing: "這種天氣適合穿什麼？",
+    promptFnbStock: "今天適合進哪些飲料？",
+    promptFnbRain: "今天要不要主打外送？",
+    promptFnbSales: "天氣會如何影響營業額？",
+    promptLogisticsRoad: "今天出行安全嗎？",
+    promptLogisticsWind: "風勢會影響運輸嗎？",
+    promptLogisticsVisibility: "道路能見度如何？",
+    chatQuestionLabel: "你的問題",
+    chatAnswerLabel: "AI 助理回覆",
+    actionCardLabel: "行動建議",
     voiceStart: "正在聆聽，請用中文提出問題。",
     voiceGreeting: "選擇顧問後，按下「詢問 AI 助理」即可開始。",
     voiceNoResult: "沒有收到問題，請再說一次。",
@@ -572,11 +684,15 @@ const translations = {
     weatherVariable: "天氣多變",
     routeKicker: "規劃旅程",
     routeTitle: "旅遊路線天氣規劃",
-    routeDescription: "提供出發地、沿途停靠點與目的地的逐時預報；未計入交通時間。",
+    routeDescription: "輸入地點即可查看建議，再查詢出發地、停靠點與目的地的天氣；點選任一時間軸卡片即可查看詳細預報。未計入交通時間。",
     routeOrigin: "出發地",
     routeOriginPlaceholder: "例如：臺北",
     routeDestination: "目的地",
     routeDestinationPlaceholder: "例如：高雄",
+    routeSuggestionsError: "無法載入地點建議。你仍可輸入地點名稱後繼續。",
+    routeStopNamesPartial: "部分停靠點無法取得名稱，改為顯示精確座標。",
+    routeStopCoordinates: "停靠點 {number} · {latitude}, {longitude}",
+    routeGeocodingCredit: "地點名稱由 Photon 提供 · 資料 © OpenStreetMap 貢獻者",
     routeCheck: "查詢路線天氣",
     routeFinding: "正在搜尋地點並載入天氣預報…",
     routeSuccess: "路線天氣預報已更新。",
@@ -589,6 +705,13 @@ const translations = {
     routeDestinationBadge: "目的地",
     routeStopName: "停靠點 {number}",
     routeForecastAt: "{time} 預報",
+    routeShowDetails: "查看詳細預報",
+    routeHideDetails: "隱藏詳細預報",
+    routeDetailedForecastLabel: "查看 {place} 的詳細預報",
+    routeHourlyForecast: "{place} 未來 24 小時預報",
+    routeHourlyWind: "風速 {speed} 公里/小時",
+    routeHourlyRain: "降雨 {probability}%",
+    routeHourlyRainUnavailable: "暫無降雨資料",
     routeRainChance: "降雨機率：{probability}%",
     routeRainLow: "降雨機率低",
     routeRainUnavailable: "暫無降雨機率資料",
@@ -648,6 +771,31 @@ const translations = {
     assistantHealthSummary: "健康顧問：{temperature}，{uv}{range}。請適度調整穿著與防曬；以上並非醫療診斷。",
     assistantFnbSummary: "餐飲顧問：{temperature}，{rain}。請依庫存調整備料，並依需求安排外送或遮雨措施。",
     assistantLogisticsSummary: "物流顧問：{temperature}，{wind}。請遵守速限與安全作業規範。",
+    actionHealthRainTitle: "準備雨天外出用品",
+    actionHealthRainSummary: "外出時帶傘或雨衣，並穿著防滑鞋。",
+    actionHealthUvTitle: "做好紫外線防護",
+    actionHealthUvSummary: "紫外線偏高時使用防曬乳、戴帽子並尋找陰涼處。",
+    actionHealthClothingTitle: "依氣溫調整穿著",
+    actionHealthClothingSummary: "選擇合適的衣物層次，氣溫變化時多帶一件外套。",
+    actionFnbRainTitle: "調整服務安排",
+    actionFnbRainSummary: "依降雨機率考慮外送優惠並準備遮雨棚。",
+    actionFnbStockTitle: "規劃備貨",
+    actionFnbStockSummary: "依氣溫準備飲品，檢查庫存並參考近期銷量再進貨。",
+    actionFnbSalesTitle: "因應顧客需求",
+    actionFnbSalesSummary: "依降雨、氣溫和實際銷量調整促銷與備料。",
+    actionLogisticsSafetyTitle: "確認路線安全",
+    actionLogisticsSafetySummary: "留意當地警示，依路況調整速度並保持安全距離。",
+    actionLogisticsWindTitle: "做好強風準備",
+    actionLogisticsWindSummary: "固定貨物，若超過場地安全標準則暫停戶外作業。",
+    actionLogisticsVisibilityTitle: "留意道路能見度",
+    actionLogisticsVisibilitySummary: "能見度不佳時開啟適當燈光、減速並增加安全距離。",
+    actionGeneralTitle: "留意天氣變化",
+    actionGeneralSummary: "外出或安排活動前，請再次查看最新預報。",
+    healthRainAnswerHigh: "今日降雨機率 {rain}%。外出請帶傘或雨衣、穿防滑鞋，避免淋濕受寒。",
+    healthRainAnswerLow: "今日降雨機率 {rain}%。可照常外出，並依氣溫調整穿著。",
+    healthRainAnswerUnavailable: "目前沒有降雨資料。外出前請查看最新預報。",
+    fnbBusinessAnswer: "目前 {temperature}°C，降雨機率 {rain}%。可依天氣準備飲品、檢查庫存，並參考實際銷量調整促銷。",
+    logisticsSafetyAnswer: "目前風速 {wind} 公里/小時，能見度 {visibility} 公里。請留意當地警示、遵守安全速限、保持距離並固定貨物。",
     answerGeneral: "目前天氣：{temperature}，{wind}{rain}。你想進一步了解健康、餐飲或物流建議嗎？",
     noTemperatureData: "目前沒有氣溫資料",
     noUvData: "目前沒有紫外線資料",
@@ -711,6 +859,12 @@ function changeLanguage(language) {
   currentLanguage = language;
   localStorage.setItem("selected_lang", language);
   applyTranslations();
+  renderAssistantQuickPrompts();
+  routeAutocomplete.forEach((state) => {
+    window.clearTimeout(state.timer);
+    state.controller?.abort();
+    closeRouteSuggestions(state);
+  });
   setVoiceState(isListening);
   if (speechRecognition) speechRecognition.lang = getSpeechLanguage();
   if (weatherContext) renderWeather(weatherContext.place, weatherContext.data);
@@ -721,10 +875,7 @@ function changeLanguage(language) {
   if (radarFrames.length) setRadarFrames(radarFrames);
   elements.assistantVoiceMessage.textContent = "";
   if (lastVoiceQuestion) {
-    elements.assistantVoiceAnswer.textContent = t("answerTranscript", {
-      question: lastVoiceQuestion,
-      answer: getAssistantAnswer(lastVoiceQuestion),
-    });
+    processAIQuery(lastVoiceQuestion, { speak: false });
   }
 }
 
@@ -801,6 +952,11 @@ const elements = {
   assistantMicrophone: document.querySelector("#assistant-microphone"),
   assistantVoiceState: document.querySelector("#assistant-voice-state"),
   assistantVoiceAnswer: document.querySelector("#assistant-voice-answer"),
+  assistantResponseQuestion: document.querySelector("#assistant-response-question"),
+  assistantQuickPrompts: document.querySelector("#assistant-quick-prompts"),
+  assistantActionCard: document.querySelector("#assistant-action-card"),
+  assistantActionTitle: document.querySelector("#assistant-action-title"),
+  assistantActionSummary: document.querySelector("#assistant-action-summary"),
   assistantVoiceMessage: document.querySelector("#assistant-voice-message"),
   humidity: document.querySelector("#humidity"),
   windSpeed: document.querySelector("#wind-speed"),
@@ -819,10 +975,31 @@ const elements = {
   routeForm: document.querySelector("#route-form"),
   routeOrigin: document.querySelector("#route-origin"),
   routeDestination: document.querySelector("#route-destination"),
+  routeOriginSuggestions: document.querySelector("#route-origin-suggestions"),
+  routeDestinationSuggestions: document.querySelector("#route-destination-suggestions"),
   routeSubmit: document.querySelector("#route-submit"),
   routeStatus: document.querySelector("#route-status"),
   routeResults: document.querySelector("#route-results"),
 };
+
+const routeAutocomplete = [
+  {
+    key: "origin",
+    input: elements.routeOrigin,
+    list: elements.routeOriginSuggestions,
+  },
+  {
+    key: "destination",
+    input: elements.routeDestination,
+    list: elements.routeDestinationSuggestions,
+  },
+].map((state) => ({
+  ...state,
+  places: [],
+  activeIndex: -1,
+  timer: undefined,
+  controller: undefined,
+}));
 
 function getLocale() {
   return currentLanguage === "zh" ? "zh-TW" : currentLanguage === "en" ? "en-US" : "vi-VN";
@@ -1362,25 +1539,37 @@ function analyzeAssistantIntent(text, persona) {
   const query = normalizeVoiceText(text);
   const isMatch = (patterns) => patterns.some((pattern) => pattern.test(query));
   if (persona === "health") {
-    if (isMatch([/\b(uv|tia cuc tim|nang|da|chong nang)\b/, /\b(sun|skin|sunscreen)\b/, /紫外線|防曬|皮膚|陽光/])) {
+    if (isMatch([/\b(uv|tia cuc tim|chong nang|bao ve da|da lieu)\b/, /\b(sun|skin|sunscreen|dermatology)\b/, /紫外線|防曬|皮膚|陽光/])) {
       return "health-sun";
     }
-    if (isMatch([/\b(lanh|ret|ao|mac|cam|cum|sot|nhiet do|chenh lech)\b/, /\b(cold|flu|temperature|clothes|fever)\b/, /感冒|溫度|穿衣|溫差|發燒/])) {
+    if (isMatch([/\b(mua|mua khong|bao|o|ao mua|rain|raincoat|umbrella)\b/, /下雨|雨傘|雨衣/])) {
+      return "health-rain";
+    }
+    if (isMatch([/\b(lanh|ret|ao|mac|cam|cum|sot|nhiet do|chenh lech|trang phuc|quan ao)\b/, /\b(cold|flu|temperature|clothes|clothing|wear|fever)\b/, /感冒|溫度|穿衣|穿著|穿什么|穿什麼|溫差|發燒|衣服/])) {
       return "health-temperature";
     }
   } else if (persona === "fnb") {
     if (isMatch([/\b(mua|delivery|giao hang|quang cao|bat|che|ngoai troi)\b/, /\b(rain|delivery|advert|canopy|outdoor)\b/, /下雨|外送|外賣|廣告|遮雨|戶外/])) {
       return "fnb-rain";
     }
-    if (isMatch([/\b(nhiet do|nong|lanh|do uong|nguyen lieu|nhap hang)\b/, /\b(temperature|hot|cold|drink|ingredient|stock)\b/, /溫度|飲料|飲品|食材|進貨|備貨/])) {
+    if (isMatch([/\b(nhap hang|nhap do|ton kho|nguyen lieu|stock|inventory|restock|order|ingredient)\b/, /庫存|進貨|備貨|食材/])) {
+      return "fnb-stock";
+    }
+    if (isMatch([/\b(doanh thu|doanh so|ban hang|loi nhuan|revenue|sales|profit)\b/, /營收|營業額|銷售|利潤/])) {
+      return "fnb-business";
+    }
+    if (isMatch([/\b(nhiet do|nong|lanh|do uong|temperature|hot|cold|drink|beverage)\b/, /溫度|飲料|飲品/])) {
       return "fnb-temperature";
     }
   } else if (persona === "logistics") {
-    if (isMatch([/\b(tam nhin|suong mu|nhin xa|visibility)\b/, /\b(fog|visibility|see)\b/, /能見度|能见度|霧|大霧/])) {
+    if (isMatch([/\b(tam nhin|suong mu|nhin xa|visibility|fog)\b/, /能見度|能见度|霧|大霧/])) {
       return "logistics-visibility";
     }
-    if (isMatch([/\b(gio|cong trinh|duong|giao hang|toc do|di chuyen|an toan)\b/, /\b(wind|road|construction|delivery|speed|safe)\b/, /風速|大風|道路|工地|運輸|安全/])) {
+    if (isMatch([/\b(gio|cong trinh|giao hang|toc do|wind|construction|delivery|speed)\b/, /風速|大風|強風|風勢|风速|大风|强风|风势/])) {
       return "logistics-wind";
+    }
+    if (isMatch([/\b(an toan|di chuyen|di lai|duong di|van tai|van chuyen|giao thong|tai xe|route|travel|transport|traffic|road|safe|safety)\b/, /道路|工地|運輸|交通|安全/])) {
+      return "logistics-safety";
     }
   }
   return "weather-summary";
@@ -1425,6 +1614,12 @@ function getAssistantAnswer(text) {
   const range = values.temperatureRange;
 
   if (assistantPersona === "health") {
+    if (intent === "health-rain") {
+      if (rain === undefined) return t("healthRainAnswerUnavailable");
+      return t(rain >= 40 ? "healthRainAnswerHigh" : "healthRainAnswerLow", {
+        rain: Math.round(rain),
+      });
+    }
     if (intent === "health-sun") {
       if (uv === undefined) return t("uvAnswerUnavailable");
       return t(uv >= 6 ? "uvAnswerHigh" : "uvAnswerLow", { uv: uv.toFixed(1) });
@@ -1456,6 +1651,14 @@ function getAssistantAnswer(text) {
   }
 
   if (assistantPersona === "fnb") {
+    if (intent === "fnb-stock" || intent === "fnb-business") {
+      return t("fnbBusinessAnswer", {
+        temperature: temperature === undefined
+          ? t("noTemperatureData")
+          : Math.round(temperature),
+        rain: rain === undefined ? t("noRainData") : Math.round(rain),
+      });
+    }
     if (intent === "fnb-rain") {
       if (rain === undefined) return t("fnbRainUnavailable");
       const key = rain >= 60 ? "fnbRainHigh" : rain >= 30 ? "fnbRainMedium" : "fnbRainLow";
@@ -1475,6 +1678,14 @@ function getAssistantAnswer(text) {
   }
 
   if (assistantPersona === "logistics") {
+    if (intent === "logistics-safety") {
+      return t("logisticsSafetyAnswer", {
+        wind: wind === undefined ? t("noWindData") : Math.round(wind),
+        visibility: values.visibility === undefined
+          ? t("visibilityNotAvailable")
+          : (values.visibility / 1000).toFixed(1),
+      });
+    }
     if (intent === "logistics-visibility") {
       if (values.visibility === undefined) return t("logisticsVisibilityUnavailable");
       const visibilityKm = values.visibility / 1000;
@@ -1498,6 +1709,64 @@ function getAssistantAnswer(text) {
     wind: wind === undefined ? t("noWindData") : t("windValue", { wind: Math.round(wind) }),
     rain: rain === undefined ? "" : `, ${t("rainValue", { rain: Math.round(rain) })}`,
   });
+}
+
+const QUICK_PROMPTS = {
+  health: ["promptHealthRain", "promptHealthUv", "promptHealthClothing"],
+  fnb: ["promptFnbStock", "promptFnbRain", "promptFnbSales"],
+  logistics: ["promptLogisticsRoad", "promptLogisticsWind", "promptLogisticsVisibility"],
+};
+
+function renderAssistantQuickPrompts() {
+  const fragment = document.createDocumentFragment();
+  for (const key of QUICK_PROMPTS[assistantPersona]) {
+    const chip = document.createElement("button");
+    chip.className = "assistant-quick-prompt";
+    chip.type = "button";
+    chip.dataset.promptKey = key;
+    chip.textContent = t(key);
+    fragment.append(chip);
+  }
+  elements.assistantQuickPrompts.replaceChildren(fragment);
+}
+
+function getAssistantAction(intent) {
+  const actionKeys = {
+    "health-rain": ["actionHealthRainTitle", "actionHealthRainSummary"],
+    "health-sun": ["actionHealthUvTitle", "actionHealthUvSummary"],
+    "health-temperature": ["actionHealthClothingTitle", "actionHealthClothingSummary"],
+    "fnb-rain": ["actionFnbRainTitle", "actionFnbRainSummary"],
+    "fnb-stock": ["actionFnbStockTitle", "actionFnbStockSummary"],
+    "fnb-business": ["actionFnbSalesTitle", "actionFnbSalesSummary"],
+    "fnb-temperature": ["actionFnbStockTitle", "actionFnbStockSummary"],
+    "logistics-safety": ["actionLogisticsSafetyTitle", "actionLogisticsSafetySummary"],
+    "logistics-visibility": ["actionLogisticsVisibilityTitle", "actionLogisticsVisibilitySummary"],
+    "logistics-wind": ["actionLogisticsWindTitle", "actionLogisticsWindSummary"],
+  };
+  const [titleKey, summaryKey] = actionKeys[intent] ?? ["actionGeneralTitle", "actionGeneralSummary"];
+  return { title: t(titleKey), summary: t(summaryKey) };
+}
+
+function processAIQuery(queryText, { speak = true } = {}) {
+  const query = queryText.trim();
+  if (!query) return;
+  if (!weatherContext) {
+    elements.assistantVoiceMessage.textContent = t("weatherNotReady");
+    return;
+  }
+
+  lastVoiceQuestion = query;
+  const intent = analyzeAssistantIntent(query, assistantPersona);
+  const answer = getAssistantAnswer(query);
+  const action = getAssistantAction(intent);
+  elements.assistantResponseQuestion.textContent = query;
+  elements.assistantResponseQuestion.hidden = false;
+  elements.assistantVoiceAnswer.textContent = answer;
+  elements.assistantActionTitle.textContent = action.title;
+  elements.assistantActionSummary.textContent = action.summary;
+  elements.assistantActionCard.hidden = false;
+  elements.assistantVoiceMessage.textContent = "";
+  if (speak) speakAssistantAnswer(answer);
 }
 
 function setVoiceState(listening) {
@@ -1556,13 +1825,7 @@ function speakAssistantAnswer(answer) {
 function handleVoiceQuestion(transcript) {
   receivedVoiceResult = true;
   stopVoiceRecognition();
-  lastVoiceQuestion = transcript;
-  const answer = getAssistantAnswer(transcript);
-  elements.assistantVoiceAnswer.textContent = t("answerTranscript", {
-    question: transcript,
-    answer,
-  });
-  speakAssistantAnswer(answer);
+  processAIQuery(transcript);
 }
 
 function configureVoiceAssistant() {
@@ -1656,6 +1919,12 @@ function selectAssistantPersona(persona) {
     `[data-persona="${persona}"]`,
   );
   elements.assistantVoiceAnswer.setAttribute("aria-labelledby", selectedTab.id);
+  lastVoiceQuestion = "";
+  elements.assistantResponseQuestion.textContent = "";
+  elements.assistantResponseQuestion.hidden = true;
+  elements.assistantVoiceAnswer.textContent = t("voiceGreeting");
+  elements.assistantActionCard.hidden = true;
+  renderAssistantQuickPrompts();
   elements.assistantVoiceMessage.textContent = t(messages[persona]);
 }
 
@@ -1873,6 +2142,50 @@ function createRouteWaypoints(origin, destination) {
   return { distanceKm, waypoints };
 }
 
+async function findRouteStopName(waypoint, signal) {
+  const url = new URL(REVERSE_GEOCODING_URL);
+  url.search = new URLSearchParams({
+    lat: String(waypoint.latitude),
+    lon: String(waypoint.longitude),
+    lang: currentLanguage === "en" ? "en" : "default",
+    radius: "5000",
+  });
+  const data = await fetchJson(url, signal, "route stop geocoding service");
+  const place = data.features?.[0]?.properties;
+  if (!place) return "";
+
+  const locality = place.locality || place.district;
+  const city = place.city || place.county || place.state;
+  if (locality && city && locality.toLocaleLowerCase() !== city.toLocaleLowerCase()) {
+    return `${locality}, ${city}`;
+  }
+  return locality || city || place.name || "";
+}
+
+async function resolveRouteStopNames(waypoints, signal) {
+  let unresolvedCount = 0;
+  const stopWaypoints = waypoints.filter((waypoint) => waypoint.kind === "stop");
+  await Promise.all(
+    stopWaypoints.map(async (waypoint, index) => {
+      try {
+        waypoint.name = await findRouteStopName(waypoint, signal);
+      } catch (error) {
+        if (error.name === "AbortError") throw error;
+        waypoint.name = "";
+      }
+      if (!waypoint.name) {
+        unresolvedCount += 1;
+        waypoint.name = t("routeStopCoordinates", {
+          number: index + 1,
+          latitude: waypoint.latitude.toFixed(3),
+          longitude: waypoint.longitude.toFixed(3),
+        });
+      }
+    }),
+  );
+  return unresolvedCount;
+}
+
 async function fetchRouteWeather(waypoint, signal) {
   const url = new URL(FORECAST_URL);
   url.search = new URLSearchParams({
@@ -1880,7 +2193,7 @@ async function fetchRouteWeather(waypoint, signal) {
     longitude: String(waypoint.longitude),
     current: "temperature_2m,weather_code,wind_speed_10m",
     hourly: "temperature_2m,weather_code,wind_speed_10m,precipitation_probability",
-    forecast_days: "1",
+    forecast_days: "2",
     timezone: "auto",
   });
   const data = await fetchJson(url, signal, "路線天氣服務");
@@ -1945,6 +2258,57 @@ function getRouteWeatherWarnings(data) {
   return { warnings, precipitationProbability };
 }
 
+function renderRouteHourlyForecast(data, place, forecastIndex) {
+  const section = document.createElement("section");
+  const heading = document.createElement("h4");
+  const list = document.createElement("ol");
+  const endIndex = Math.min(forecastIndex + 24, data.hourly.time.length);
+
+  section.className = "route-hourly-details";
+  heading.className = "route-hourly-heading";
+  heading.textContent = t("routeHourlyForecast", { place });
+  list.className = "route-hourly-list";
+
+  for (let index = forecastIndex; index < endIndex; index += 1) {
+    const item = document.createElement("li");
+    const time = document.createElement("time");
+    const icon = document.createElement("span");
+    const temperature = document.createElement("strong");
+    const condition = document.createElement("span");
+    const rain = document.createElement("span");
+    const wind = document.createElement("span");
+    const weatherCode = Number(data.hourly.weather_code[index]);
+    const weather = getWeatherDescription(weatherCode);
+    const precipitationProbability = data.hourly.precipitation_probability?.[index];
+    const windSpeed = Number(data.hourly.wind_speed_10m[index]);
+
+    item.className = "route-hourly-item";
+    time.dateTime = data.hourly.time[index];
+    time.textContent = data.hourly.time[index].slice(-5);
+    icon.className = "route-hourly-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = weather.icon;
+    temperature.className = "route-hourly-temperature";
+    temperature.textContent = `${Math.round(data.hourly.temperature_2m[index])}°`;
+    condition.className = "route-hourly-condition";
+    condition.textContent = weather.text;
+    rain.className = "route-hourly-meta";
+    rain.textContent =
+      precipitationProbability === null || !Number.isFinite(Number(precipitationProbability))
+        ? t("routeHourlyRainUnavailable")
+        : t("routeHourlyRain", { probability: Math.round(precipitationProbability) });
+    wind.className = "route-hourly-meta";
+    wind.textContent = Number.isFinite(windSpeed)
+      ? t("routeHourlyWind", { speed: Math.round(windSpeed) })
+      : t("noWindData");
+    item.append(time, icon, temperature, condition, rain, wind);
+    list.append(item);
+  }
+
+  section.append(heading, list);
+  return section;
+}
+
 function renderRouteWeather(waypoints, forecasts, distanceKm) {
   routeView = { waypoints, forecasts, distanceKm };
   const fragment = document.createDocumentFragment();
@@ -1977,15 +2341,14 @@ function renderRouteWeather(waypoints, forecasts, distanceKm) {
     const forecastTime = document.createElement("p");
     const description = document.createElement("p");
     const precipitation = document.createElement("p");
+    const detailsToggle = document.createElement("button");
+    const hourlyDetails = renderRouteHourlyForecast(data, waypoint.name, forecastIndex);
 
     item.className = "route-stop";
     card.className = `route-card${warnings.length ? " has-warning" : ""}`;
     heading.className = "route-card-heading";
     title.className = "route-stop-name";
-    title.textContent =
-      waypoint.kind === "stop"
-        ? t("routeStopName", { number: index })
-        : waypoint.name;
+    title.textContent = waypoint.name;
     badge.className = "route-stop-type";
     badge.textContent =
       waypoint.kind === "origin"
@@ -2013,6 +2376,22 @@ function renderRouteWeather(waypoints, forecasts, distanceKm) {
         : precipitationProbability > 0
           ? t("routeRainChance", { probability: precipitationProbability })
           : t("routeRainLow");
+    detailsToggle.className = "route-details-toggle";
+    detailsToggle.type = "button";
+    detailsToggle.setAttribute("aria-expanded", "false");
+    detailsToggle.setAttribute("aria-label", t("routeDetailedForecastLabel", {
+      place: waypoint.name,
+    }));
+    hourlyDetails.id = `route-hourly-details-${index}`;
+    hourlyDetails.hidden = true;
+    detailsToggle.setAttribute("aria-controls", hourlyDetails.id);
+    detailsToggle.textContent = t("routeShowDetails");
+    detailsToggle.addEventListener("click", () => {
+      const isExpanded = detailsToggle.getAttribute("aria-expanded") === "true";
+      detailsToggle.setAttribute("aria-expanded", String(!isExpanded));
+      detailsToggle.textContent = t(isExpanded ? "routeShowDetails" : "routeHideDetails");
+      hourlyDetails.hidden = isExpanded;
+    });
 
     details.append(temperature, forecastTime, description, precipitation);
     weather.append(icon, details);
@@ -2026,6 +2405,7 @@ function renderRouteWeather(waypoints, forecasts, distanceKm) {
       })}`;
       card.append(warning);
     }
+    card.append(detailsToggle, hourlyDetails);
     item.append(card);
     timeline.append(item);
   });
@@ -2053,12 +2433,15 @@ async function checkRouteWeather(originQuery, destinationQuery) {
       geocodeRoutePlace(destinationQuery, signal),
     ]);
     const { distanceKm, waypoints } = createRouteWaypoints(origin, destination);
+    const unresolvedStopNames = await resolveRouteStopNames(waypoints, signal);
     const forecasts = await Promise.all(
       waypoints.map((waypoint) => fetchRouteWeather(waypoint, signal)),
     );
     if (currentRequestId !== routeRequestId) return;
     renderRouteWeather(waypoints, forecasts, distanceKm);
-    elements.routeStatus.textContent = t("routeSuccess");
+    elements.routeStatus.textContent = unresolvedStopNames
+      ? t("routeStopNamesPartial")
+      : t("routeSuccess");
   } catch (error) {
     if (error.name === "AbortError" || currentRequestId !== routeRequestId) return;
     elements.routeStatus.textContent =
@@ -2100,6 +2483,68 @@ function renderSuggestions(places) {
   elements.suggestions.hidden = places.length === 0;
   elements.searchInput.setAttribute("aria-expanded", String(places.length > 0));
   elements.searchInput.removeAttribute("aria-activedescendant");
+}
+
+function closeRouteSuggestions(state) {
+  state.places = [];
+  state.activeIndex = -1;
+  state.list.replaceChildren();
+  state.list.hidden = true;
+  state.input.setAttribute("aria-expanded", "false");
+  state.input.removeAttribute("aria-activedescendant");
+}
+
+function renderRouteSuggestions(state, places) {
+  state.places = places;
+  state.activeIndex = -1;
+  state.list.replaceChildren();
+
+  for (const [index, place] of places.entries()) {
+    const item = document.createElement("li");
+    const button = document.createElement("button");
+    const name = document.createElement("span");
+    const detail = document.createElement("span");
+    button.className = "suggestion";
+    button.type = "button";
+    button.role = "option";
+    button.id = `route-${state.key}-suggestion-${index}`;
+    button.setAttribute("aria-selected", "false");
+    name.className = "suggestion-name";
+    name.textContent = place.name;
+    detail.className = "suggestion-detail";
+    detail.textContent = getLocationDetail(place);
+    button.append(name, detail);
+    button.addEventListener("click", () => {
+      state.input.value = place.name;
+      closeRouteSuggestions(state);
+      state.input.focus();
+    });
+    item.append(button);
+    state.list.append(item);
+  }
+
+  state.list.hidden = places.length === 0;
+  state.input.setAttribute("aria-expanded", String(places.length > 0));
+  state.input.removeAttribute("aria-activedescendant");
+}
+
+function setActiveRouteSuggestion(state, index) {
+  if (state.places.length === 0) return;
+  state.activeIndex = (index + state.places.length) % state.places.length;
+  const options = state.list.querySelectorAll('[role="option"]');
+  options.forEach((option, optionIndex) => {
+    option.setAttribute("aria-selected", String(optionIndex === state.activeIndex));
+  });
+  const activeOption = options[state.activeIndex];
+  state.input.setAttribute("aria-activedescendant", activeOption.id);
+  activeOption.scrollIntoView({ block: "nearest" });
+}
+
+function selectRouteSuggestion(state) {
+  if (state.activeIndex < 0) return false;
+  state.input.value = state.places[state.activeIndex].name;
+  closeRouteSuggestions(state);
+  return true;
 }
 
 function closeSuggestions() {
@@ -2378,6 +2823,11 @@ elements.radarTimeline.addEventListener("input", () => {
 
 elements.assistantSpeak.addEventListener("click", toggleWeatherSpeech);
 elements.assistantMicrophone.addEventListener("click", toggleVoiceRecognition);
+elements.assistantQuickPrompts.addEventListener("click", (event) => {
+  const chip = event.target.closest("[data-prompt-key]");
+  if (!chip || !elements.assistantQuickPrompts.contains(chip)) return;
+  processAIQuery(t(chip.dataset.promptKey));
+});
 elements.languageSelect.addEventListener("change", (event) => {
   changeLanguage(event.target.value);
 });
@@ -2403,6 +2853,11 @@ elements.assistantPersonaTabs.addEventListener("keydown", (event) => {
 
 elements.routeForm.addEventListener("submit", (event) => {
   event.preventDefault();
+  routeAutocomplete.forEach((state) => {
+    window.clearTimeout(state.timer);
+    state.controller?.abort();
+    closeRouteSuggestions(state);
+  });
   const origin = elements.routeOrigin.value.trim();
   const destination = elements.routeDestination.value.trim();
   if (!origin || !destination) {
@@ -2414,6 +2869,55 @@ elements.routeForm.addEventListener("submit", (event) => {
     return;
   }
   void checkRouteWeather(origin, destination);
+});
+
+for (const state of routeAutocomplete) {
+  state.input.addEventListener("input", () => {
+    window.clearTimeout(state.timer);
+    state.controller?.abort();
+    const query = state.input.value.trim();
+
+    if (query.length < 2) {
+      closeRouteSuggestions(state);
+      return;
+    }
+
+    state.timer = window.setTimeout(async () => {
+      const controller = new AbortController();
+      state.controller = controller;
+      try {
+        const places = await searchPlaces(query, controller.signal);
+        if (state.controller !== controller || state.input.value.trim() !== query) return;
+        renderRouteSuggestions(state, places);
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        closeRouteSuggestions(state);
+        elements.routeStatus.textContent = t("routeSuggestionsError");
+      }
+    }, 250);
+  });
+
+  state.input.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown" && state.places.length > 0) {
+      event.preventDefault();
+      setActiveRouteSuggestion(state, state.activeIndex + 1);
+    } else if (event.key === "ArrowUp" && state.places.length > 0) {
+      event.preventDefault();
+      setActiveRouteSuggestion(state, state.activeIndex - 1);
+    } else if (event.key === "Escape") {
+      closeRouteSuggestions(state);
+    } else if (event.key === "Enter" && selectRouteSuggestion(state)) {
+      event.preventDefault();
+    }
+  });
+}
+
+document.addEventListener("click", (event) => {
+  for (const state of routeAutocomplete) {
+    if (!state.list.parentElement.contains(event.target)) {
+      closeRouteSuggestions(state);
+    }
+  }
 });
 
 async function loadWeather(place) {
@@ -2579,4 +3083,5 @@ async function initialize() {
 }
 
 applyTranslations();
+renderAssistantQuickPrompts();
 initialize();
