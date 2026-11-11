@@ -1,6 +1,8 @@
 const GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
 const REVERSE_GEOCODING_URL = "https://photon.komoot.io/reverse";
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
+const GEMINI_API_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 const RAINVIEWER_URL = "https://api.rainviewer.com/public/weather-maps.json";
 const DEFAULT_CITY = "Taoyuan";
 const RADAR_WINDOW_SECONDS = 2 * 60 * 60;
@@ -70,6 +72,18 @@ const translations = {
     chatUserRole: "Bạn",
     chatAssistantRole: "Trợ lý AI",
     chatHistoryLabel: "Lịch sử trò chuyện",
+    geminiKeyLabel: "Gemini API key (chỉ dùng trong phiên này)",
+    geminiKeyPlaceholder: "Dán Gemini API key (chỉ lưu trong tab này)",
+    geminiKeyApply: "Dùng khóa",
+    geminiKeyHelp: "Khóa chỉ được giữ trong bộ nhớ của tab, nhưng người dùng ứng dụng có thể xem khóa gửi qua trình duyệt. Không dùng khóa production; nên dùng backend proxy.",
+    geminiKeyMissing: "Chưa cấu hình Gemini; trợ lý sẽ dùng tư vấn dự phòng.",
+    geminiKeyReady: "Đã nhận khóa Gemini cho tab này. Khóa không được lưu sau khi đóng tab.",
+    geminiKeyCleared: "Đã xóa khóa Gemini khỏi bộ nhớ của tab. Trợ lý sẽ dùng tư vấn dự phòng.",
+    geminiPowered: "Gemini AI Powered",
+    ruleBasedFallback: "Rule-based fallback",
+    geminiFallbackNoKey: "Chưa có Gemini API key; câu trả lời này dùng tư vấn dự phòng.",
+    geminiFallbackError: "Gemini không khả dụng ({reason}); câu trả lời này dùng tư vấn dự phòng.",
+    geminiRequestFailed: "Yêu cầu Gemini thất bại (HTTP {status}).",
     quickPromptLabel: "Câu hỏi gợi ý",
     promptHealthRain: "Hôm nay có mưa không, nên mặc gì?",
     promptHealthUv: "UV hôm nay có ảnh hưởng da không?",
@@ -348,6 +362,18 @@ const translations = {
     chatUserRole: "You",
     chatAssistantRole: "AI assistant",
     chatHistoryLabel: "Chat history",
+    geminiKeyLabel: "Gemini API key (this session only)",
+    geminiKeyPlaceholder: "Paste a Gemini API key (kept in this tab only)",
+    geminiKeyApply: "Use key",
+    geminiKeyHelp: "The key stays in this tab's memory, but app users can inspect keys sent by the browser. Do not use a production key; a backend proxy is recommended.",
+    geminiKeyMissing: "Gemini is not configured; the assistant will use fallback advice.",
+    geminiKeyReady: "Gemini key accepted for this tab. It will not be saved after the tab closes.",
+    geminiKeyCleared: "Gemini key removed from this tab's memory. The assistant will use fallback advice.",
+    geminiPowered: "Gemini AI Powered",
+    ruleBasedFallback: "Rule-based fallback",
+    geminiFallbackNoKey: "No Gemini API key is configured; this answer uses fallback advice.",
+    geminiFallbackError: "Gemini is unavailable ({reason}); this answer uses fallback advice.",
+    geminiRequestFailed: "Gemini request failed (HTTP {status}).",
     quickPromptLabel: "Quick questions",
     promptHealthRain: "Will it rain today, and what should I wear?",
     promptHealthUv: "Could today's UV affect my skin?",
@@ -626,6 +652,18 @@ const translations = {
     chatUserRole: "你",
     chatAssistantRole: "AI 助理",
     chatHistoryLabel: "對話紀錄",
+    geminiKeyLabel: "Gemini API 金鑰（僅限本工作階段）",
+    geminiKeyPlaceholder: "貼上 Gemini API 金鑰（僅保留於此分頁）",
+    geminiKeyApply: "使用金鑰",
+    geminiKeyHelp: "金鑰只保留在此分頁的記憶體中，但使用者仍可從瀏覽器檢視送出的金鑰。請勿使用正式環境金鑰；建議改用後端 Proxy。",
+    geminiKeyMissing: "尚未設定 Gemini；助理將使用規則備援建議。",
+    geminiKeyReady: "已為此分頁接收 Gemini 金鑰。關閉分頁後不會保存。",
+    geminiKeyCleared: "已從此分頁記憶體清除 Gemini 金鑰。助理將使用規則備援建議。",
+    geminiPowered: "Gemini AI Powered",
+    ruleBasedFallback: "規則式備援",
+    geminiFallbackNoKey: "尚未設定 Gemini API 金鑰；此回答使用規則備援建議。",
+    geminiFallbackError: "Gemini 無法使用（{reason}）；此回答使用規則備援建議。",
+    geminiRequestFailed: "Gemini 請求失敗（HTTP {status}）。",
     quickPromptLabel: "快速提問",
     promptHealthRain: "今天會下雨嗎？該穿什麼？",
     promptHealthUv: "今天的紫外線會影響皮膚嗎？",
@@ -892,6 +930,9 @@ function changeLanguage(language) {
   currentLanguage = language;
   localStorage.setItem("selected_lang", language);
   applyTranslations();
+  elements.assistantGeminiStatus.textContent = geminiApiKeyForSession
+    ? t("geminiKeyReady")
+    : t("geminiKeyMissing");
   setAssistantState(assistantState);
   renderAssistantQuickPrompts();
   routeAutocomplete.forEach((state) => {
@@ -984,6 +1025,9 @@ const elements = {
   assistantVoiceState: document.querySelector("#assistant-voice-state"),
   assistantResponseDrawer: document.querySelector("#assistant-response-drawer"),
   assistantChatHistory: document.querySelector("#assistant-chat-history"),
+  assistantGeminiKeyForm: document.querySelector("#assistant-gemini-key-form"),
+  assistantGeminiKey: document.querySelector("#assistant-gemini-key"),
+  assistantGeminiStatus: document.querySelector("#assistant-gemini-status"),
   assistantChatForm: document.querySelector("#assistant-chat-form"),
   assistantChatInput: document.querySelector("#assistant-chat-input"),
   assistantQuickPrompts: document.querySelector("#assistant-quick-prompts"),
@@ -1069,6 +1113,8 @@ const ASSISTANT_STATES = Object.freeze({
 });
 let assistantState = ASSISTANT_STATES.IDLE;
 let assistantQueryId = 0;
+let assistantController;
+let geminiApiKeyForSession = "";
 const assistantChatTurns = [];
 
 const WEATHER_BACKGROUND_VERTEX_SHADER = `
@@ -1640,8 +1686,89 @@ function getAssistantWeatherValues() {
   };
 }
 
-function getAssistantAnswer(text, persona = assistantPersona) {
-  const values = getAssistantWeatherValues();
+function getGeminiWeatherData() {
+  if (!weatherContext) return undefined;
+  const { place, current, daily } = weatherContext;
+  const finiteOrNull = (value) => (Number.isFinite(value) ? value : null);
+  return {
+    location: getLocationName(place),
+    current: {
+      condition: getWeatherDescription(current.weather_code).text,
+      temperatureC: finiteOrNull(current.temperature_2m),
+      feelsLikeC: finiteOrNull(current.apparent_temperature),
+      humidityPercent: finiteOrNull(current.relative_humidity_2m),
+      windSpeedKmh: finiteOrNull(current.wind_speed_10m),
+      uvIndex: finiteOrNull(current.uv_index),
+    },
+    today: {
+      highC: finiteOrNull(daily.temperature_2m_max?.[0]),
+      lowC: finiteOrNull(daily.temperature_2m_min?.[0]),
+      precipitationProbabilityPercent: finiteOrNull(
+        daily.precipitation_probability_max?.[0],
+      ),
+    },
+  };
+}
+
+async function askGeminiAI(userQuery, weatherData, currentPersona, currentLang) {
+  if (!geminiApiKeyForSession) {
+    throw new Error(t("geminiFallbackNoKey"));
+  }
+
+  const personaKeys = {
+    health: "personaHealth",
+    fnb: "personaFnb",
+    logistics: "personaLogistics",
+  };
+  const personaName =
+    translations[currentLang][personaKeys[currentPersona]] ?? currentPersona;
+  const languageNames = {
+    vi: "Vietnamese",
+    en: "English",
+    zh: "Traditional Chinese",
+  };
+  const languageName = languageNames[currentLang] ?? "English";
+  const systemPrompt =
+    `Bạn là Cố vấn Quyết định (MIS Decision Support AI) cho phân khúc ${personaName}. ` +
+    `Dữ liệu thời tiết realtime: ${JSON.stringify(weatherData)}. ` +
+    `Trả lời câu hỏi của người dùng bằng ngôn ngữ ${languageName}. ` +
+    "Hãy phân tích tác động rủi ro và đưa ra lời khuyên thiết thực dưới 3 câu ngắn gọn để trợ lý đọc bằng giọng nói.";
+  const url = new URL(GEMINI_API_URL);
+  url.searchParams.set("key", geminiApiKeyForSession);
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    signal: assistantController?.signal,
+    body: JSON.stringify({
+      systemInstruction: {
+        parts: [{ text: systemPrompt }],
+      },
+      contents: [{ role: "user", parts: [{ text: userQuery }] }],
+      generationConfig: {
+        temperature: 0.4,
+        maxOutputTokens: 180,
+      },
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(t("geminiRequestFailed", { status: response.status }));
+  }
+  const data = await response.json();
+  const answer = data.candidates?.[0]?.content?.parts
+    ?.map((part) => part.text ?? "")
+    .join("")
+    .trim();
+  if (!answer) {
+    throw new Error("Gemini returned no text.");
+  }
+  return answer;
+}
+
+function getAssistantAnswer(
+  text,
+  persona = assistantPersona,
+  values = getAssistantWeatherValues(),
+) {
   if (!values) return t("noWeatherData");
 
   const intent = analyzeAssistantIntent(text, persona);
@@ -1799,34 +1926,52 @@ function appendAssistantMessage(className, roleKey, text) {
 }
 
 function renderAssistantChatTurn(turn) {
-  const intent = analyzeAssistantIntent(turn.question, turn.persona);
-  const answer = getAssistantAnswer(turn.question, turn.persona);
-  const action = getAssistantAction(intent);
+  const answer =
+    turn.answer ??
+    (turn.provider === "pending"
+      ? t("processing")
+      : getAssistantAnswer(turn.question, turn.persona, turn.weatherValues));
   const assistantMessage = appendAssistantMessage(
     "assistant-chat-message-ai",
     "chatAssistantRole",
     answer,
   );
-  const actionCard = document.createElement("article");
-  const icon = document.createElement("span");
-  const content = document.createElement("div");
-  const eyebrow = document.createElement("p");
-  const title = document.createElement("h3");
-  const summary = document.createElement("p");
+  if (turn.provider === "gemini" || turn.provider === "rules") {
+    const source = document.createElement("span");
+    source.className = `assistant-chat-source assistant-chat-source-${turn.provider}`;
+    source.textContent = t(
+      turn.provider === "gemini" ? "geminiPowered" : "ruleBasedFallback",
+    );
+    assistantMessage.querySelector(".assistant-chat-role").append(source);
+  }
+  if (turn.provider === "pending") {
+    return [
+      appendAssistantMessage("assistant-chat-message-user", "chatUserRole", turn.question),
+      assistantMessage,
+    ];
+  }
+  if (turn.provider !== "gemini") {
+    const intent = analyzeAssistantIntent(turn.question, turn.persona);
+    const action = getAssistantAction(intent);
+    const actionCard = document.createElement("article");
+    const icon = document.createElement("span");
+    const content = document.createElement("div");
+    const eyebrow = document.createElement("p");
+    const title = document.createElement("h3");
+    const summary = document.createElement("p");
 
-  actionCard.className = "assistant-action-card";
-  icon.className = "assistant-action-icon";
-  icon.setAttribute("aria-hidden", "true");
-  icon.textContent = "✦";
-  eyebrow.className = "assistant-action-eyebrow";
-  eyebrow.textContent = t("actionCardLabel");
-  title.textContent = action.title;
-  summary.textContent = action.summary;
-  content.append(eyebrow, title, summary);
-  actionCard.append(icon, content);
-  assistantMessage.append(actionCard);
-  turn.answer = answer;
-  turn.action = action;
+    actionCard.className = "assistant-action-card";
+    icon.className = "assistant-action-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = "✦";
+    eyebrow.className = "assistant-action-eyebrow";
+    eyebrow.textContent = t("actionCardLabel");
+    title.textContent = action.title;
+    summary.textContent = action.summary;
+    content.append(eyebrow, title, summary);
+    actionCard.append(icon, content);
+    assistantMessage.append(actionCard);
+  }
   return [
     appendAssistantMessage("assistant-chat-message-user", "chatUserRole", turn.question),
     assistantMessage,
@@ -1856,23 +2001,81 @@ function scrollAssistantChatToLatest() {
   });
 }
 
+function resolvePendingAssistantTurns() {
+  let didResolveTurn = false;
+  for (const turn of assistantChatTurns) {
+    if (turn.provider !== "pending") continue;
+    turn.answer = getAssistantAnswer(turn.question, turn.persona, turn.weatherValues);
+    turn.provider = "rules";
+    didResolveTurn = true;
+  }
+  if (didResolveTurn) renderAssistantChatHistory();
+}
+
 async function processAIQuery(queryText) {
   const query = queryText.trim();
   if (!query) return;
   if (assistantState === ASSISTANT_STATES.LISTENING) stopVoiceRecognition();
   const currentQueryId = ++assistantQueryId;
+  assistantController?.abort();
+  assistantController = undefined;
+  resolvePendingAssistantTurns();
   if (window.speechSynthesis?.speaking) {
     speechGeneration += 1;
     window.speechSynthesis.cancel();
   }
-  assistantChatTurns.push({ question: query, persona: assistantPersona });
+  const weatherData = getGeminiWeatherData();
+  const turn = {
+    question: query,
+    persona: assistantPersona,
+    language: currentLanguage,
+    weatherValues: getAssistantWeatherValues(),
+    provider: "pending",
+  };
+  assistantChatTurns.push(turn);
   renderAssistantChatHistory();
   setAssistantState(ASSISTANT_STATES.PROCESSING);
   elements.assistantVoiceMessage.textContent = "";
   await new Promise((resolve) => window.requestAnimationFrame(resolve));
   if (currentQueryId !== assistantQueryId) return;
-  const turn = assistantChatTurns.at(-1);
-  const answer = getAssistantAnswer(query, turn.persona);
+  let answer;
+  let provider = "rules";
+  let fallbackMessage = "";
+  if (!weatherData) {
+    answer = getAssistantAnswer(query, turn.persona, turn.weatherValues);
+  } else if (!geminiApiKeyForSession) {
+    answer = getAssistantAnswer(query, turn.persona, turn.weatherValues);
+    fallbackMessage = t("geminiFallbackNoKey");
+  } else {
+    const controller = new AbortController();
+    assistantController = controller;
+    const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+    try {
+      answer = await askGeminiAI(
+        query,
+        weatherData,
+        turn.persona,
+        turn.language,
+      );
+      provider = "gemini";
+    } catch (error) {
+      if (error.name === "AbortError" && currentQueryId !== assistantQueryId) return;
+      answer = getAssistantAnswer(query, turn.persona, turn.weatherValues);
+      fallbackMessage = t("geminiFallbackError", {
+        reason: error instanceof Error ? error.message : "unknown error",
+      });
+    } finally {
+      window.clearTimeout(timeoutId);
+      if (assistantController === controller) assistantController = undefined;
+    }
+  }
+  if (currentQueryId !== assistantQueryId) return;
+  turn.answer = answer;
+  turn.provider = provider;
+  renderAssistantChatHistory();
+  if (fallbackMessage) {
+    elements.assistantVoiceMessage.textContent = fallbackMessage;
+  }
   if ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window) {
     speakAssistantAnswer(answer);
   } else {
@@ -2972,6 +3175,14 @@ elements.radarTimeline.addEventListener("input", () => {
 
 elements.assistantSpeak.addEventListener("click", toggleWeatherSpeech);
 elements.assistantMicrophone.addEventListener("click", toggleVoiceRecognition);
+elements.assistantGeminiKeyForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  geminiApiKeyForSession = elements.assistantGeminiKey.value.trim();
+  elements.assistantGeminiKey.value = "";
+  elements.assistantGeminiStatus.textContent = geminiApiKeyForSession
+    ? t("geminiKeyReady")
+    : t("geminiKeyCleared");
+});
 elements.assistantChatForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const query = elements.assistantChatInput.value.trim();
@@ -3078,6 +3289,13 @@ document.addEventListener("click", (event) => {
 
 async function loadWeather(place) {
   const currentRequestId = ++requestId;
+  assistantQueryId += 1;
+  assistantController?.abort();
+  assistantController = undefined;
+  resolvePendingAssistantTurns();
+  if (assistantState === ASSISTANT_STATES.PROCESSING) {
+    setAssistantState(ASSISTANT_STATES.IDLE);
+  }
   weatherController?.abort();
   weatherController = new AbortController();
   stopVoiceRecognition();
@@ -3218,6 +3436,11 @@ elements.searchForm.addEventListener("submit", (event) => {
 
 document.addEventListener("click", (event) => {
   if (!elements.searchForm.contains(event.target)) closeSuggestions();
+});
+
+window.addEventListener("pagehide", () => {
+  geminiApiKeyForSession = "";
+  assistantController?.abort();
 });
 
 async function initialize() {

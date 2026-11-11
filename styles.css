@@ -871,12 +871,36 @@ h1 span {
 }
 
 .assistant-chat-role {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   margin: 0 0 3px;
   color: #8996b3;
   font-size: 8px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.assistant-chat-source {
+  padding: 2px 6px;
+  border: 1px solid rgb(190 205 255 / 14%);
+  border-radius: 999px;
+  color: #c4bfff;
+  font-size: 7px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.assistant-chat-source-gemini {
+  border-color: rgb(119 213 193 / 28%);
+  color: #9ce4d0;
+  background: rgb(60 150 128 / 12%);
+}
+
+.assistant-chat-source-rules {
+  color: #c6cce0;
+  background: rgb(151 163 191 / 9%);
 }
 
 .assistant-chat-message-user .assistant-chat-role {
@@ -895,7 +919,14 @@ h1 span {
   margin-top: 10px;
 }
 
-.assistant-chat-composer input {
+.assistant-gemini-key {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.assistant-chat-composer input,
+.assistant-gemini-key input {
   width: 100%;
   min-width: 0;
   min-height: 40px;
@@ -908,13 +939,27 @@ h1 span {
   font-size: 10px;
 }
 
-.assistant-chat-composer input::placeholder {
+.assistant-chat-composer input::placeholder,
+.assistant-gemini-key input::placeholder {
   color: #7886a5;
 }
 
-.assistant-chat-composer input:focus {
+.assistant-chat-composer input:focus,
+.assistant-gemini-key input:focus {
   border-color: rgb(188 184 255 / 52%);
   box-shadow: 0 0 0 3px rgb(157 145 255 / 10%);
+}
+
+.assistant-gemini-key-help,
+.assistant-gemini-status {
+  margin: 6px 1px 0;
+  color: #8996b3;
+  font-size: 8px;
+  line-height: 1.6;
+}
+
+.assistant-gemini-status {
+  color: #b6c3df;
 }
 
 .assistant-chat-send {

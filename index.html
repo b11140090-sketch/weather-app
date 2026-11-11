@@ -267,6 +267,27 @@
               </div>
             </div>
           </div>
+          <form class="assistant-gemini-key" id="assistant-gemini-key-form">
+            <label class="sr-only" for="assistant-gemini-key" data-i18n="geminiKeyLabel">Gemini API key (chỉ dùng trong phiên này)</label>
+            <input
+              id="assistant-gemini-key"
+              name="gemini-api-key"
+              type="password"
+              autocomplete="new-password"
+              spellcheck="false"
+              placeholder="Dán Gemini API key (chỉ lưu trong tab này)"
+              data-i18n="geminiKeyPlaceholder"
+              data-i18n-attr="placeholder"
+              aria-describedby="assistant-gemini-key-help assistant-gemini-status"
+            >
+            <button type="submit" class="assistant-chat-send" data-i18n="geminiKeyApply">Dùng khóa</button>
+          </form>
+          <p class="assistant-gemini-key-help" id="assistant-gemini-key-help" data-i18n="geminiKeyHelp">
+            Khóa chỉ được giữ trong bộ nhớ của tab, nhưng người dùng ứng dụng có thể xem khóa gửi qua trình duyệt. Không dùng khóa production; nên dùng backend proxy.
+          </p>
+          <p class="assistant-gemini-status" id="assistant-gemini-status" role="status" aria-live="polite" data-i18n="geminiKeyMissing">
+            Chưa cấu hình Gemini; trợ lý sẽ dùng tư vấn dự phòng.
+          </p>
           <form class="assistant-chat-composer" id="assistant-chat-form">
             <label class="sr-only" for="assistant-chat-input" data-i18n="chatInputLabel">Nhập câu hỏi cho Trợ lý AI</label>
             <input
