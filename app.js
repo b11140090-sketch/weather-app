@@ -63,12 +63,18 @@ const elements = {
   currentTemperature: document.querySelector("#current-temperature"),
   currentCondition: document.querySelector("#current-condition"),
   feelsLike: document.querySelector("#feels-like"),
+  assistantSection: document.querySelector(".assistant-section"),
   clothingAdvice: document.querySelector("#clothing-advice"),
   sunAdvice: document.querySelector("#sun-advice"),
   rainAdvice: document.querySelector("#rain-advice"),
   assistantSpeak: document.querySelector("#assistant-speak"),
   assistantSpeakLabel: document.querySelector("#assistant-speak-label"),
   assistantSpeakStatus: document.querySelector("#assistant-speak-status"),
+  assistantPersonaTabs: document.querySelector("#assistant-persona-tabs"),
+  assistantMicrophone: document.querySelector("#assistant-microphone"),
+  assistantVoiceState: document.querySelector("#assistant-voice-state"),
+  assistantVoiceAnswer: document.querySelector("#assistant-voice-answer"),
+  assistantVoiceMessage: document.querySelector("#assistant-voice-message"),
   humidity: document.querySelector("#humidity"),
   windSpeed: document.querySelector("#wind-speed"),
   windNote: document.querySelector("#wind-note"),
@@ -83,6 +89,12 @@ const elements = {
   radarTimeline: document.querySelector("#radar-timeline"),
   radarTime: document.querySelector("#radar-time"),
   weatherBackground: document.querySelector("#weather-bg"),
+  routeForm: document.querySelector("#route-form"),
+  routeOrigin: document.querySelector("#route-origin"),
+  routeDestination: document.querySelector("#route-destination"),
+  routeSubmit: document.querySelector("#route-submit"),
+  routeStatus: document.querySelector("#route-status"),
+  routeResults: document.querySelector("#route-results"),
 };
 
 const weekdayFormatter = new Intl.DateTimeFormat("zh-TW", {
@@ -93,6 +105,8 @@ let suggestions = [];
 let activeSuggestion = -1;
 let suggestionController;
 let weatherController;
+let routeController;
+let routeRequestId = 0;
 let debounceTimer;
 let requestId = 0;
 let radarMap;
@@ -108,6 +122,11 @@ let weatherBackground;
 let weatherBulletin;
 let weatherAdvice;
 let speechGeneration = 0;
+let weatherContext;
+let assistantPersona = "health";
+let speechRecognition;
+let isListening = false;
+let receivedVoiceResult = false;
 
 const WEATHER_BACKGROUND_VERTEX_SHADER = `
   attribute float aSize;
@@ -652,6 +671,311 @@ function getVietnameseWeatherDescription(code) {
   return "thời tiết thay đổi";
 }
 
+function normalizeVoiceText(text) {
+  return text
+    .toLocaleLowerCase("vi-VN")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/đ/g, "d");
+}
+
+function analyzeAssistantIntent(text, persona) {
+  const query = normalizeVoiceText(text);
+  if (persona === "health") {
+    if (/\b(uv|tia cuc tim|nang|da|chong nang)\b/.test(query)) return "health-sun";
+    if (/\b(lanh|ret|ao|mac|cam|cum|sot|nhiet do|chenh lech)\b/.test(query)) {
+      return "health-temperature";
+    }
+  } else if (persona === "fnb") {
+    if (/\b(mua|delivery|giao hang|quang cao|bat|che|ngoai troi)\b/.test(query)) {
+      return "fnb-rain";
+    }
+    if (/\b(nhiet do|nong|lanh|do uong|nguyen lieu|nhap hang)\b/.test(query)) {
+      return "fnb-temperature";
+    }
+  } else if (persona === "logistics") {
+    if (/\b(tam nhin|suong mu|nhin xa|visibility)\b/.test(query)) {
+      return "logistics-visibility";
+    }
+    if (/\b(gio|cong trinh|duong|giao hang|toc do|di chuyen|an toan)\b/.test(query)) {
+      return "logistics-wind";
+    }
+  }
+  return "weather-summary";
+}
+
+function getAssistantWeatherValues() {
+  if (!weatherContext) return undefined;
+  const { current, daily } = weatherContext;
+  const toOptionalNumber = (value) => {
+    if (value === null || value === undefined) return undefined;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : undefined;
+  };
+  const currentTemperature = toOptionalNumber(current.temperature_2m);
+  const uvIndex = toOptionalNumber(current.uv_index);
+  const windSpeed = toOptionalNumber(current.wind_speed_10m);
+  const visibility = toOptionalNumber(current.visibility);
+  const rainProbability = toOptionalNumber(daily.precipitation_probability_max?.[0]);
+  const high = toOptionalNumber(daily.temperature_2m_max?.[0]);
+  const low = toOptionalNumber(daily.temperature_2m_min?.[0]);
+  return {
+    currentTemperature,
+    uvIndex,
+    windSpeed,
+    visibility,
+    rainProbability,
+    temperatureRange: high !== undefined && low !== undefined ? high - low : undefined,
+    high,
+    low,
+  };
+}
+
+function getAssistantAnswer(text) {
+  const values = getAssistantWeatherValues();
+  if (!values) {
+    return "Hiện chưa có dữ liệu thời tiết. Vui lòng đợi bản tin thời tiết tải xong rồi hỏi lại nhé.";
+  }
+
+  const intent = analyzeAssistantIntent(text, assistantPersona);
+  const temperature = values.currentTemperature;
+  const uv = values.uvIndex;
+  const rain = values.rainProbability;
+  const wind = values.windSpeed;
+  const range = values.temperatureRange;
+
+  if (assistantPersona === "health") {
+    if (intent === "health-sun") {
+      if (uv === undefined) return "Hiện chưa có dữ liệu tia cực tím. Bạn nên dùng kem chống nắng và che chắn khi ở ngoài trời lâu.";
+      if (uv >= 6) {
+        return `Chỉ số UV hiện là ${uv.toFixed(1)}, mức cao. Hãy dùng kem chống nắng phổ rộng, đội mũ, đeo kính và tìm bóng râm; nếu da nhạy cảm hoặc đang điều trị da, hãy làm theo hướng dẫn của bác sĩ.`;
+      }
+      return `Chỉ số UV hiện là ${uv.toFixed(1)}. Dù mức UV chưa cao, hãy bảo vệ da khi ở ngoài trời lâu và thoa lại kem chống nắng theo hướng dẫn.`;
+    }
+    if (intent === "health-temperature") {
+      const temperatureAdvice =
+        temperature === undefined
+          ? "Chưa có dữ liệu nhiệt độ hiện tại."
+          : temperature < 18
+            ? `Hiện ${Math.round(temperature)} độ C, nên mặc nhiều lớp và mang theo áo khoác.`
+            : temperature >= 27
+              ? `Hiện ${Math.round(temperature)} độ C, nên chọn quần áo thoáng mát và uống đủ nước.`
+              : `Hiện ${Math.round(temperature)} độ C, hãy chọn trang phục phù hợp và dễ điều chỉnh.`;
+      const rangeAdvice =
+        range === undefined
+          ? ""
+          : range >= 8
+            ? ` Biên độ nhiệt ngày khoảng ${Math.round(range)} độ, nên chuẩn bị thêm một lớp áo cho buổi sáng và tối.`
+            : ` Biên độ nhiệt ngày khoảng ${Math.round(range)} độ.`;
+      return `${temperatureAdvice}${rangeAdvice} Thời tiết không thể dùng để chẩn đoán cảm cúm; nếu có triệu chứng nặng hoặc kéo dài, hãy hỏi nhân viên y tế.`;
+    }
+    return `Trợ lý sức khỏe: ${temperature === undefined ? "chưa có dữ liệu nhiệt độ" : `hiện ${Math.round(temperature)} độ C`}, ${uv === undefined ? "chưa có dữ liệu UV" : `UV ${uv.toFixed(1)}`}${range === undefined ? "" : `, biên độ nhiệt ngày ${Math.round(range)} độ`}. Hãy điều chỉnh trang phục, chống nắng phù hợp; đây không phải chẩn đoán y khoa.`;
+  }
+
+  if (assistantPersona === "fnb") {
+    if (intent === "fnb-rain") {
+      if (rain === undefined) {
+        return "Hiện chưa có dữ liệu xác suất mưa. Hãy kiểm tra dự báo mới nhất trước khi quyết định chạy quảng cáo giao hàng hoặc chuẩn bị mái che.";
+      }
+      if (rain >= 60) {
+        return `Xác suất mưa hôm nay khoảng ${Math.round(rain)} phần trăm. Nên ưu tiên quảng bá delivery và chuẩn bị mái che, bạt chống mưa cho khách ngồi ngoài trời; nhớ bảo vệ bao bì và nguyên liệu.`;
+      }
+      if (rain >= 30) {
+        return `Xác suất mưa hôm nay khoảng ${Math.round(rain)} phần trăm. Có thể chạy ưu đãi delivery ở mức vừa phải và chuẩn bị sẵn mái che hoặc bạt dự phòng.`;
+      }
+      return `Xác suất mưa hôm nay khoảng ${Math.round(rain)} phần trăm. Có thể ưu tiên phục vụ tại chỗ, nhưng vẫn nên kiểm tra dự báo trước khi sắp xếp khu vực ngoài trời.`;
+    }
+    if (intent === "fnb-temperature") {
+      if (temperature === undefined) return "Hiện chưa có dữ liệu nhiệt độ để đề xuất nhập nguyên liệu.";
+      if (temperature >= 28) {
+        return `Nhiệt độ hiện khoảng ${Math.round(temperature)} độ C. Có thể ưu tiên nguyên liệu cho đồ uống lạnh, nước và đá; nhập theo lượng bán thực tế để hạn chế hao hụt.`;
+      }
+      if (temperature < 18) {
+        return `Nhiệt độ hiện khoảng ${Math.round(temperature)} độ C. Có thể cân nhắc bổ sung nguyên liệu cho đồ uống nóng; hãy đối chiếu lượng nhập với nhu cầu và tồn kho.`;
+      }
+      return `Nhiệt độ hiện khoảng ${Math.round(temperature)} độ C, khá ôn hòa. Nên giữ danh mục đồ uống cân bằng và nhập nguyên liệu theo lịch sử bán hàng.`;
+    }
+    return `Trợ lý F&B: ${temperature === undefined ? "chưa có dữ liệu nhiệt độ" : `nhiệt độ ${Math.round(temperature)} độ C`}, ${rain === undefined ? "chưa có dữ liệu mưa" : `xác suất mưa ${Math.round(rain)} phần trăm`}. Điều chỉnh nguyên liệu theo tồn kho và chọn phương án delivery hoặc mái che theo nhu cầu thực tế.`;
+  }
+
+  if (assistantPersona === "logistics") {
+    if (intent === "logistics-visibility") {
+      if (values.visibility === undefined) return "Hiện chưa có dữ liệu tầm nhìn từ dự báo. Hãy theo dõi cảnh báo địa phương trước khi khởi hành.";
+      const visibilityKm = values.visibility / 1000;
+      if (visibilityKm < 1) {
+        return `Tầm nhìn hiện khoảng ${visibilityKm.toFixed(1)} km, hạn chế. Giảm tốc độ phù hợp quy định, tăng khoảng cách an toàn, bật đèn cần thiết và cân nhắc hoãn hành trình hoặc công việc ngoài trời nếu không an toàn.`;
+      }
+      if (visibilityKm < 5) {
+        return `Tầm nhìn hiện khoảng ${visibilityKm.toFixed(1)} km. Cần quan sát kỹ, giữ khoảng cách an toàn và tuân thủ hướng dẫn giao thông, an toàn công trường.`;
+      }
+      return `Tầm nhìn hiện khoảng ${visibilityKm.toFixed(1)} km. Dù điều kiện đang khá rõ, vẫn cần tuân thủ giới hạn tốc độ và quy trình an toàn tại công trường.`;
+    }
+    if (wind === undefined) return "Hiện chưa có dữ liệu tốc độ gió. Hãy kiểm tra cảnh báo thời tiết và quy định an toàn tại địa phương.";
+    if (wind >= 40) {
+      return `Gió hiện khoảng ${Math.round(wind)} km/h, có thể ảnh hưởng phương tiện và công việc ngoài trời. Cần giảm tốc độ phù hợp điều kiện, cố định hàng hóa; tạm dừng công việc trên cao nếu vượt ngưỡng an toàn tại công trường.`;
+    }
+    return `Gió hiện khoảng ${Math.round(wind)} km/h. Duy trì tốc độ an toàn, cố định hàng hóa và theo dõi cảnh báo địa phương trước khi làm việc ngoài trời.`;
+  }
+
+  return `Thời tiết hiện ${temperature === undefined ? "chưa có dữ liệu nhiệt độ" : `${Math.round(temperature)} độ C`}, ${wind === undefined ? "chưa có dữ liệu gió" : `gió ${Math.round(wind)} km/h`}${rain === undefined ? "" : `, xác suất mưa ${Math.round(rain)} phần trăm`}. Bạn muốn hỏi sâu hơn về sức khỏe, kinh doanh F&B hay giao vận?`;
+}
+
+function setVoiceState(listening) {
+  isListening = listening;
+  elements.assistantVoiceState.textContent = listening ? "Đang nghe" : "Sẵn sàng";
+  elements.assistantMicrophone.setAttribute("aria-pressed", String(listening));
+  elements.assistantMicrophone.classList.toggle("is-listening", listening);
+  elements.assistantSection.classList.toggle("is-listening", listening);
+}
+
+function stopVoiceRecognition() {
+  if (!isListening || !speechRecognition) return;
+  try {
+    speechRecognition.stop();
+  } catch (error) {
+    setVoiceState(false);
+    elements.assistantVoiceMessage.textContent =
+      error instanceof Error ? `Không thể dừng ghi âm: ${error.message}` : "Không thể dừng ghi âm.";
+  }
+}
+
+function speakAssistantAnswer(answer) {
+  if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
+    elements.assistantVoiceMessage.textContent =
+      `${answer} Trình duyệt này không hỗ trợ phát giọng nói.`;
+    return;
+  }
+
+  if (window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+    resetSpeechStatus("Bản tin thời tiết đã dừng để phát câu trả lời.");
+  }
+  const utterance = new SpeechSynthesisUtterance(answer);
+  const currentSpeechGeneration = ++speechGeneration;
+  utterance.lang = "vi-VN";
+  utterance.rate = 0.96;
+  const vietnameseVoice = window.speechSynthesis
+    .getVoices()
+    .find((voice) => voice.lang.toLowerCase().startsWith("vi"));
+  if (vietnameseVoice) utterance.voice = vietnameseVoice;
+  utterance.onend = () => {
+    if (currentSpeechGeneration === speechGeneration) {
+      elements.assistantVoiceMessage.textContent = "Đã đọc xong câu trả lời.";
+    }
+  };
+  utterance.onerror = (event) => {
+    if (currentSpeechGeneration === speechGeneration) {
+      elements.assistantVoiceMessage.textContent =
+        `Không thể phát câu trả lời: ${event.error}. Bạn vẫn có thể đọc nội dung trên màn hình.`;
+    }
+  };
+  window.speechSynthesis.speak(utterance);
+}
+
+function handleVoiceQuestion(transcript) {
+  receivedVoiceResult = true;
+  stopVoiceRecognition();
+  const answer = getAssistantAnswer(transcript);
+  elements.assistantVoiceAnswer.textContent = `Bạn hỏi: ${transcript}\n${answer}`;
+  speakAssistantAnswer(answer);
+}
+
+function configureVoiceAssistant() {
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Recognition) {
+    elements.assistantMicrophone.disabled = true;
+    elements.assistantVoiceMessage.textContent =
+      "Trình duyệt chưa hỗ trợ nhận dạng giọng nói. Hãy dùng trình duyệt hỗ trợ Web Speech API.";
+    return;
+  }
+
+  speechRecognition = new Recognition();
+  speechRecognition.lang = "vi-VN";
+  speechRecognition.continuous = false;
+  speechRecognition.interimResults = false;
+  speechRecognition.maxAlternatives = 1;
+  speechRecognition.onstart = () => {
+    receivedVoiceResult = false;
+    setVoiceState(true);
+    elements.assistantVoiceMessage.textContent = "Đang nghe, hãy đặt câu hỏi bằng tiếng Việt.";
+  };
+  speechRecognition.onresult = (event) => {
+    const transcript = event.results?.[0]?.[0]?.transcript?.trim();
+    if (!transcript) {
+      elements.assistantVoiceMessage.textContent = "Chưa nhận được câu hỏi. Hãy thử nói lại.";
+      return;
+    }
+    handleVoiceQuestion(transcript);
+  };
+  speechRecognition.onerror = (event) => {
+    const messages = {
+      "not-allowed": "Bạn chưa cấp quyền sử dụng micro. Hãy cho phép truy cập micro rồi thử lại.",
+      "no-speech": "Chưa phát hiện giọng nói. Hãy thử lại trong môi trường yên tĩnh hơn.",
+      "audio-capture": "Không tìm thấy micro. Hãy kiểm tra thiết bị ghi âm.",
+      network: "Không thể kết nối dịch vụ nhận dạng giọng nói. Hãy thử lại sau.",
+    };
+    elements.assistantVoiceMessage.textContent =
+      messages[event.error] ?? `Nhận dạng giọng nói gặp lỗi: ${event.error}.`;
+  };
+  speechRecognition.onend = () => {
+    setVoiceState(false);
+    if (!receivedVoiceResult && !elements.assistantVoiceMessage.textContent) {
+      elements.assistantVoiceMessage.textContent = "Đã dừng nghe. Nhấn micro để thử lại.";
+    }
+  };
+}
+
+function toggleVoiceRecognition() {
+  if (!speechRecognition) {
+    elements.assistantVoiceMessage.textContent =
+      "Nhận dạng giọng nói hiện không khả dụng trong trình duyệt này.";
+    return;
+  }
+  if (isListening) {
+    stopVoiceRecognition();
+    return;
+  }
+  if (!weatherContext) {
+    elements.assistantVoiceMessage.textContent =
+      "Đang tải dữ liệu thời tiết. Hãy thử lại sau khi bản tin được cập nhật.";
+    return;
+  }
+  receivedVoiceResult = false;
+  elements.assistantVoiceMessage.textContent = "";
+  if (window.speechSynthesis?.speaking) {
+    window.speechSynthesis.cancel();
+    resetSpeechStatus("Đã dừng bản tin để nghe câu hỏi.");
+  }
+  try {
+    speechRecognition.start();
+  } catch (error) {
+    elements.assistantVoiceMessage.textContent =
+      error instanceof Error
+        ? `Không thể bật micro: ${error.message}`
+        : "Không thể bật micro. Hãy thử lại.";
+  }
+}
+
+function selectAssistantPersona(persona) {
+  assistantPersona = persona;
+  for (const tab of elements.assistantPersonaTabs.querySelectorAll('[role="tab"]')) {
+    const isSelected = tab.dataset.persona === persona;
+    tab.setAttribute("aria-selected", String(isSelected));
+    tab.tabIndex = isSelected ? 0 : -1;
+  }
+  const names = {
+    health: "Sức khỏe",
+    fnb: "Kinh doanh F&B",
+    logistics: "Giao vận",
+  };
+  const selectedTab = elements.assistantPersonaTabs.querySelector(
+    `[data-persona="${persona}"]`,
+  );
+  elements.assistantVoiceAnswer.setAttribute("aria-labelledby", selectedTab.id);
+  elements.assistantVoiceMessage.textContent =
+    `Đã chuyển sang chế độ tư vấn ${names[persona]}.`;
+}
+
 function resetSpeechStatus(message = "天氣資料載入後，即可聆聽越南語天氣播報。") {
   speechGeneration += 1;
   elements.assistantSpeak.setAttribute("aria-pressed", "false");
@@ -774,8 +1098,285 @@ async function searchPlaces(query, signal) {
     language: "zh",
     format: "json",
   });
-  const data = await fetchJson(url, signal);
+  const data = await fetchJson(url, signal, "城市搜尋服務");
   return data.results ?? [];
+}
+
+async function geocodeRoutePlace(query, signal) {
+  const url = new URL(GEOCODING_URL);
+  url.search = new URLSearchParams({
+    name: query.trim(),
+    count: "10",
+    language: "vi",
+    format: "json",
+  });
+  const data = await fetchJson(url, signal, "路線地點搜尋服務");
+  const places = data.results ?? [];
+  if (places.length === 0) {
+    throw new Error(`Không tìm thấy địa điểm “${query.trim()}”. Vui lòng kiểm tra tên và thử lại.`);
+  }
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  return (
+    places.find((place) => place.name?.trim().toLocaleLowerCase() === normalizedQuery) ??
+    places[0]
+  );
+}
+
+function getRouteDistanceKm(start, end) {
+  const radians = (degrees) => (degrees * Math.PI) / 180;
+  const latitudeDifference = radians(end.latitude - start.latitude);
+  const longitudeDifference = radians(end.longitude - start.longitude);
+  const startLatitude = radians(start.latitude);
+  const endLatitude = radians(end.latitude);
+  const haversine =
+    Math.sin(latitudeDifference / 2) ** 2 +
+    Math.cos(startLatitude) *
+      Math.cos(endLatitude) *
+      Math.sin(longitudeDifference / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
+function getRouteCoordinates(start, end, fraction) {
+  const radians = (degrees) => (degrees * Math.PI) / 180;
+  const toDegrees = (value) => (value * 180) / Math.PI;
+  const startLatitude = radians(start.latitude);
+  const startLongitude = radians(start.longitude);
+  const endLatitude = radians(end.latitude);
+  const endLongitude = radians(end.longitude);
+  const angularDistance = getRouteDistanceKm(start, end) / 6371;
+
+  if (angularDistance < 1e-8) {
+    return {
+      latitude: start.latitude,
+      longitude: start.longitude,
+    };
+  }
+
+  const startWeight =
+    Math.sin((1 - fraction) * angularDistance) / Math.sin(angularDistance);
+  const endWeight = Math.sin(fraction * angularDistance) / Math.sin(angularDistance);
+  const x =
+    startWeight * Math.cos(startLatitude) * Math.cos(startLongitude) +
+    endWeight * Math.cos(endLatitude) * Math.cos(endLongitude);
+  const y =
+    startWeight * Math.cos(startLatitude) * Math.sin(startLongitude) +
+    endWeight * Math.cos(endLatitude) * Math.sin(endLongitude);
+  const z =
+    startWeight * Math.sin(startLatitude) + endWeight * Math.sin(endLatitude);
+
+  return {
+    latitude: toDegrees(Math.atan2(z, Math.sqrt(x ** 2 + y ** 2))),
+    longitude: toDegrees(Math.atan2(y, x)),
+  };
+}
+
+function createRouteWaypoints(origin, destination) {
+  const distanceKm = getRouteDistanceKm(origin, destination);
+  if (!Number.isFinite(distanceKm)) {
+    throw new Error("Không thể xác định khoảng cách giữa hai địa điểm.");
+  }
+
+  const stopCount = distanceKm >= 700 ? 3 : 2;
+  const waypoints = [{ name: origin.name, kind: "origin", ...origin }];
+  for (let index = 1; index <= stopCount; index += 1) {
+    waypoints.push({
+      name: `Điểm dừng ${index}`,
+      kind: "stop",
+      ...getRouteCoordinates(origin, destination, index / (stopCount + 1)),
+    });
+  }
+  waypoints.push({ name: destination.name, kind: "destination", ...destination });
+  return { distanceKm, waypoints };
+}
+
+async function fetchRouteWeather(waypoint, signal) {
+  const url = new URL(FORECAST_URL);
+  url.search = new URLSearchParams({
+    latitude: String(waypoint.latitude),
+    longitude: String(waypoint.longitude),
+    current: "temperature_2m,weather_code,wind_speed_10m",
+    hourly: "temperature_2m,weather_code,wind_speed_10m,precipitation_probability",
+    forecast_days: "1",
+    timezone: "auto",
+  });
+  const data = await fetchJson(url, signal, "路線天氣服務");
+  if (
+    !data.current?.time ||
+    !data.hourly?.time?.length ||
+    !data.hourly.temperature_2m?.length ||
+    !data.hourly.weather_code?.length ||
+    !data.hourly.wind_speed_10m?.length
+  ) {
+    throw new Error(`Không nhận được dự báo hợp lệ tại ${waypoint.name}.`);
+  }
+  const forecastIndex = getRouteForecastIndex(data);
+  if (
+    !Number.isFinite(Number(data.hourly.temperature_2m[forecastIndex])) ||
+    !Number.isFinite(Number(data.hourly.weather_code[forecastIndex])) ||
+    !Number.isFinite(Number(data.hourly.wind_speed_10m[forecastIndex]))
+  ) {
+    throw new Error(`Dự báo tại ${waypoint.name} hiện không có đủ dữ liệu.`);
+  }
+  return data;
+}
+
+function getRouteForecastIndex(data) {
+  const index = data.hourly.time.findIndex((time) => time >= data.current.time);
+  return index < 0 ? data.hourly.time.length - 1 : index;
+}
+
+function getRouteWeatherWarnings(data) {
+  const forecastIndex = getRouteForecastIndex(data);
+  const weatherCode = Number(data.hourly.weather_code[forecastIndex]);
+  const windSpeed = Number(data.hourly.wind_speed_10m[forecastIndex]);
+  const precipitationProbabilities = data.hourly.precipitation_probability?.slice(
+    forecastIndex,
+    forecastIndex + 3,
+  ) ?? [];
+  const availableProbabilities = precipitationProbabilities.filter(
+    (value) => value !== null && Number.isFinite(Number(value)),
+  );
+  const precipitationProbability = availableProbabilities.length
+    ? availableProbabilities.reduce(
+        (highest, value) => Math.max(highest, Number(value) || 0),
+        0,
+      )
+    : null;
+  const warnings = [];
+
+  if ([56, 57, 65, 66, 67, 75, 82, 86, 95, 96, 99].includes(weatherCode)) {
+    warnings.push("Mưa lớn, mưa đóng băng, tuyết dày hoặc dông nguy hiểm");
+  } else if (weatherCode >= 51 && weatherCode <= 67) {
+    warnings.push("Có mưa, đường có thể trơn trượt");
+  } else if (weatherCode >= 71 && weatherCode <= 86) {
+    warnings.push("Có tuyết hoặc mưa tuyết");
+  }
+  if (precipitationProbability !== null && precipitationProbability >= 60) {
+    warnings.push(`Khả năng mưa ${precipitationProbability}% trong vài giờ tới`);
+  }
+  if (windSpeed >= 50) {
+    warnings.push(`Gió mạnh ${Math.round(windSpeed)} km/h`);
+  }
+
+  return { warnings, precipitationProbability };
+}
+
+function renderRouteWeather(waypoints, forecasts, distanceKm) {
+  const fragment = document.createDocumentFragment();
+  const summary = document.createElement("p");
+  const timeline = document.createElement("ol");
+
+  summary.className = "route-summary";
+  summary.textContent =
+    `Quãng đường đường chim bay khoảng ${Math.round(distanceKm)} km · ` +
+    `${waypoints.length - 2} điểm dừng`;
+  timeline.className = "route-timeline";
+
+  waypoints.forEach((waypoint, index) => {
+    const data = forecasts[index];
+    const forecastIndex = getRouteForecastIndex(data);
+    const temperatureValue = data.hourly.temperature_2m[forecastIndex];
+    const weatherCode = Number(data.hourly.weather_code[forecastIndex]);
+    const condition = getWeatherDescription(weatherCode);
+    const { warnings, precipitationProbability } = getRouteWeatherWarnings(data);
+    const item = document.createElement("li");
+    const card = document.createElement("article");
+    const heading = document.createElement("div");
+    const title = document.createElement("h3");
+    const badge = document.createElement("span");
+    const weather = document.createElement("div");
+    const icon = document.createElement("span");
+    const details = document.createElement("div");
+    const temperature = document.createElement("p");
+    const forecastTime = document.createElement("p");
+    const description = document.createElement("p");
+    const precipitation = document.createElement("p");
+
+    item.className = "route-stop";
+    card.className = `route-card${warnings.length ? " has-warning" : ""}`;
+    heading.className = "route-card-heading";
+    title.className = "route-stop-name";
+    title.textContent = waypoint.name;
+    badge.className = "route-stop-type";
+    badge.textContent =
+      waypoint.kind === "origin"
+        ? "Xuất phát"
+        : waypoint.kind === "destination"
+          ? "Điểm đến"
+          : "Trạm dừng";
+    weather.className = "route-weather";
+    icon.className = "route-weather-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = condition.icon;
+    details.className = "route-weather-details";
+    temperature.className = "route-temperature";
+    temperature.textContent = `${Math.round(temperatureValue)}°C`;
+    forecastTime.className = "route-forecast-time";
+    forecastTime.textContent = `Dự báo lúc ${data.hourly.time[forecastIndex].slice(-5)}`;
+    description.className = "route-condition";
+    description.textContent = getVietnameseWeatherDescription(weatherCode);
+    precipitation.className = "route-precipitation";
+    precipitation.textContent =
+      precipitationProbability === null
+        ? "Chưa có dữ liệu khả năng mưa"
+        : precipitationProbability > 0
+          ? `Khả năng mưa: ${precipitationProbability}%`
+          : "Khả năng mưa thấp";
+
+    details.append(temperature, forecastTime, description, precipitation);
+    weather.append(icon, details);
+    heading.append(title, badge);
+    card.append(heading, weather);
+    if (warnings.length > 0) {
+      const warning = document.createElement("p");
+      warning.className = "route-warning";
+      warning.textContent = `⚠ Cảnh báo: ${warnings.join(" · ")}`;
+      card.append(warning);
+    }
+    item.append(card);
+    timeline.append(item);
+  });
+
+  fragment.append(summary, timeline);
+  elements.routeResults.replaceChildren(fragment);
+  elements.routeResults.hidden = false;
+}
+
+async function checkRouteWeather(originQuery, destinationQuery) {
+  const currentRequestId = ++routeRequestId;
+  routeController?.abort();
+  routeController = new AbortController();
+  const { signal } = routeController;
+  elements.routeSubmit.disabled = true;
+  elements.routeSubmit.setAttribute("aria-busy", "true");
+  elements.routeResults.setAttribute("aria-busy", "true");
+  elements.routeStatus.textContent = "Đang tìm địa điểm và tải dự báo thời tiết…";
+  elements.routeResults.replaceChildren();
+  elements.routeResults.hidden = true;
+
+  try {
+    const [origin, destination] = await Promise.all([
+      geocodeRoutePlace(originQuery, signal),
+      geocodeRoutePlace(destinationQuery, signal),
+    ]);
+    const { distanceKm, waypoints } = createRouteWaypoints(origin, destination);
+    const forecasts = await Promise.all(
+      waypoints.map((waypoint) => fetchRouteWeather(waypoint, signal)),
+    );
+    if (currentRequestId !== routeRequestId) return;
+    renderRouteWeather(waypoints, forecasts, distanceKm);
+    elements.routeStatus.textContent = "Đã cập nhật dự báo thời tiết trên tuyến đường.";
+  } catch (error) {
+    if (error.name === "AbortError" || currentRequestId !== routeRequestId) return;
+    elements.routeStatus.textContent =
+      error instanceof Error ? error.message : "Không thể tải thời tiết lộ trình. Vui lòng thử lại.";
+  } finally {
+    if (currentRequestId === routeRequestId) {
+      elements.routeSubmit.disabled = false;
+      elements.routeSubmit.removeAttribute("aria-busy");
+      elements.routeResults.setAttribute("aria-busy", "false");
+    }
+  }
 }
 
 function renderSuggestions(places) {
@@ -875,6 +1476,8 @@ function renderForecast(daily) {
 
 function renderWeather(place, data) {
   const current = data.current;
+  weatherContext = { place, current, daily: data.daily };
+  elements.assistantMicrophone.disabled = !speechRecognition;
   const condition = getWeatherDescription(current.weather_code);
   const timezone =
     data.timezone || place.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -1075,11 +1678,49 @@ elements.radarTimeline.addEventListener("input", () => {
 });
 
 elements.assistantSpeak.addEventListener("click", toggleWeatherSpeech);
+elements.assistantMicrophone.addEventListener("click", toggleVoiceRecognition);
+
+elements.assistantPersonaTabs.addEventListener("click", (event) => {
+  const tab = event.target.closest('[role="tab"]');
+  if (!tab || !elements.assistantPersonaTabs.contains(tab)) return;
+  selectAssistantPersona(tab.dataset.persona);
+});
+
+elements.assistantPersonaTabs.addEventListener("keydown", (event) => {
+  const tabs = [...elements.assistantPersonaTabs.querySelectorAll('[role="tab"]')];
+  const currentIndex = tabs.indexOf(event.target);
+  if (currentIndex < 0) return;
+  let nextIndex;
+  if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
+  else if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+  else return;
+  event.preventDefault();
+  tabs[nextIndex].focus();
+  selectAssistantPersona(tabs[nextIndex].dataset.persona);
+});
+
+elements.routeForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const origin = elements.routeOrigin.value.trim();
+  const destination = elements.routeDestination.value.trim();
+  if (!origin || !destination) {
+    elements.routeStatus.textContent = "Vui lòng nhập điểm khởi hành và điểm đến.";
+    return;
+  }
+  if (origin.toLocaleLowerCase() === destination.toLocaleLowerCase()) {
+    elements.routeStatus.textContent = "Điểm khởi hành và điểm đến phải khác nhau.";
+    return;
+  }
+  void checkRouteWeather(origin, destination);
+});
 
 async function loadWeather(place) {
   const currentRequestId = ++requestId;
   weatherController?.abort();
   weatherController = new AbortController();
+  stopVoiceRecognition();
+  weatherContext = undefined;
+  elements.assistantMicrophone.disabled = true;
   if (window.speechSynthesis?.speaking) window.speechSynthesis.cancel();
   elements.assistantSpeak.disabled = true;
   resetSpeechStatus("正在更新天氣資料與生活建議…");
@@ -1094,7 +1735,7 @@ async function loadWeather(place) {
     latitude: String(place.latitude),
     longitude: String(place.longitude),
     current:
-      "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,uv_index",
+      "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,uv_index,visibility",
     daily:
       "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
     temperature_unit: "celsius",
@@ -1112,6 +1753,8 @@ async function loadWeather(place) {
     elements.currentCard.setAttribute("aria-busy", "false");
     elements.pageMessage.textContent =
       error instanceof Error ? error.message : "無法取得天氣資料，請稍後再試。";
+    elements.assistantVoiceMessage.textContent =
+      "無法載入最新天氣資料，語音顧問暫時無法提供天氣建議。";
   }
 }
 
@@ -1156,6 +1799,7 @@ async function submitSearch(query) {
 }
 
 createWeatherBackground();
+configureVoiceAssistant();
 
 elements.searchInput.addEventListener("input", () => {
   window.clearTimeout(debounceTimer);

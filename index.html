@@ -158,6 +158,45 @@
               <span id="assistant-speak-label">越南語播報</span>
             </button>
           </div>
+          <div class="assistant-persona">
+            <p class="assistant-persona-label">Chọn chế độ trợ lý</p>
+            <div
+              class="assistant-persona-tabs"
+              id="assistant-persona-tabs"
+              role="tablist"
+              aria-label="Chế độ Trợ lý AI"
+            >
+              <button
+                class="assistant-persona-tab"
+                id="persona-health"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                aria-controls="assistant-voice-answer"
+                data-persona="health"
+              >Sức khỏe</button>
+              <button
+                class="assistant-persona-tab"
+                id="persona-fnb"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="assistant-voice-answer"
+                data-persona="fnb"
+                tabindex="-1"
+              >Kinh doanh F&amp;B</button>
+              <button
+                class="assistant-persona-tab"
+                id="persona-logistics"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="assistant-voice-answer"
+                data-persona="logistics"
+                tabindex="-1"
+              >Giao vận</button>
+            </div>
+          </div>
           <div class="assistant-tips" aria-live="polite">
             <article class="assistant-tip">
               <span class="assistant-tip-icon clothing-tip-icon" aria-hidden="true">衣</span>
@@ -187,6 +226,36 @@
             role="status"
             aria-live="polite"
           >天氣資料載入後，即可聆聽越南語天氣播報。</p>
+          <div
+            class="assistant-voice-answer"
+            id="assistant-voice-answer"
+            role="tabpanel"
+            aria-labelledby="persona-health"
+            aria-live="polite"
+          >
+            Chọn chế độ trợ lý rồi nhấn “Hỏi Trợ lý AI” để bắt đầu.
+          </div>
+          <div class="assistant-voice-controls">
+            <p class="assistant-voice-state">
+              <span class="assistant-voice-indicator" aria-hidden="true"></span>
+              <span>Trạng thái:</span>
+              <strong id="assistant-voice-state">Sẵn sàng</strong>
+            </p>
+            <button
+              class="assistant-microphone"
+              id="assistant-microphone"
+              type="button"
+              aria-label="Hỏi Trợ lý AI bằng giọng nói"
+              aria-pressed="false"
+            >
+              <svg class="assistant-microphone-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path>
+                <path d="M19 11a7 7 0 0 1-14 0M12 18v4m-4 0h8"></path>
+              </svg>
+              <span>Hỏi Trợ lý AI</span>
+            </button>
+          </div>
+          <p class="assistant-voice-message" id="assistant-voice-message" aria-live="polite"></p>
         </section>
 
         <section class="radar-section" aria-labelledby="radar-title">
@@ -239,6 +308,55 @@
             <p class="forecast-placeholder">正在為你準備一週的天氣…</p>
           </div>
         </section>
+      </section>
+
+      <section class="route-planner" aria-labelledby="route-planner-title">
+        <div class="route-heading">
+          <div>
+            <p class="section-kicker">規劃旅程</p>
+            <h2 id="route-planner-title">旅遊路線天氣規劃</h2>
+          </div>
+          <span class="route-heading-icon" aria-hidden="true">⌁</span>
+        </div>
+        <p class="route-description">
+          Dự báo theo giờ tại điểm xuất phát, các chặng dừng và điểm đến; chưa tính thời gian di chuyển.
+        </p>
+        <form class="route-form" id="route-form">
+          <label class="route-field">
+            <span>Điểm khởi hành</span>
+            <input
+              id="route-origin"
+              name="origin"
+              type="text"
+              placeholder="Ví dụ: Hà Nội"
+              autocomplete="off"
+              required
+            >
+          </label>
+          <label class="route-field">
+            <span>Điểm đến</span>
+            <input
+              id="route-destination"
+              name="destination"
+              type="text"
+              placeholder="Ví dụ: Đà Nẵng"
+              autocomplete="off"
+              required
+            >
+          </label>
+          <button class="route-submit" id="route-submit" type="submit">
+            <span>Kiểm tra thời tiết lộ trình</span>
+            <span aria-hidden="true">↗</span>
+          </button>
+        </form>
+        <p class="route-status" id="route-status" role="status" aria-live="polite"></p>
+        <div
+          class="route-results"
+          id="route-results"
+          aria-live="polite"
+          aria-busy="false"
+          hidden
+        ></div>
       </section>
 
       <p class="page-message" id="page-message" role="status" aria-live="polite"></p>
