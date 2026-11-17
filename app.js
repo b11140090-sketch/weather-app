@@ -352,23 +352,185 @@ const translations = {
   },
 };
 
+translations.en.feelsSimilar = "About the same as the air temperature";
+translations.en.visibilityReduced = "Reduced visibility";
+
+const CORE_TRANSLATION_KEYS = [
+  "languageLabel", "home", "myLocations", "searchCity", "searchPlaceholder",
+  "searchButton", "addLocation", "locationAdded", "locationAlreadySaved",
+  "high", "low", "hourlyForecast", "tenDayForecast", "rainRadar", "loadingRadar",
+  "play", "uvIndex", "sunProtection", "sunriseSunset", "sunrise", "sunset",
+  "windSpeed", "humidity", "visibility", "precipitation", "feelsLike", "pressure",
+  "today", "loading", "weatherClear", "weatherMostlyClear", "weatherPartlyCloudy",
+  "weatherOvercast", "weatherFog", "weatherDrizzle", "weatherFreezingRain",
+  "weatherRain", "weatherSnow", "weatherShowers", "weatherSnowShowers",
+  "weatherThunderstorm", "weatherVariable", "dewPointLabel", "visibilityClear",
+  "rain24Hours", "feelsWarmer", "feelsColder", "pressureLow", "pressureHigh",
+  "compassNorth", "compassEast", "compassSouth", "compassWest",
+];
+
+const LANGUAGE_ROWS = [
+  ["vi","🇻🇳","Tiếng Việt","vi","vi-VN",["Ngôn ngữ","Weather","Địa điểm của tôi","Tìm thành phố","Tìm thành phố…","Tìm","Thêm","Đã thêm","Đã lưu","Cao","Thấp","DỰ BÁO THEO GIỜ","DỰ BÁO 10 NGÀY","RADAR MƯA","Đang tải radar…","Phát","CHỈ SỐ UV","Chống nắng","MẶT TRỜI MỌC · LẶN","Mọc","Lặn","GIÓ","ĐỘ ẨM","TẦM NHÌN","LƯỢNG MƯA","CẢM NHẬN","ÁP SUẤT","Hôm nay","Đang tải","Trời quang","Ít mây","Mây rải rác","Nhiều mây","Sương mù","Mưa phùn","Mưa đóng băng","Mưa","Tuyết","Mưa rào","Mưa tuyết","Dông","Thời tiết thay đổi","Điểm sương","Trời quang","Trong 24 giờ tới","Ấm hơn","Lạnh hơn","Thấp","Cao","B","Đ","N","T"]],
+  ["en","🇬🇧","English","en","en-US",["Language","Weather","My Locations","Search city","Search a city…","Search","Add","Added","Saved","High","Low","HOURLY FORECAST","10-DAY FORECAST","RAIN RADAR","Loading radar…","Play","UV INDEX","Sun protection","SUNRISE · SUNSET","Sunrise","Sunset","WIND","HUMIDITY","VISIBILITY","PRECIPITATION","FEELS LIKE","PRESSURE","Today","Loading","Clear","Mostly clear","Partly cloudy","Cloudy","Fog","Drizzle","Freezing rain","Rain","Snow","Showers","Snow showers","Thunderstorm","Variable conditions","Dew point","Clear","Next 24 hours","Warmer","Cooler","Low","High","N","E","S","W"]],
+  ["zh-TW","🇹🇼","繁體中文","zh-TW","zh-TW",["語言","Weather","我的位置","搜尋城市","搜尋城市…","搜尋","新增","已新增","已儲存","最高","最低","逐時預報","未來十日","降雨雷達","正在載入雷達…","播放","紫外線指數","防曬提醒","日出 · 日落","日出","日落","風","濕度","能見度","降水量","體感","氣壓","今天","載入中","晴朗","大致晴朗","局部多雲","陰天","有霧","毛毛雨","凍雨","下雨","下雪","陣雨","陣雪","雷雨","天氣多變","露點","能見度良好","未來 24 小時","較暖","較涼","低","高","北","東","南","西"]],
+  ["ja","🇯🇵","日本語","ja","ja-JP",["言語","Weather","マイロケーション","都市を検索","都市を検索…","検索","追加","追加済み","保存済み","最高","最低","1時間ごとの予報","10日間予報","雨雲レーダー","レーダーを読み込み中…","再生","紫外線指数","日焼け対策","日の出 · 日の入り","日の出","日の入り","風","湿度","視程","降水量","体感温度","気圧","今日","読み込み中","晴れ","おおむね晴れ","晴れ時々曇り","曇り","霧","霧雨","着氷性の雨","雨","雪","にわか雨","にわか雪","雷雨","変わりやすい天気","露点","良好","今後24時間","暖かく感じる","涼しく感じる","低","高","北","東","南","西"]],
+  ["ko","🇰🇷","한국어","ko","ko-KR",["언어","Weather","나의 위치","도시 검색","도시 검색…","검색","추가","추가됨","저장됨","최고","최저","시간별 예보","10일 예보","강수 레이더","레이더 불러오는 중…","재생","자외선 지수","자외선 차단","일출 · 일몰","일출","일몰","바람","습도","가시거리","강수량","체감 온도","기압","오늘","불러오는 중","맑음","대체로 맑음","구름 조금","흐림","안개","이슬비","어는 비","비","눈","소나기","눈 소나기","뇌우","변덕스러운 날씨","이슬점","맑음","향후 24시간","더 따뜻하게","더 서늘하게","낮음","높음","북","동","남","서"]],
+  ["zh-CN","🇨🇳","简体中文","zh-CN","zh-CN",["语言","Weather","我的位置","搜索城市","搜索城市…","搜索","添加","已添加","已保存","最高","最低","逐小时预报","未来十天","降雨雷达","正在加载雷达…","播放","紫外线指数","防晒提醒","日出 · 日落","日出","日落","风","湿度","能见度","降水量","体感","气压","今天","加载中","晴朗","大致晴朗","局部多云","阴天","有雾","毛毛雨","冻雨","下雨","下雪","阵雨","阵雪","雷雨","天气多变","露点","能见度良好","未来24小时","较暖","较凉","低","高","北","东","南","西"]],
+  ["es","🇪🇸","Español","es","es-ES",["Idioma","Weather","Mis ubicaciones","Buscar ciudad","Buscar ciudad…","Buscar","Añadir","Añadido","Guardado","Máxima","Mínima","PRONÓSTICO POR HORA","PRONÓSTICO DE 10 DÍAS","RADAR DE LLUVIA","Cargando radar…","Reproducir","ÍNDICE UV","Protección solar","AMANECER · ATARDECER","Amanecer","Atardecer","VIENTO","HUMEDAD","VISIBILIDAD","PRECIPITACIÓN","SENSACIÓN TÉRMICA","PRESIÓN","Hoy","Cargando","Despejado","Mayormente despejado","Parcialmente nublado","Nublado","Niebla","Llovizna","Lluvia engelante","Lluvia","Nieve","Chubascos","Chubascos de nieve","Tormenta","Tiempo variable","Punto de rocío","Despejado","Próximas 24 horas","Más cálido","Más fresco","Baja","Alta","N","E","S","O"]],
+  ["fr","🇫🇷","Français","fr","fr-FR",["Langue","Weather","Mes lieux","Rechercher une ville","Rechercher…","Rechercher","Ajouter","Ajouté","Enregistré","Max.","Min.","PRÉVISIONS HORAIRES","PRÉVISIONS SUR 10 JOURS","RADAR DE PLUIE","Chargement du radar…","Lire","INDICE UV","Protection solaire","LEVER · COUCHER DU SOLEIL","Lever","Coucher","VENT","HUMIDITÉ","VISIBILITÉ","PRÉCIPITATIONS","RESSENTI","PRESSION","Aujourd’hui","Chargement","Dégagé","Majoritairement dégagé","Partiellement nuageux","Nuageux","Brouillard","Bruine","Pluie verglaçante","Pluie","Neige","Averses","Averses de neige","Orage","Temps variable","Point de rosée","Dégagé","Prochaines 24 h","Plus chaud","Plus frais","Basse","Élevée","N","E","S","O"]],
+  ["de","🇩🇪","Deutsch","de","de-DE",["Sprache","Weather","Meine Orte","Stadt suchen","Stadt suchen…","Suchen","Hinzufügen","Hinzugefügt","Gespeichert","Höchst","Tiefst","STÜNDLICHE VORHERSAGE","10-TAGE-VORHERSAGE","REGENRADAR","Radar wird geladen…","Abspielen","UV-INDEX","Sonnenschutz","SONNENAUFGANG · -UNTERGANG","Aufgang","Untergang","WIND","LUFTFEUCHTIGKEIT","SICHTWEITE","NIEDERSCHLAG","GEFÜHLT","LUFTDRUCK","Heute","Wird geladen","Klar","Überwiegend klar","Teilweise bewölkt","Bewölkt","Nebel","Nieselregen","Gefrierender Regen","Regen","Schnee","Schauer","Schneeschauer","Gewitter","Wechselhaft","Taupunkt","Klar","Nächste 24 Stunden","Wärmer","Kühler","Niedrig","Hoch","N","O","S","W"]],
+  ["pt","🇵🇹","Português","pt","pt-PT",["Idioma","Weather","Meus locais","Buscar cidade","Buscar cidade…","Buscar","Adicionar","Adicionado","Salvo","Máxima","Mínima","PREVISÃO POR HORA","PREVISÃO DE 10 DIAS","RADAR DE CHUVA","Carregando radar…","Reproduzir","ÍNDICE UV","Proteção solar","NASCER · PÔR DO SOL","Nascer","Pôr do sol","VENTO","HUMIDADE","VISIBILIDADE","PRECIPITAÇÃO","SENSAÇÃO TÉRMICA","PRESSÃO","Hoje","Carregando","Céu limpo","Maioritariamente limpo","Parcialmente nublado","Nublado","Nevoeiro","Chuvisco","Chuva congelante","Chuva","Neve","Aguaceiros","Aguaceiros de neve","Trovoada","Tempo variável","Ponto de orvalho","Boa","Próximas 24 horas","Mais quente","Mais fresco","Baixa","Alta","N","E","S","O"]],
+  ["ru","🇷🇺","Русский","ru","ru-RU",["Язык","Weather","Мои места","Поиск города","Поиск города…","Поиск","Добавить","Добавлено","Сохранено","Макс.","Мин.","ПОЧАСОВОЙ ПРОГНОЗ","ПРОГНОЗ НА 10 ДНЕЙ","РАДАР ДОЖДЯ","Загрузка радара…","Пуск","УФ-ИНДЕКС","Защита от солнца","ВОСХОД · ЗАКАТ","Восход","Закат","ВЕТЕР","ВЛАЖНОСТЬ","ВИДИМОСТЬ","ОСАДКИ","ОЩУЩАЕТСЯ","ДАВЛЕНИЕ","Сегодня","Загрузка","Ясно","Преимущественно ясно","Переменная облачность","Облачно","Туман","Морось","Ледяной дождь","Дождь","Снег","Ливень","Снегопад","Гроза","Переменчивая погода","Точка росы","Ясно","В ближайшие 24 часа","Теплее","Прохладнее","Низкое","Высокое","С","В","Ю","З"]],
+  ["it","🇮🇹","Italiano","it","it-IT",["Lingua","Weather","Le mie posizioni","Cerca città","Cerca città…","Cerca","Aggiungi","Aggiunto","Salvato","Massima","Minima","PREVISIONI ORARIE","PREVISIONI 10 GIORNI","RADAR PIOGGIA","Caricamento radar…","Riproduci","INDICE UV","Protezione solare","ALBA · TRAMONTO","Alba","Tramonto","VENTO","UMIDITÀ","VISIBILITÀ","PRECIPITAZIONI","PERCEPITA","PRESSIONE","Oggi","Caricamento","Sereno","Prevalentemente sereno","Parzialmente nuvoloso","Nuvoloso","Nebbia","Pioviggine","Pioggia gelata","Pioggia","Neve","Rovesci","Rovesci di neve","Temporale","Variabile","Punto di rugiada","Sereno","Prossime 24 ore","Più caldo","Più fresco","Bassa","Alta","N","E","S","O"]],
+  ["ar","🇸🇦","العربية","ar","ar",["اللغة","Weather","مواقعي","ابحث عن مدينة","ابحث عن مدينة…","بحث","إضافة","تمت الإضافة","محفوظ","العظمى","الصغرى","توقعات كل ساعة","توقعات 10 أيام","رادار المطر","جارٍ تحميل الرادار…","تشغيل","مؤشر الأشعة فوق البنفسجية","الوقاية من الشمس","الشروق · الغروب","الشروق","الغروب","الرياح","الرطوبة","الرؤية","الهطول","المحسوسة","الضغط","اليوم","جارٍ التحميل","صافٍ","غائم جزئيًا","غائم جزئيًا","غائم","ضباب","رذاذ","مطر متجمد","مطر","ثلج","زخات","زخات ثلجية","عاصفة رعدية","طقس متغير","نقطة الندى","صافية","خلال 24 ساعة","أدفأ","أبرد","منخفض","مرتفع","ش","ق","ج","غ"]],
+  ["hi","🇮🇳","हिन्दी","hi","hi-IN",["भाषा","Weather","मेरे स्थान","शहर खोजें","शहर खोजें…","खोजें","जोड़ें","जोड़ा गया","सहेजा गया","अधिकतम","न्यूनतम","घंटेवार पूर्वानुमान","10-दिन का पूर्वानुमान","वर्षा रडार","रडार लोड हो रहा है…","चलाएँ","UV सूचकांक","धूप से सुरक्षा","सूर्योदय · सूर्यास्त","सूर्योदय","सूर्यास्त","हवा","आर्द्रता","दृश्यता","वर्षा","अनुभूत तापमान","दबाव","आज","लोड हो रहा है","साफ़","अधिकतर साफ़","आंशिक बादल","बादल","कोहरा","बूंदाबांदी","जमने वाली वर्षा","बारिश","बर्फ़","बौछार","बर्फ़ीली बौछार","आंधी","बदलता मौसम","ओसांक","साफ़","अगले 24 घंटे","गर्म","ठंडा","कम","अधिक","उत्तर","पूर्व","दक्षिण","पश्चिम"]],
+  ["th","🇹🇭","ไทย","th","th-TH",["ภาษา","Weather","สถานที่ของฉัน","ค้นหาเมือง","ค้นหาเมือง…","ค้นหา","เพิ่ม","เพิ่มแล้ว","บันทึกแล้ว","สูงสุด","ต่ำสุด","พยากรณ์รายชั่วโมง","พยากรณ์ 10 วัน","เรดาร์ฝน","กำลังโหลดเรดาร์…","เล่น","ดัชนี UV","ป้องกันแสงแดด","พระอาทิตย์ขึ้น · ตก","ขึ้น","ตก","ลม","ความชื้น","ทัศนวิสัย","ปริมาณฝน","รู้สึกเหมือน","ความกดอากาศ","วันนี้","กำลังโหลด","ท้องฟ้าแจ่มใส","แจ่มใสเป็นส่วนใหญ่","มีเมฆบางส่วน","มีเมฆมาก","หมอก","ฝนปรอย","ฝนเยือกแข็ง","ฝน","หิมะ","ฝนซู่","หิมะตกเป็นช่วง","พายุฝนฟ้าคะนอง","อากาศแปรปรวน","จุดน้ำค้าง","แจ่มใส","24 ชั่วโมงข้างหน้า","อุ่นกว่า","เย็นกว่า","ต่ำ","สูง","เหนือ","ตะวันออก","ใต้","ตะวันตก"]],
+  ["id","🇮🇩","Bahasa Indonesia","id","id-ID",["Bahasa","Weather","Lokasi Saya","Cari kota","Cari kota…","Cari","Tambah","Ditambahkan","Tersimpan","Tertinggi","Terendah","PRAKIRAAN PER JAM","PRAKIRAAN 10 HARI","RADAR HUJAN","Memuat radar…","Putar","INDEKS UV","Perlindungan matahari","MATAHARI TERBIT · TERBENAM","Terbit","Terbenam","ANGIN","KELEMBAPAN","JARAK PANDANG","CURAH HUJAN","TERASA SEPERTI","TEKANAN","Hari ini","Memuat","Cerah","Sebagian besar cerah","Berawan sebagian","Berawan","Kabut","Gerimis","Hujan beku","Hujan","Salju","Hujan deras","Hujan salju","Badai petir","Cuaca berubah","Titik embun","Cerah","24 jam ke depan","Lebih hangat","Lebih sejuk","Rendah","Tinggi","U","T","S","B"]],
+  ["ms","🇲🇾","Bahasa Melayu","ms","ms-MY",["Bahasa","Weather","Lokasi Saya","Cari bandar","Cari bandar…","Cari","Tambah","Ditambah","Disimpan","Tinggi","Rendah","RAMALAN SETIAP JAM","RAMALAN 10 HARI","RADAR HUJAN","Memuatkan radar…","Main","INDEKS UV","Perlindungan matahari","MATAHARI TERBIT · TERBENAM","Terbit","Terbenam","ANGIN","KELEMBAPAN","JARAK PANDANG","KERPASAN","TERASA SEPERTI","TEKANAN","Hari ini","Memuatkan","Cerah","Kebanyakannya cerah","Separa mendung","Mendung","Kabus","Gerimis","Hujan beku","Hujan","Salji","Hujan renyai","Salji renyai","Ribut petir","Cuaca berubah","Takat embun","Cerah","24 jam akan datang","Lebih panas","Lebih sejuk","Rendah","Tinggi","U","T","S","B"]],
+  ["tr","🇹🇷","Türkçe","tr","tr-TR",["Dil","Weather","Konumlarım","Şehir ara","Şehir ara…","Ara","Ekle","Eklendi","Kaydedildi","En yüksek","En düşük","SAATLİK TAHMİN","10 GÜNLÜK TAHMİN","YAĞIŞ RADARI","Radar yükleniyor…","Oynat","UV İNDEKSİ","Güneşten korunma","GÜN DOĞUMU · BATIMI","Doğuş","Batış","RÜZGÂR","NEM","GÖRÜŞ MESAFESİ","YAĞIŞ","HİSSEDİLEN","BASINÇ","Bugün","Yükleniyor","Açık","Çoğunlukla açık","Parçalı bulutlu","Bulutlu","Sis","Çisenti","Dondurucu yağmur","Yağmur","Kar","Sağanak","Kar sağanağı","Gök gürültülü fırtına","Değişken","Çiy noktası","Açık","Önümüzdeki 24 saat","Daha sıcak","Daha serin","Düşük","Yüksek","K","D","G","B"]],
+  ["nl","🇳🇱","Nederlands","nl","nl-NL",["Taal","Weather","Mijn locaties","Zoek een stad","Zoek een stad…","Zoeken","Voeg toe","Toegevoegd","Opgeslagen","Hoog","Laag","WEERSVERWACHTING PER UUR","10-DAAGSE VERWACHTING","REGENRADAR","Radar laden…","Afspelen","UV-INDEX","Zonbescherming","ZONSOPKOMST · -ONDERGANG","Opkomst","Ondergang","WIND","VOCHTIGHEID","ZICHT","NEERSLAG","GEVOELD","LUCHTDRUK","Vandaag","Laden","Helder","Overwegend helder","Half bewolkt","Bewolkt","Mist","Motregen","IJzel","Regen","Sneeuw","Buien","Sneeuwbuien","Onweer","Wisselvallig","Dauwpunt","Helder","Komende 24 uur","Warmer","Koeler","Laag","Hoog","N","O","Z","W"]],
+  ["pl","🇵🇱","Polski","pl","pl-PL",["Język","Weather","Moje lokalizacje","Szukaj miasta","Szukaj miasta…","Szukaj","Dodaj","Dodano","Zapisano","Maks.","Min.","PROGNOZA GODZINOWA","PROGNOZA NA 10 DNI","RADAR OPADÓW","Ładowanie radaru…","Odtwórz","INDEKS UV","Ochrona przed słońcem","WSCHÓD · ZACHÓD SŁOŃCA","Wschód","Zachód","WIATR","WILGOTNOŚĆ","WIDOCZNOŚĆ","OPADY","ODCZUWALNA","CIŚNIENIE","Dzisiaj","Ładowanie","Bezchmurnie","Przeważnie bezchmurnie","Częściowe zachmurzenie","Pochmurno","Mgła","Mżawka","Marznący deszcz","Deszcz","Śnieg","Przelotne opady","Przelotny śnieg","Burza","Zmienna pogoda","Punkt rosy","Dobra","Najbliższe 24 godziny","Cieplej","Chłodniej","Niskie","Wysokie","N","E","S","W"]],
+  ["sv","🇸🇪","Svenska","sv","sv-SE",["Språk","Weather","Mina platser","Sök stad","Sök stad…","Sök","Lägg till","Tillagd","Sparad","Högst","Lägst","TIMPROGNOS","10-DAGARS PROGNOS","REGNRADAR","Laddar radar…","Spela","UV-INDEX","Solskydd","SOLUPPGÅNG · NEDGÅNG","Uppgång","Nedgång","VIND","LUFTFUKTIGHET","SIKT","NEDERBÖRD","KÄNNS SOM","LUFTTRYCK","Idag","Laddar","Klart","Mestadels klart","Delvis molnigt","Molnigt","Dimma","Duggregn","Underkylt regn","Regn","Snö","Skurar","Snöbyar","Åska","Växlande väder","Daggpunkt","Klart","Nästa 24 timmar","Varmare","Svalare","Lågt","Högt","N","Ö","S","V"]],
+  ["no","🇳🇴","Norsk","no","nb-NO",["Språk","Weather","Mine steder","Søk etter by","Søk etter by…","Søk","Legg til","Lagt til","Lagret","Høyest","Lavest","TIMEVARSEL","10-DAGERS VARSEL","REGNRADAR","Laster radar…","Spill av","UV-INDEKS","Solbeskyttelse","SOLoppgang · NEDGANG","Oppgang","Nedgang","VIND","LUFTFUKTIGHET","SIKT","NEDBØR","FØLES SOM","LUFTTRYKK","I dag","Laster","Klart","For det meste klart","Delvis skyet","Skyet","Tåke","Yr","Underkjølt regn","Regn","Snø","Regnbyger","Snøbyger","Tordenvær","Skiftende vær","Duggpunkt","Klart","Neste 24 timer","Varmere","Kjøligere","Lavt","Høyt","N","Ø","S","V"]],
+  ["da","🇩🇰","Dansk","da","da-DK",["Sprog","Weather","Mine lokaliteter","Søg by","Søg by…","Søg","Tilføj","Tilføjet","Gemt","Højeste","Laveste","TIMEPROGNOSE","10-DAGES PROGNOSE","REGNRADAR","Indlæser radar…","Afspil","UV-INDEKS","Solbeskyttelse","SOL OP · NED","Op","Ned","VIND","LUFTFUGTIGHED","SIGTBARHED","NEDBØR","FØLES SOM","TRYK","I dag","Indlæser","Klart","Mest klart","Delvist skyet","Overskyet","Tåge","Støvregn","Isslag","Regn","Sne","Byger","Snebyger","Tordenvejr","Omskifteligt vejr","Dugpunkt","Klart","Næste 24 timer","Varmere","Køligere","Lavt","Højt","N","Ø","S","V"]],
+  ["fi","🇫🇮","Suomi","fi","fi-FI",["Kieli","Weather","Omat sijainnit","Hae kaupunkia","Hae kaupunkia…","Hae","Lisää","Lisätty","Tallennettu","Ylin","Alin","TUNTIENNUSTE","10 PÄIVÄN ENNUSTE","SADETUTKA","Ladataan tutkaa…","Toista","UV-INDEKSI","Aurinkosuoja","AURINGONNOUSU · LASKU","Nousu","Lasku","TUULI","KOSTEUS","NÄKYVYYS","SADE","TUNTUU KUIN","ILMANPAINE","Tänään","Ladataan","Selkeää","Enimmäkseen selkeää","Puolipilvistä","Pilvistä","Sumua","Tihkusadetta","Jäätävää sadetta","Sadetta","Lunta","Kuuroja","Lumikuuroja","Ukkosta","Vaihtelevat olosuhteet","Kastepiste","Selkeä","Seuraavat 24 tuntia","Lämpimämpi","Viileämpi","Matala","Korkea","P","I","E","L"]],
+  ["el","🇬🇷","Ελληνικά","el","el-GR",["Γλώσσα","Weather","Οι τοποθεσίες μου","Αναζήτηση πόλης","Αναζήτηση πόλης…","Αναζήτηση","Προσθήκη","Προστέθηκε","Αποθηκεύτηκε","Μέγιστη","Ελάχιστη","ΩΡΙΑΙΑ ΠΡΟΓΝΩΣΗ","ΠΡΟΓΝΩΣΗ 10 ΗΜΕΡΩΝ","ΡΑΝΤΑΡ ΒΡΟΧΗΣ","Φόρτωση ραντάρ…","Αναπαραγωγή","ΔΕΙΚΤΗΣ UV","Αντηλιακή προστασία","ΑΝΑΤΟΛΗ · ΔΥΣΗ","Ανατολή","Δύση","ΑΝΕΜΟΣ","ΥΓΡΑΣΙΑ","ΟΡΑΤΟΤΗΤΑ","ΥΕΤΟΣ","ΑΙΣΘΗΣΗ","ΠΙΕΣΗ","Σήμερα","Φόρτωση","Αίθριος","Κυρίως αίθριος","Μερική συννεφιά","Συννεφιά","Ομίχλη","Ψιχάλα","Παγωμένη βροχή","Βροχή","Χιόνι","Μπόρες","Χιονοπτώσεις","Καταιγίδα","Μεταβλητός καιρός","Σημείο δρόσου","Καθαρός","Επόμενες 24 ώρες","Θερμότερα","Δροσερότερα","Χαμηλή","Υψηλή","Β","Α","Ν","Δ"]],
+  ["cs","🇨🇿","Čeština","cs","cs-CZ",["Jazyk","Weather","Moje místa","Hledat město","Hledat město…","Hledat","Přidat","Přidáno","Uloženo","Nejvyšší","Nejnižší","HODINOVÁ PŘEDPOVĚĎ","PŘEDPOVĚĎ NA 10 DNŮ","SRÁŽKOVÝ RADAR","Načítání radaru…","Přehrát","UV INDEX","Ochrana před sluncem","VÝCHOD · ZÁPAD SLUNCE","Východ","Západ","VÍTR","VLHKOST","VIDITELNOST","SRÁŽKY","POCITOVÁ TEPLOTA","TLAK","Dnes","Načítání","Jasno","Převážně jasno","Částečně oblačno","Zataženo","Mlha","Mrholení","Mrznoucí déšť","Déšť","Sníh","Přeháňky","Sněhové přeháňky","Bouřka","Proměnlivé počasí","Rosný bod","Jasno","Příštích 24 hodin","Tepleji","Chladněji","Nízký","Vysoký","S","V","J","Z"]],
+  ["hu","🇭🇺","Magyar","hu","hu-HU",["Nyelv","Weather","Helyeim","Város keresése","Város keresése…","Keresés","Hozzáadás","Hozzáadva","Mentve","Maximum","Minimum","ÓRÁNKÉNTI ELŐREJELZÉS","10 NAPOS ELŐREJELZÉS","ESŐRADAR","Radar betöltése…","Lejátszás","UV-INDEX","Napvédelem","NAPKELTE · NAPNYUGTA","Napkelte","Napnyugta","SZÉL","PÁRATARTALOM","LÁTÁSTÁVOLSÁG","CSAPADÉK","HŐÉRZET","LÉGNYOMÁS","Ma","Betöltés","Derült","Többnyire derült","Részben felhős","Felhős","Köd","Szitálás","Ónos eső","Eső","Hó","Zápor","Hózápor","Zivatar","Változékony idő","Harmatpont","Derült","Következő 24 óra","Melegebb","Hűvösebb","Alacsony","Magas","É","K","D","NY"]],
+  ["ro","🇷🇴","Română","ro","ro-RO",["Limbă","Weather","Locațiile mele","Caută oraș","Caută oraș…","Caută","Adaugă","Adăugat","Salvat","Maximă","Minimă","PROGNOZĂ ORARĂ","PROGNOZĂ PE 10 ZILE","RADAR DE PLOAIE","Se încarcă radarul…","Redare","INDICE UV","Protecție solară","RĂSĂRIT · APUS","Răsărit","Apus","VÂNT","UMIDITATE","VIZIBILITATE","PRECIPITAȚII","RESIMȚITĂ","PRESIUNE","Astăzi","Se încarcă","Senin","Mai mult senin","Parțial noros","Noros","Ceață","Burniță","Ploaie înghețată","Ploaie","Ninsoare","Averse","Averse de ninsoare","Furtună","Vreme schimbătoare","Punct de rouă","Senin","Următoarele 24 de ore","Mai cald","Mai răcoare","Scăzută","Ridicată","N","E","S","V"]],
+  ["uk","🇺🇦","Українська","uk","uk-UA",["Мова","Weather","Мої місця","Пошук міста","Пошук міста…","Пошук","Додати","Додано","Збережено","Макс.","Мін.","ПОГОДИННИЙ ПРОГНОЗ","ПРОГНОЗ НА 10 ДНІВ","РАДАР ДОЩУ","Завантаження радара…","Відтворити","УФ-ІНДЕКС","Захист від сонця","СХІД · ЗАХІД СОНЦЯ","Схід","Захід","ВІТЕР","ВОЛОГІСТЬ","ВИДИМІСТЬ","ОПАДИ","ВІДЧУВАЄТЬСЯ","ТИСК","Сьогодні","Завантаження","Ясно","Переважно ясно","Мінлива хмарність","Хмарно","Туман","Мряка","Крижаний дощ","Дощ","Сніг","Зливи","Снігопади","Гроза","Мінлива погода","Точка роси","Ясно","Наступні 24 години","Тепліше","Прохолодніше","Низький","Високий","Пн","Сх","Пд","Зх"]],
+  ["he","🇮🇱","עברית","he","he-IL",["שפה","Weather","המיקומים שלי","חיפוש עיר","חיפוש עיר…","חיפוש","הוספה","נוסף","נשמר","גבוהה","נמוכה","תחזית לפי שעה","תחזית ל-10 ימים","מכ״ם גשם","מכ״ם נטען…","הפעלה","מדד UV","הגנה מהשמש","זריחה · שקיעה","זריחה","שקיעה","רוח","לחות","ראות","משקעים","מרגיש כמו","לחץ אוויר","היום","בטעינה","בהיר","בהיר ברובו","מעונן חלקית","מעונן","ערפל","טפטוף","גשם קופא","גשם","שלג","ממטרים","ממטרי שלג","סופת רעמים","מזג אוויר משתנה","נקודת טל","בהיר","ב-24 השעות הקרובות","חם יותר","קריר יותר","נמוך","גבוה","צפון","מזרח","דרום","מערב"]],
+];
+
+const LANGUAGES = LANGUAGE_ROWS.map(([code, flag, name, apiLanguage, locale, values]) => ({
+  code, flag, name, apiLanguage, locale,
+  translations: Object.fromEntries(CORE_TRANSLATION_KEYS.map((key, index) => [key, values[index]])),
+}));
+const WIND_LABELS = {
+  vi: ["Lặng gió", "Gió nhẹ", "Gió vừa", "Gió mạnh"],
+  en: ["Calm", "Light breeze", "Breezy", "Strong wind"],
+  "zh-TW": ["微風無風", "微風", "有風", "強風"],
+  ja: ["穏やか", "そよ風", "風あり", "強風"],
+  ko: ["고요함", "산들바람", "바람이 붐", "강풍"],
+  "zh-CN": ["微风无风", "微风", "有风", "强风"],
+  es: ["Calma", "Brisa suave", "Ventoso", "Viento fuerte"],
+  fr: ["Calme", "Brise légère", "Vent modéré", "Vent fort"],
+  de: ["Windstill", "Leichte Brise", "Windig", "Starker Wind"],
+  pt: ["Calmo", "Brisa leve", "Ventoso", "Vento forte"],
+  ru: ["Штиль", "Лёгкий ветер", "Ветрено", "Сильный ветер"],
+  it: ["Calma", "Brezza leggera", "Ventoso", "Vento forte"],
+  ar: ["هدوء","نسيم خفيف","رياح معتدلة","رياح قوية"],
+  hi: ["शांत","हल्की हवा","हवादार","तेज़ हवा"],
+  th: ["ลมสงบ","ลมอ่อน","มีลม","ลมแรง"],
+  id: ["Tenang","Angin sepoi","Berangin","Angin kencang"],
+  ms: ["Tenang","Bayu lembut","Berangin","Angin kencang"],
+  tr: ["Sakin","Hafif esinti","Rüzgârlı","Kuvvetli rüzgâr"],
+  nl: ["Windstil","Licht briesje","Winderig","Harde wind"],
+  pl: ["Cisza","Lekka bryza","Wietrznie","Silny wiatr"],
+  sv: ["Vindstilla","Lätt bris","Blåsigt","Hård vind"],
+  no: ["Stille","Svak bris","Vindfullt","Sterk vind"],
+  da: ["Stille","Let brise","Blæsende","Kraftig vind"],
+  fi: ["Tyyntä","Heikko tuuli","Tuulista","Kova tuuli"],
+  el: ["Άπνοια","Ελαφριά αύρα","Αέρας","Ισχυρός άνεμος"],
+  cs: ["Bezvětří","Slabý vánek","Větrno","Silný vítr"],
+  hu: ["Szélcsend","Enyhe szellő","Szeles","Erős szél"],
+  ro: ["Calm","Briză ușoară","Vântos","Vânt puternic"],
+  uk: ["Штиль","Легкий вітер","Вітряно","Сильний вітер"],
+  he: ["רגיעה","רוח קלה","רוח","רוח חזקה"],
+};
+const CLOSE_LABELS = {
+  vi: "Đóng", en: "Close", "zh-TW": "關閉", ja: "閉じる", ko: "닫기",
+  "zh-CN": "关闭", es: "Cerrar", fr: "Fermer", de: "Schließen", pt: "Fechar",
+  ru: "Закрыть", it: "Chiudi", ar: "إغلاق", hi: "बंद करें", th: "ปิด",
+  id: "Tutup", ms: "Tutup", tr: "Kapat", nl: "Sluiten", pl: "Zamknij",
+  sv: "Stäng", no: "Lukk", da: "Luk", fi: "Sulje", el: "Κλείσιμο",
+  cs: "Zavřít", hu: "Bezárás", ro: "Închide", uk: "Закрити", he: "סגור",
+};
+const FALLBACK_LANGUAGE = "en";
+const languageByCode = new Map(LANGUAGES.map((language) => [language.code, language]));
+const TRANSLATION_ALIASES = {
+  metaDescription: "home",
+  pageTitle: "home",
+  sidebarAriaLabel: "myLocations",
+  weatherSection: "home",
+  loadingWeather: "loading",
+  liveUpdate: "loading",
+  updatedAt: "{time}",
+  hourlyRainExpected: "rain24Hours",
+  hourlyNoRainExpected: "weatherClear",
+  forecastDetailTitle: "tenDayForecast",
+  forecastDetailClose: "close",
+  forecastRainTotal: "precipitation",
+  forecastRainChance: "rain24Hours",
+  forecastWind: "windSpeed",
+  forecastUv: "uvIndex",
+  forecastFeelsLike: "feelsLike",
+  forecastHumidity: "humidity",
+  forecastTemperatureChart: "hourlyForecast",
+  forecastRainChart: "precipitation",
+  forecastPreviousDay: "‹",
+  forecastNextDay: "›",
+  forecastCaption: "tenDayForecast",
+  footerNote: "home",
+  radarMapLabel: "rainRadar",
+  radarTimeline: "hourlyForecast",
+  radarLoading: "loadingRadar",
+  playRadar: "play",
+  pauseRadar: "play",
+  uvLow: "sunProtection",
+  uvModerate: "sunProtection",
+  uvHigh: "sunProtection",
+  uvVeryHigh: "sunProtection",
+  uvExtreme: "sunProtection",
+  windGentle: "windSpeed",
+  windBreezy: "windSpeed",
+  windStrong: "windSpeed",
+  windVeryStrong: "windSpeed",
+  now: "today",
+  forecastNoHourlyData: "loading",
+  forecastHourlyChartLabel: "hourlyForecast",
+  searchingCity: "loading",
+};
+for (const language of LANGUAGES) {
+  translations[language.code] = {
+    ...(language.code === "vi" ? translations.vi : {}),
+    ...(language.code === "en" ? translations.en : {}),
+    ...(language.code === "zh-TW" ? translations.zh : {}),
+    ...language.translations,
+  };
+  translations[language.code].close = CLOSE_LABELS[language.code];
+  translations[language.code].forecastDetailClose = CLOSE_LABELS[language.code];
+}
+translations["zh-TW"] = { ...translations.zh, ...languageByCode.get("zh-TW").translations };
+translations["zh-CN"] = { ...translations["zh-CN"], ...languageByCode.get("zh-CN").translations };
+
 const SAVED_LANGUAGE = localStorage.getItem("selected_lang");
-let currentLanguage = Object.hasOwn(translations, SAVED_LANGUAGE) ? SAVED_LANGUAGE : "vi";
+let currentLanguage = languageByCode.has(SAVED_LANGUAGE)
+  ? SAVED_LANGUAGE
+  : SAVED_LANGUAGE === "zh"
+    ? "zh-TW"
+    : "vi";
 
 function t(key, values = {}) {
-  const template = translations[currentLanguage][key] ?? translations.en[key] ?? key;
+  const alias = TRANSLATION_ALIASES[key];
+  const template =
+    translations[currentLanguage]?.[key] ??
+    (alias ? translations[currentLanguage]?.[alias] ?? alias : undefined) ??
+    translations[FALLBACK_LANGUAGE]?.[key] ??
+    key;
   return template.replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? ""));
 }
 
 function formatNumber(value, options = {}) {
   return new Intl.NumberFormat(
-    currentLanguage === "zh" ? "zh-TW" : currentLanguage,
+    languageByCode.get(currentLanguage)?.locale ?? "en-US",
     options,
   ).format(value);
 }
 
 function applyTranslations() {
-  document.documentElement.lang = currentLanguage === "zh" ? "zh-Hant" : currentLanguage;
+  document.documentElement.lang = currentLanguage;
+  document.documentElement.dir = ["ar", "he"].includes(currentLanguage) ? "rtl" : "ltr";
   document.querySelectorAll("[data-i18n]").forEach((element) => {
     const key = element.dataset.i18n;
     const translated = t(key);
@@ -379,20 +541,89 @@ function applyTranslations() {
       element.textContent = translated;
     }
   });
-  elements.languageSelect.value = currentLanguage;
+  const language = languageByCode.get(currentLanguage);
+  elements.languageCurrent.textContent = `${language.flag} ${language.name}`;
+  elements.languageOptions.querySelectorAll(".language-option").forEach((option) => {
+    option.setAttribute("aria-selected", String(option.dataset.language === currentLanguage));
+  });
+  elements.languageFilter.placeholder = t("searchCity");
+  elements.sidebarToggle.setAttribute("aria-label", t("myLocations"));
+  elements.topbarSidebarToggle.setAttribute("aria-label", t("myLocations"));
   updateAddLocationButton();
 }
 
 function changeLanguage(language) {
-  if (!Object.hasOwn(translations, language)) return;
+  if (!languageByCode.has(language)) return;
   currentLanguage = language;
   localStorage.setItem("selected_lang", language);
   applyTranslations();
+  elements.languageMenu.hidden = true;
+  elements.languageTrigger.setAttribute("aria-expanded", "false");
   if (weatherContext) renderWeather(weatherContext.place, weatherContext.data);
+  if (weatherContext) void relocalizeCurrentPlace(weatherContext.place);
   if (radarFrames.length) setRadarFrames(radarFrames);
   if (elements.forecastDetailDialog.open && weatherContext) {
     renderForecastDetail(selectedForecastIndex);
   }
+}
+
+async function relocalizeCurrentPlace(place) {
+  languagePlaceController?.abort();
+  const controller = new AbortController();
+  languagePlaceController = controller;
+  try {
+    const results = await searchPlaces(place.name, controller.signal);
+    if (languagePlaceController !== controller) return;
+    const localized = results
+      .map((candidate) => ({
+        candidate,
+        distance: Math.hypot(
+          candidate.latitude - place.latitude,
+          candidate.longitude - place.longitude,
+        ),
+      }))
+      .filter(({ distance }) => distance < 0.03)
+      .sort((a, b) => a.distance - b.distance)[0]?.candidate;
+    if (!localized) return;
+
+    const savedLocation = sidebarPlaces.find(
+      (item) =>
+        Math.hypot(
+          item.place.latitude - place.latitude,
+          item.place.longitude - place.longitude,
+        ) < 0.03,
+    );
+    if (savedLocation) {
+      savedLocation.place = normalizePlace(localized);
+      persistSavedLocations();
+    }
+    await loadWeather(localized);
+  } catch (error) {
+    if (error.name === "AbortError") return;
+    console.error("Could not update the city name for the selected language.", error);
+    elements.pageMessage.textContent =
+      error instanceof Error ? error.message : t("citySearchFailed");
+  }
+}
+
+function renderLanguageOptions(filter = "") {
+  const query = filter.trim().toLocaleLowerCase();
+  const fragment = document.createDocumentFragment();
+  for (const language of LANGUAGES) {
+    if (query && !`${language.name} ${language.code}`.toLocaleLowerCase().includes(query)) {
+      continue;
+    }
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "language-option";
+    option.dataset.language = language.code;
+    option.setAttribute("role", "option");
+    option.setAttribute("aria-selected", String(language.code === currentLanguage));
+    option.textContent = `${language.flag} ${language.name} · ${language.code}`;
+    option.addEventListener("click", () => changeLanguage(language.code));
+    fragment.append(option);
+  }
+  elements.languageOptions.replaceChildren(fragment);
 }
 
 const CITY_ALIASES = new Map([
@@ -441,10 +672,20 @@ const LOCALIZED_COUNTRY_NAMES = {
   vi: { TW: "Đài Loan", CN: "Trung Quốc", JP: "Nhật Bản", KR: "Hàn Quốc", US: "Hoa Kỳ", GB: "Vương quốc Anh", HK: "Hồng Kông", MO: "Ma Cao", SG: "Singapore" },
   en: { TW: "Taiwan", CN: "China", JP: "Japan", KR: "South Korea", US: "United States", GB: "United Kingdom", HK: "Hong Kong", MO: "Macau", SG: "Singapore" },
   zh: COUNTRY_NAMES,
+  "zh-TW": COUNTRY_NAMES,
+  "zh-CN": { TW: "中国台湾", CN: "中国", JP: "日本", KR: "韩国", US: "美国", GB: "英国", HK: "中国香港", MO: "中国澳门", SG: "新加坡" },
 };
 
 const elements = {
-  languageSelect: document.querySelector("#language-select"),
+  languageTrigger: document.querySelector("#language-trigger"),
+  languageCurrent: document.querySelector("#language-current"),
+  languageMenu: document.querySelector("#language-menu"),
+  languageFilter: document.querySelector("#language-filter"),
+  languageOptions: document.querySelector("#language-options"),
+  languagePicker: document.querySelector("#language-picker"),
+  sidebarToggle: document.querySelector("#sidebar-toggle"),
+  topbarSidebarToggle: document.querySelector("#topbar-sidebar-toggle"),
+  appShell: document.querySelector("#app-shell"),
   searchForm: document.querySelector("#search-form"),
   searchInput: document.querySelector("#city-search"),
   searchAddButton: document.querySelector("#search-add-button"),
@@ -452,21 +693,44 @@ const elements = {
   locationName: document.querySelector("#location-name"),
   locationDetail: document.querySelector("#location-detail"),
   updatedAt: document.querySelector("#updated-at"),
-  currentCard: document.querySelector(".current-card"),
-  currentDate: document.querySelector("#current-date"),
+  currentCard: document.querySelector(".hero-weather"),
   currentIcon: document.querySelector("#current-icon"),
   currentTemperature: document.querySelector("#current-temperature"),
   currentCondition: document.querySelector("#current-condition"),
   feelsLike: document.querySelector("#feels-like"),
+  feelsNote: document.querySelector("#feels-note"),
+  heroHigh: document.querySelector("#hero-high"),
+  heroLow: document.querySelector("#hero-low"),
+  heroSkyIcon: document.querySelector("#hero-sky-icon"),
   sidebarLocations: document.querySelector("#sidebar-locations"),
   sidebarStatus: document.querySelector("#sidebar-status"),
   hourlyList: document.querySelector("#hourly-list"),
   hourlySummary: document.querySelector("#hourly-summary"),
   humidity: document.querySelector("#humidity"),
-  windSpeed: document.querySelector("#wind-speed"),
+  windSpeed: document.querySelector("#wind-speed-number"),
   windNote: document.querySelector("#wind-note"),
   uvIndex: document.querySelector("#uv-index"),
   uvNote: document.querySelector("#uv-note"),
+  uvMarker: document.querySelector("#uv-marker"),
+  dewPointNote: document.querySelector("#dew-point-note"),
+  visibility: document.querySelector("#visibility"),
+  visibilityNote: document.querySelector("#visibility-note"),
+  precipitation: document.querySelector("#precipitation"),
+  precipitationNote: document.querySelector("#precipitation-note"),
+  sunriseTime: document.querySelector("#sunrise-time"),
+  sunsetTime: document.querySelector("#sunset-time"),
+  sunArcDot: document.querySelector("#sun-arc-dot"),
+  sunArcProgress: document.querySelector("#sun-arc-progress"),
+  compassNeedle: document.querySelector("#compass-needle"),
+  compassNorth: document.querySelector("#compass-north"),
+  compassEast: document.querySelector("#compass-east"),
+  compassSouth: document.querySelector("#compass-south"),
+  compassWest: document.querySelector("#compass-west"),
+  pressure: document.querySelector("#pressure"),
+  pressureGaugeValue: document.querySelector("#pressure-gauge-value"),
+  pressureNeedle: document.querySelector("#pressure-needle"),
+  radarTemperature: document.querySelector("#radar-temperature"),
+  radarPlaceName: document.querySelector("#radar-place-name"),
   forecastList: document.querySelector("#forecast-list"),
   forecastDetailDialog: document.querySelector("#forecast-detail-dialog"),
   forecastDetailDate: document.querySelector("#forecast-detail-date"),
@@ -496,12 +760,13 @@ const elements = {
 };
 
 function getLocale() {
-  return currentLanguage === "zh" ? "zh-TW" : currentLanguage === "en" ? "en-US" : "vi-VN";
+  return languageByCode.get(currentLanguage)?.locale ?? "en-US";
 }
 let suggestions = [];
 let activeSuggestion = -1;
 let addCandidate;
 let suggestionController;
+let languagePlaceController;
 let weatherController;
 let debounceTimer;
 let requestId = 0;
@@ -943,13 +1208,14 @@ function createWeatherBackground() {
 }
 
 function setWeatherBackground(weatherCode, isDay) {
-  if (!weatherBackground) return;
   const isRain =
     (weatherCode >= 51 && weatherCode <= 67) ||
     (weatherCode >= 80 && weatherCode <= 82) ||
     (weatherCode >= 95 && weatherCode <= 99);
-  const isClear = weatherCode >= 0 && weatherCode <= 2 && isDay === 1;
-  weatherBackground.setMode(isRain ? "rain" : isClear ? "sun" : "clouds");
+  const isClear = weatherCode >= 0 && weatherCode <= 1;
+  const mode = isRain ? "rain" : isClear && isDay !== 1 ? "night" : isClear ? "sun" : "clouds";
+  document.body.dataset.weather = mode;
+  if (weatherBackground) weatherBackground.setMode(mode === "night" ? "clouds" : mode);
 }
 
 function getWeatherDescription(code) {
@@ -972,18 +1238,12 @@ function getWeatherDescription(code) {
 }
 
 function getUvDescription(value) {
-  if (value < 3) return t("uvLow");
-  if (value < 6) return t("uvModerate");
-  if (value < 8) return t("uvHigh");
-  if (value < 11) return t("uvVeryHigh");
-  return t("uvExtreme");
+  return t("sunProtection");
 }
 
 function getWindDescription(speed) {
-  if (speed < 6) return t("windGentle");
-  if (speed < 20) return t("windBreezy");
-  if (speed < 40) return t("windStrong");
-  return t("windVeryStrong");
+  const descriptions = WIND_LABELS[currentLanguage] ?? WIND_LABELS.en;
+  return descriptions[speed < 1 ? 0 : speed < 12 ? 1 : speed < 30 ? 2 : 3];
 }
 
 function getLocationName(place) {
@@ -996,7 +1256,9 @@ function getLocationName(place) {
 function getLocationDetail(place) {
   const region = place.country_code === "TW" ? place.admin2 : place.admin1;
   const country =
-    LOCALIZED_COUNTRY_NAMES[currentLanguage][place.country_code] ?? place.country;
+    LOCALIZED_COUNTRY_NAMES[currentLanguage]?.[place.country_code] ??
+    LOCALIZED_COUNTRY_NAMES[languageByCode.get(currentLanguage)?.apiLanguage]?.[place.country_code] ??
+    place.country;
   return [region, country]
     .filter((part, index, list) => part && list.indexOf(part) === index)
     .join("・");
@@ -1039,7 +1301,7 @@ async function searchPlaces(query, signal) {
   url.search = new URLSearchParams({
     name: searchName,
     count: "7",
-    language: currentLanguage,
+    language: languageByCode.get(currentLanguage)?.apiLanguage ?? "en",
     format: "json",
   });
   const data = await fetchJson(url, signal, "城市搜尋服務");
@@ -1302,25 +1564,23 @@ function renderForecast(daily) {
 
   for (let index = 0; index < daily.time.length; index += 1) {
     const card = document.createElement("button");
-    const day = document.createElement("p");
+    const day = document.createElement("span");
     const icon = document.createElement("span");
-    const temperatures = document.createElement("div");
-    const high = document.createElement("span");
     const low = document.createElement("span");
+    const track = document.createElement("span");
     const range = document.createElement("span");
+    const currentMarker = document.createElement("span");
+    const high = document.createElement("span");
     const rain = document.createElement("span");
     const condition = getWeatherDescription(daily.weather_code[index]);
     const date = new Date(`${daily.time[index]}T00:00:00Z`);
 
-    card.className = "forecast-card";
+    card.className = "forecast-row";
     card.type = "button";
     const formattedDay =
       index === 0
         ? t("today")
-        : new Intl.DateTimeFormat(getLocale(), {
-            weekday: "long",
-            timeZone: "UTC",
-          }).format(date);
+        : new Intl.DateTimeFormat(currentLanguage, { weekday: "short", timeZone: "UTC" }).format(date);
     card.setAttribute(
       "aria-label",
       `${formattedDay}, ${condition.text}, ${t("high")} ${Math.round(daily.temperature_2m_max[index])}°, ${t("low")} ${Math.round(daily.temperature_2m_min[index])}°`,
@@ -1330,29 +1590,33 @@ function renderForecast(daily) {
     icon.className = "forecast-icon";
     icon.setAttribute("aria-hidden", "true");
     icon.textContent = condition.icon;
-    temperatures.className = "forecast-temperatures";
+    track.className = "temperature-track";
+    range.className = "temperature-range";
+    currentMarker.className = "temperature-current-dot";
     high.className = "forecast-high";
     high.textContent = `${Math.round(daily.temperature_2m_max[index])}°`;
     low.className = "forecast-low";
     low.textContent = `${Math.round(daily.temperature_2m_min[index])}°`;
-    range.className = "forecast-temperature-range";
-    range.setAttribute("aria-hidden", "true");
     const start = ((daily.temperature_2m_min[index] - rangeMin) / totalRange) * 100;
     const end = ((daily.temperature_2m_max[index] - rangeMin) / totalRange) * 100;
-    range.style.setProperty("--range-start", `${start}%`);
-    range.style.setProperty("--range-end", `${end}%`);
+    range.style.left = `${start}%`;
+    range.style.width = `${Math.max(4, end - start)}%`;
+    currentMarker.hidden = index !== 0 || !Number.isFinite(weatherContext?.current?.temperature_2m);
+    if (!currentMarker.hidden) {
+      currentMarker.style.left = `${Math.max(
+        0,
+        Math.min(100, ((weatherContext.current.temperature_2m - rangeMin) / totalRange) * 100),
+      )}%`;
+    }
     rain.className = "forecast-rain";
     const rainProbability = daily.precipitation_probability_max?.[index];
     rain.textContent =
       Number.isFinite(rainProbability) && rainProbability > 0
         ? `${Math.round(rainProbability)}%`
         : "";
-    temperatures.setAttribute(
-      "aria-label",
-      `${condition.text}, ${t("high")} ${high.textContent}, ${t("low")} ${low.textContent}`,
-    );
-    temperatures.append(low, range, high);
-    card.append(day, icon, rain, temperatures);
+    track.setAttribute("aria-hidden", "true");
+    track.append(range, currentMarker);
+    card.append(day, icon, rain, low, track, high);
     card.addEventListener("click", () => {
       renderForecastDetail(index);
       if (!elements.forecastDetailDialog.open) elements.forecastDetailDialog.showModal();
@@ -1533,23 +1797,68 @@ function renderWeather(place, data) {
 
   elements.locationName.textContent = getLocationName(place);
   elements.locationDetail.textContent = getLocationDetail(place);
+  elements.radarPlaceName.textContent = getLocationName(place);
+  elements.radarTemperature.textContent = `${Math.round(current.temperature_2m)}°`;
   renderSidebarLocations();
   elements.updatedAt.textContent = t("updatedAt", {
     time: clockFormatter.format(currentTime),
   });
-  elements.currentDate.textContent = formatPlaceDate(currentTime, timezone);
   elements.currentIcon.textContent = condition.icon;
   elements.currentIcon.setAttribute("aria-label", condition.text);
-  elements.currentTemperature.firstChild.textContent = Math.round(current.temperature_2m);
+  elements.currentTemperature.textContent = Math.round(current.temperature_2m);
   elements.currentCondition.textContent = condition.text;
-  elements.feelsLike.textContent = Math.round(current.apparent_temperature);
+  elements.heroSkyIcon.textContent = condition.icon;
+  elements.heroHigh.textContent = `${Math.round(data.daily.temperature_2m_max[0])}°`;
+  elements.heroLow.textContent = `${Math.round(data.daily.temperature_2m_min[0])}°`;
+  elements.feelsLike.firstChild.textContent = Math.round(current.apparent_temperature);
+  const apparentDifference = current.apparent_temperature - current.temperature_2m;
+  elements.feelsNote.textContent =
+    Math.abs(apparentDifference) < 1
+      ? t("feelsLike")
+      : apparentDifference > 0
+        ? t("feelsWarmer")
+        : t("feelsColder");
   elements.humidity.firstChild.textContent = Math.round(current.relative_humidity_2m);
-  elements.windSpeed.firstChild.textContent = Math.round(current.wind_speed_10m);
+  elements.dewPointNote.textContent = `${t("dewPointLabel")} ${Math.round(current.dew_point_2m)}°`;
+  elements.visibility.firstChild.textContent = (current.visibility / 1000).toFixed(1);
+  elements.visibilityNote.textContent = current.visibility >= 10000
+    ? t("visibilityClear")
+    : t("visibility");
+  elements.windSpeed.textContent = Math.round(current.wind_speed_10m);
   elements.windNote.textContent = getWindDescription(current.wind_speed_10m);
+  elements.compassNeedle.style.transform =
+    `translate(-50%, -70%) rotate(${current.wind_direction_10m - 90}deg)`;
+  elements.compassNorth.textContent = t("compassNorth");
+  elements.compassEast.textContent = t("compassEast");
+  elements.compassSouth.textContent = t("compassSouth");
+  elements.compassWest.textContent = t("compassWest");
   elements.uvIndex.textContent = Number.isFinite(uv) ? uv.toFixed(1) : "--";
   elements.uvNote.textContent = Number.isFinite(uv)
     ? getUvDescription(uv)
     : t("sunProtection");
+  elements.uvMarker.style.left = `${Math.max(0, Math.min(100, (uv / 11) * 100))}%`;
+  elements.precipitation.firstChild.textContent = Number(current.precipitation ?? 0).toFixed(1);
+  const next24Hours = data.hourly.precipitation
+    .slice(0, 24)
+    .reduce((total, amount) => total + (Number.isFinite(amount) ? amount : 0), 0);
+  elements.precipitationNote.textContent = `${t("rain24Hours")} ${next24Hours.toFixed(1)} mm`;
+  elements.pressure.firstChild.textContent = Math.round(current.surface_pressure);
+  const pressureProgress = Math.max(0, Math.min(1, (current.surface_pressure - 960) / 80));
+  elements.pressureGaugeValue.style.strokeDashoffset = String(151 * (1 - pressureProgress));
+  elements.pressureNeedle.style.transform = `rotate(${-90 + pressureProgress * 180}deg)`;
+  const sunrise = data.daily.sunrise?.[0];
+  const sunset = data.daily.sunset?.[0];
+  elements.sunriseTime.textContent = sunrise?.slice(11, 16) ?? "--:--";
+  elements.sunsetTime.textContent = sunset?.slice(11, 16) ?? "--:--";
+  const minutesNow = Number(current.time.slice(11, 13)) * 60 + Number(current.time.slice(14, 16));
+  const minutesSunrise = sunrise ? Number(sunrise.slice(11, 13)) * 60 + Number(sunrise.slice(14, 16)) : 360;
+  const minutesSunset = sunset ? Number(sunset.slice(11, 13)) * 60 + Number(sunset.slice(14, 16)) : 1080;
+  const sunProgress = Math.max(0, Math.min(1, (minutesNow - minutesSunrise) / (minutesSunset - minutesSunrise)));
+  const sunX = 12 + sunProgress * 276;
+  const sunY = 82 - 70 * 4 * sunProgress * (1 - sunProgress);
+  elements.sunArcDot.setAttribute("cx", String(sunX));
+  elements.sunArcDot.setAttribute("cy", String(sunY));
+  elements.sunArcProgress.style.strokeDashoffset = String(500 * (1 - sunProgress));
   elements.currentCard.setAttribute("aria-busy", "false");
   setWeatherBackground(current.weather_code, current.is_day);
   renderForecast(data.daily);
@@ -1710,9 +2019,36 @@ elements.radarTimeline.addEventListener("input", () => {
   renderRadarFrame(Number(elements.radarTimeline.value));
 });
 
-elements.languageSelect.addEventListener("change", (event) => {
-  changeLanguage(event.target.value);
+elements.languageTrigger.addEventListener("click", () => {
+  const open = elements.languageMenu.hidden;
+  elements.languageMenu.hidden = !open;
+  elements.languageTrigger.setAttribute("aria-expanded", String(open));
+  if (open) {
+    renderLanguageOptions();
+    elements.languageFilter.focus();
+  }
 });
+elements.languageFilter.addEventListener("input", () => {
+  renderLanguageOptions(elements.languageFilter.value);
+});
+elements.languageFilter.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    elements.languageMenu.hidden = true;
+    elements.languageTrigger.setAttribute("aria-expanded", "false");
+    elements.languageTrigger.focus();
+  }
+});
+
+for (const toggle of [elements.sidebarToggle, elements.topbarSidebarToggle]) {
+  toggle.addEventListener("click", () => {
+    const collapsed = elements.appShell.classList.toggle("sidebar-collapsed");
+    for (const button of [elements.sidebarToggle, elements.topbarSidebarToggle]) {
+      button.setAttribute("aria-expanded", String(!collapsed));
+    }
+    localStorage.setItem("weather_sidebar_collapsed", String(collapsed));
+    window.setTimeout(() => radarMap?.invalidateSize(), 240);
+  });
+}
 
 elements.forecastDetailClose.addEventListener("click", () => {
   elements.forecastDetailDialog.close();
@@ -1749,11 +2085,11 @@ async function loadWeather(place) {
     latitude: String(place.latitude),
     longitude: String(place.longitude),
     current:
-      "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,uv_index",
+      "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,uv_index,dew_point_2m,visibility,precipitation,surface_pressure",
     hourly:
       "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,precipitation,precipitation_probability",
     daily:
-      "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,uv_index_max",
+      "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset",
     temperature_unit: "celsius",
     wind_speed_unit: "kmh",
     timezone: "auto",
@@ -1895,11 +2231,16 @@ elements.searchForm.addEventListener("submit", (event) => {
 
 document.addEventListener("click", (event) => {
   if (!elements.searchForm.contains(event.target)) closeSuggestions();
+  if (!elements.languagePicker.contains(event.target)) {
+    elements.languageMenu.hidden = true;
+    elements.languageTrigger.setAttribute("aria-expanded", "false");
+  }
 });
 
 window.addEventListener("pagehide", () => {
   weatherController?.abort();
   radarController?.abort();
+  languagePlaceController?.abort();
 });
 
 async function initialize() {
@@ -1930,6 +2271,12 @@ async function initialize() {
   }
 }
 
+renderLanguageOptions();
+const sidebarCollapsed = localStorage.getItem("weather_sidebar_collapsed") === "true";
+elements.appShell.classList.toggle("sidebar-collapsed", sidebarCollapsed);
+for (const button of [elements.sidebarToggle, elements.topbarSidebarToggle]) {
+  button.setAttribute("aria-expanded", String(!sidebarCollapsed));
+}
 applyTranslations();
 renderSidebarLocations();
 initialize();
