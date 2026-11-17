@@ -2508,8 +2508,7 @@ body {
   grid-template-areas:
     "heading heading"
     "weather weather"
-    "forecast radar"
-    "assistant assistant";
+    "forecast radar";
   grid-template-columns: minmax(0, 1fr) minmax(300px, 0.78fr);
   gap: 14px;
   padding: 17px 0 0;
@@ -2923,8 +2922,7 @@ body {
       "heading"
       "weather"
       "forecast"
-      "radar"
-      "assistant";
+      "radar";
   }
 
   .radar-section,
