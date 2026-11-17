@@ -572,7 +572,10 @@ async function relocalizeCurrentPlace(place) {
   const controller = new AbortController();
   languagePlaceController = controller;
   try {
-    const results = await searchPlaces(place.name, controller.signal);
+    const results = await searchPlaces(
+      place.search_name ?? place.name,
+      controller.signal,
+    );
     if (languagePlaceController !== controller) return;
     const localized = results
       .map((candidate) => ({
@@ -809,6 +812,7 @@ function normalizePlace(place) {
     admin1: typeof place.admin1 === "string" ? place.admin1 : "",
     admin2: typeof place.admin2 === "string" ? place.admin2 : "",
     timezone: typeof place.timezone === "string" ? place.timezone : "",
+    search_name: typeof place.search_name === "string" ? place.search_name : place.name,
   };
 }
 
@@ -1305,7 +1309,7 @@ async function searchPlaces(query, signal) {
     format: "json",
   });
   const data = await fetchJson(url, signal, "城市搜尋服務");
-  return data.results ?? [];
+  return (data.results ?? []).map((place) => ({ ...place, search_name: searchName }));
 }
 
 function renderSuggestions(places) {
