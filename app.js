@@ -500,6 +500,7 @@ function getLocale() {
 }
 let suggestions = [];
 let activeSuggestion = -1;
+let addCandidate;
 let suggestionController;
 let weatherController;
 let debounceTimer;
@@ -1013,7 +1014,7 @@ function getPreferredPlace(places) {
   );
 }
 
-function updateAddLocationButton(place = suggestions[activeSuggestion] ?? getPreferredPlace(suggestions)) {
+function updateAddLocationButton(place = addCandidate) {
   const savedLocation = place ? findSavedLocation(place) : undefined;
   const label = savedLocation
     ? t("locationAlreadySaved")
@@ -1048,6 +1049,7 @@ async function searchPlaces(query, signal) {
 function renderSuggestions(places) {
   suggestions = places;
   activeSuggestion = -1;
+  addCandidate = getPreferredPlace(places);
   elements.suggestions.replaceChildren();
 
   for (const [index, place] of places.entries()) {
@@ -1095,7 +1097,8 @@ function setActiveSuggestion(index) {
   const activeOption = options[activeSuggestion];
   elements.searchInput.setAttribute("aria-activedescendant", activeOption.id);
   activeOption.scrollIntoView({ block: "nearest" });
-  updateAddLocationButton(suggestions[activeSuggestion]);
+  addCandidate = suggestions[activeSuggestion];
+  updateAddLocationButton();
 }
 
 function formatPlaceDate(date, timeZone) {
@@ -1772,8 +1775,10 @@ async function loadWeather(place) {
 async function selectPlace(place) {
   window.clearTimeout(debounceTimer);
   suggestionController?.abort();
+  addCandidate = place;
   closeSuggestions();
   elements.searchInput.value = place.name;
+  updateAddLocationButton();
   await loadWeather(place);
 }
 
@@ -1810,7 +1815,7 @@ async function submitSearch(query) {
 }
 
 async function saveSuggestedLocation() {
-  const place = suggestions[activeSuggestion] ?? getPreferredPlace(suggestions);
+  const place = addCandidate;
   if (!place) return;
 
   try {
@@ -1835,6 +1840,8 @@ elements.searchAddButton.addEventListener("click", () => {
 elements.searchInput.addEventListener("input", () => {
   window.clearTimeout(debounceTimer);
   suggestionController?.abort();
+  addCandidate = undefined;
+  updateAddLocationButton();
   const query = elements.searchInput.value.trim();
 
   if (query.length < 2) {
