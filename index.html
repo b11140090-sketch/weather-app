@@ -33,12 +33,50 @@
   <body>
     <canvas id="weather-bg" aria-hidden="true"></canvas>
     <main class="app-shell">
-      <header class="topbar">
-        <a class="brand" href="#" aria-label="Trang chủ Weather" data-i18n="home" data-i18n-attr="aria-label">
+      <aside
+        class="weather-sidebar"
+        aria-label="Danh sách địa điểm"
+        data-i18n="sidebarAriaLabel"
+        data-i18n-attr="aria-label"
+      >
+        <div class="sidebar-brand-row">
+          <a class="brand" href="#" aria-label="Trang chủ Weather" data-i18n="home" data-i18n-attr="aria-label">
           <span class="brand-mark" aria-hidden="true">☼</span>
           <span>Weather<span class="brand-period">.</span></span>
-        </a>
-        <p class="topbar-note" data-i18n="topbarNote">Để mỗi ngày bắt đầu với dự báo thời tiết tốt lành</p>
+          </a>
+          <span class="sidebar-collapse-icon" aria-hidden="true">▣</span>
+        </div>
+        <p class="sidebar-section-label" data-i18n="myLocations">Địa điểm của tôi</p>
+        <div class="sidebar-location-list" id="sidebar-locations" aria-live="polite">
+          <p class="sidebar-empty" data-i18n="loadingWeather">Đang tải dữ liệu thời tiết…</p>
+        </div>
+        <p class="sidebar-footnote" data-i18n="sidebarHint">Tìm kiếm thành phố để thêm địa điểm</p>
+      </aside>
+
+      <div class="workspace-main">
+        <header class="topbar">
+          <form class="search-form" id="search-form" role="search">
+            <label class="sr-only" for="city-search" data-i18n="searchCity">Tìm thành phố</label>
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input
+              id="city-search"
+              name="city"
+              type="search"
+              placeholder="Tìm thành phố, ví dụ: Hà Nội, Tokyo"
+              data-i18n="searchPlaceholder"
+              data-i18n-attr="placeholder"
+              autocomplete="off"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-controls="suggestions"
+              aria-expanded="false"
+            >
+            <button class="search-button" type="submit">
+              <span data-i18n="searchButton">Tìm kiếm</span>
+              <span aria-hidden="true">↗</span>
+            </button>
+            <ul class="suggestions" id="suggestions" role="listbox" hidden></ul>
+          </form>
         <div class="live-indicator">
           <span class="live-dot" aria-hidden="true"></span>
           <span data-i18n="liveWeather">Thời tiết trực tiếp</span>
@@ -51,37 +89,7 @@
             <option value="zh">🇨🇳 中文</option>
           </select>
         </label>
-      </header>
-
-      <section class="intro" aria-labelledby="page-title">
-        <p class="eyebrow"><span aria-hidden="true">✦</span> <span data-i18n="eyebrow">Cẩm nang thời tiết mỗi ngày</span></p>
-        <h1 id="page-title"><span data-i18n="headline">Thời tiết,</span> <span data-i18n="headlineAccent">vừa đúng lúc.</span></h1>
-        <p class="intro-copy" data-i18n="introCopy">Nắng nhẹ hay làn gió mát, hãy sẵn sàng cho ngày mới.</p>
-
-        <form class="search-form" id="search-form" role="search">
-          <label class="sr-only" for="city-search" data-i18n="searchCity">Tìm thành phố</label>
-          <span class="search-icon" aria-hidden="true">⌕</span>
-          <input
-            id="city-search"
-            name="city"
-            type="search"
-            placeholder="Tìm thành phố, ví dụ: Hà Nội, Tokyo"
-            data-i18n="searchPlaceholder"
-            data-i18n-attr="placeholder"
-            autocomplete="off"
-            role="combobox"
-            aria-autocomplete="list"
-            aria-controls="suggestions"
-            aria-expanded="false"
-          >
-          <button class="search-button" type="submit">
-            <span data-i18n="searchButton">Tìm kiếm</span>
-            <span aria-hidden="true">↗</span>
-          </button>
-          <ul class="suggestions" id="suggestions" role="listbox" hidden></ul>
-        </form>
-        <p class="search-hint" data-i18n="searchHint">Tìm một thành phố để khám phá thời tiết nơi đó.</p>
-      </section>
+        </header>
 
       <section class="weather-section" aria-label="Thời tiết hiện tại và dự báo" data-i18n="weatherSection" data-i18n-attr="aria-label">
         <div class="section-heading">
@@ -117,6 +125,16 @@
               <span class="footer-sparkle" aria-hidden="true">✳</span>
             </div>
           </article>
+
+          <section class="hourly-section" aria-labelledby="hourly-title">
+            <div class="hourly-heading">
+              <p class="section-kicker" id="hourly-title" data-i18n="hourlyForecast">Dự báo theo giờ</p>
+              <p class="hourly-summary" id="hourly-summary"></p>
+            </div>
+            <div class="hourly-list" id="hourly-list" aria-live="polite">
+              <p class="forecast-placeholder" data-i18n="preparingForecast">Đang chuẩn bị dự báo tuần…</p>
+            </div>
+          </section>
 
           <div class="metrics-grid" aria-label="Thông tin thời tiết chi tiết" data-i18n="weatherDetails" data-i18n-attr="aria-label">
             <article class="metric-card glass-card">
@@ -395,15 +413,91 @@
           <div class="forecast-heading">
             <div>
               <p class="section-kicker" data-i18n="comingDays">Những ngày tới</p>
-              <h2 id="forecast-title" data-i18n="sevenDayForecast">Dự báo 7 ngày</h2>
+              <h2 id="forecast-title" data-i18n="tenDayForecast">Dự báo 10 ngày</h2>
             </div>
-            <span class="forecast-caption" data-i18n="forecastCaption">Chủ động lên kế hoạch với dự báo 7 ngày</span>
+            <span class="forecast-caption" data-i18n="forecastCaption">Chủ động lên kế hoạch với dự báo 10 ngày</span>
           </div>
           <div class="forecast-grid" id="forecast-list" aria-live="polite">
             <p class="forecast-placeholder" data-i18n="preparingForecast">Đang chuẩn bị dự báo tuần…</p>
           </div>
         </section>
       </section>
+
+      <dialog
+        class="forecast-detail-dialog"
+        id="forecast-detail-dialog"
+        aria-labelledby="forecast-detail-date"
+        aria-describedby="forecast-detail-condition"
+      >
+        <div class="forecast-detail-shell">
+          <header class="forecast-detail-heading">
+            <div>
+              <p class="section-kicker" data-i18n="forecastDetailTitle">Điều kiện thời tiết chi tiết</p>
+              <h2 id="forecast-detail-date">—</h2>
+            </div>
+            <button
+              class="forecast-detail-close"
+              id="forecast-detail-close"
+              type="button"
+              aria-label="Đóng chi tiết dự báo"
+              data-i18n="forecastDetailClose"
+              data-i18n-attr="aria-label"
+            >×</button>
+          </header>
+          <div class="forecast-detail-summary">
+            <span class="forecast-detail-icon" id="forecast-detail-icon" aria-hidden="true"></span>
+            <div>
+              <p class="forecast-detail-condition" id="forecast-detail-condition"></p>
+              <p class="forecast-detail-temperatures" id="forecast-detail-temperatures"></p>
+            </div>
+          </div>
+          <div class="forecast-detail-stats">
+            <article>
+              <span data-i18n="forecastRainTotal">Tổng lượng mưa</span>
+              <strong id="forecast-detail-rain-total">—</strong>
+            </article>
+            <article>
+              <span data-i18n="forecastRainChance">Khả năng có mưa</span>
+              <strong id="forecast-detail-rain-chance">—</strong>
+            </article>
+            <article>
+              <span data-i18n="forecastWind">Gió mạnh nhất</span>
+              <strong id="forecast-detail-wind">—</strong>
+            </article>
+            <article>
+              <span data-i18n="forecastUv">Chỉ số UV cao nhất</span>
+              <strong id="forecast-detail-uv">—</strong>
+            </article>
+            <article>
+              <span data-i18n="forecastFeelsLike">Cảm giác như</span>
+              <strong id="forecast-detail-feels-like">—</strong>
+            </article>
+            <article>
+              <span data-i18n="forecastHumidity">Độ ẩm trung bình</span>
+              <strong id="forecast-detail-humidity">—</strong>
+            </article>
+          </div>
+          <section class="forecast-detail-chart-section" aria-labelledby="forecast-temperature-chart-title">
+            <h3 id="forecast-temperature-chart-title" data-i18n="forecastTemperatureChart">Nhiệt độ theo giờ</h3>
+            <div id="forecast-temperature-chart"></div>
+          </section>
+          <section class="forecast-detail-chart-section" aria-labelledby="forecast-rain-chart-title">
+            <h3 id="forecast-rain-chart-title" data-i18n="forecastRainChart">Khả năng có mưa theo giờ</h3>
+            <div id="forecast-rain-chart"></div>
+          </section>
+          <div class="forecast-detail-hourly" id="forecast-detail-hourly"></div>
+          <footer class="forecast-detail-navigation">
+            <button id="forecast-detail-previous" type="button">
+              <span aria-hidden="true">‹</span>
+              <span data-i18n="forecastPreviousDay">Ngày trước</span>
+            </button>
+            <button id="forecast-detail-next" type="button">
+              <span data-i18n="forecastNextDay">Ngày tiếp theo</span>
+              <span aria-hidden="true">›</span>
+            </button>
+          </footer>
+        </div>
+      </dialog>
 
       <section class="route-planner" aria-labelledby="route-planner-title">
         <div class="route-heading">
@@ -479,6 +573,7 @@
         <span data-i18n="footerNote">Đưa thời tiết vào nhịp sống, để mỗi chuyến đi thêm an tâm.</span>
         <span data-i18n="weatherCredit">Dữ liệu thời tiết từ Open-Meteo</span>
       </footer>
+      </div>
     </main>
   </body>
 </html>

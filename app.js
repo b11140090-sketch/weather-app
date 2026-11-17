@@ -27,12 +27,19 @@ const translations = {
     searchPlaceholder: "Tìm thành phố, ví dụ: Hà Nội, Tokyo",
     searchButton: "Tìm kiếm",
     searchHint: "Tìm một thành phố để khám phá thời tiết nơi đó.",
+    myLocations: "Địa điểm của tôi",
+    sidebarHint: "Tìm kiếm thành phố để thêm địa điểm",
+    sidebarAriaLabel: "Danh sách địa điểm thời tiết",
     weatherSection: "Thời tiết hiện tại và dự báo",
     yourSky: "Thời tiết tại đây",
     loadingWeather: "Đang tải dữ liệu thời tiết…",
     liveUpdate: "Đang cập nhật",
     updatedAt: "Cập nhật lúc {time}",
     currentWeather: "Thời tiết hiện tại",
+    now: "Bây giờ",
+    hourlyForecast: "Dự báo theo giờ",
+    hourlyRainExpected: "Dự kiến mưa vào khoảng {time}.",
+    hourlyNoRainExpected: "Chưa có mưa đáng kể trong vài giờ tới.",
     loading: "Đang tải",
     feelsLike: "Cảm giác như",
     weatherAtGlance: "Thời tiết hôm nay, dễ dàng nắm bắt",
@@ -229,9 +236,24 @@ const translations = {
     loadingRadar: "Đang tải dữ liệu radar…",
     radarMapLabel: "Bản đồ radar mưa, có thể kéo và thu phóng",
     comingDays: "Những ngày tới",
-    sevenDayForecast: "Dự báo 7 ngày",
-    forecastCaption: "Chủ động lên kế hoạch với dự báo 7 ngày",
+    sevenDayForecast: "Dự báo 10 ngày",
+    tenDayForecast: "Dự báo 10 ngày",
+    forecastCaption: "Chủ động lên kế hoạch với dự báo 10 ngày",
     preparingForecast: "Đang chuẩn bị dự báo tuần…",
+    forecastDetailTitle: "Điều kiện thời tiết chi tiết",
+    forecastDetailClose: "Đóng chi tiết dự báo",
+    forecastRainTotal: "Tổng lượng mưa",
+    forecastRainChance: "Khả năng có mưa",
+    forecastWind: "Gió mạnh nhất",
+    forecastUv: "Chỉ số UV cao nhất",
+    forecastFeelsLike: "Cảm giác như",
+    forecastHumidity: "Độ ẩm trung bình",
+    forecastTemperatureChart: "Nhiệt độ theo giờ",
+    forecastRainChart: "Khả năng có mưa theo giờ",
+    forecastPreviousDay: "Ngày trước",
+    forecastNextDay: "Ngày tiếp theo",
+    forecastHourlyChartLabel: "{metric} trong ngày",
+    forecastNoHourlyData: "Không có dữ liệu theo giờ cho ngày này.",
     footerNote: "Đưa thời tiết vào nhịp sống, để mỗi chuyến đi thêm an tâm.",
     weatherCredit: "Dữ liệu thời tiết từ Open-Meteo",
     uvAnswerUnavailable: "Hiện chưa có dữ liệu tia cực tím. Hãy dùng kem chống nắng và che chắn khi ở ngoài trời lâu.",
@@ -321,12 +343,19 @@ const translations = {
     searchPlaceholder: "Search a city, e.g. London, Tokyo",
     searchButton: "Search",
     searchHint: "Find a city and discover what the sky is like there.",
+    myLocations: "My Locations",
+    sidebarHint: "Search for a city to add a location",
+    sidebarAriaLabel: "Weather locations",
     weatherSection: "Current weather and forecast",
     yourSky: "Your local weather",
     loadingWeather: "Loading weather data…",
     liveUpdate: "Updating",
     updatedAt: "Updated at {time}",
     currentWeather: "Current weather",
+    now: "Now",
+    hourlyForecast: "Hourly forecast",
+    hourlyRainExpected: "Rain is expected around {time}.",
+    hourlyNoRainExpected: "No significant rain is expected in the next few hours.",
     loading: "Loading",
     feelsLike: "Feels like",
     weatherAtGlance: "Today's weather at a glance",
@@ -523,9 +552,24 @@ const translations = {
     loadingRadar: "Loading radar data…",
     radarMapLabel: "Rain radar map; drag and zoom to explore",
     comingDays: "The days ahead",
-    sevenDayForecast: "7-day forecast",
-    forecastCaption: "Plan ahead with a seven-day forecast",
+    sevenDayForecast: "10-day forecast",
+    tenDayForecast: "10-day forecast",
+    forecastCaption: "Plan ahead with a ten-day forecast",
     preparingForecast: "Preparing your weekly forecast…",
+    forecastDetailTitle: "Detailed weather conditions",
+    forecastDetailClose: "Close forecast details",
+    forecastRainTotal: "Total precipitation",
+    forecastRainChance: "Chance of rain",
+    forecastWind: "Peak wind",
+    forecastUv: "Maximum UV index",
+    forecastFeelsLike: "Feels like",
+    forecastHumidity: "Average humidity",
+    forecastTemperatureChart: "Hourly temperature",
+    forecastRainChart: "Hourly chance of rain",
+    forecastPreviousDay: "Previous day",
+    forecastNextDay: "Next day",
+    forecastHourlyChartLabel: "{metric} throughout the day",
+    forecastNoHourlyData: "No hourly data is available for this day.",
     footerNote: "Make weather part of your day and travel with confidence.",
     weatherCredit: "Weather data provided by Open-Meteo",
     uvAnswerUnavailable: "UV data is unavailable. Use sunscreen and protective clothing during extended outdoor exposure.",
@@ -606,6 +650,9 @@ const translations = {
     home: "Weather 首頁",
     topbarNote: "讓每一天，都有好天氣的預感",
     liveWeather: "即時天氣",
+    myLocations: "我的位置",
+    sidebarHint: "搜尋城市以新增位置",
+    sidebarAriaLabel: "天氣位置清單",
     languageLabel: "語言",
     eyebrow: "你的每日氣象指南",
     headline: "天氣，",
@@ -621,6 +668,10 @@ const translations = {
     liveUpdate: "即時更新",
     updatedAt: "當地時間 {time} 更新",
     currentWeather: "現在的天氣",
+    now: "現在",
+    hourlyForecast: "逐時預報",
+    hourlyRainExpected: "預計約 {time} 可能降雨。",
+    hourlyNoRainExpected: "未來幾小時沒有明顯降雨。",
     loading: "載入中",
     feelsLike: "體感",
     weatherAtGlance: "今日天氣，一目瞭然",
@@ -817,9 +868,24 @@ const translations = {
     loadingRadar: "正在載入雷達資料…",
     radarMapLabel: "雨雲雷達地圖，可拖曳與縮放",
     comingDays: "接下來的日子",
-    sevenDayForecast: "未來七日",
-    forecastCaption: "七天的天氣，提前掌握",
+    sevenDayForecast: "未來十日",
+    tenDayForecast: "未來十日",
+    forecastCaption: "十天的天氣，提前掌握",
     preparingForecast: "正在為你準備一週的天氣…",
+    forecastDetailTitle: "詳細天氣狀況",
+    forecastDetailClose: "關閉預報詳細資訊",
+    forecastRainTotal: "總降雨量",
+    forecastRainChance: "降雨機率",
+    forecastWind: "最大風速",
+    forecastUv: "最高紫外線指數",
+    forecastFeelsLike: "體感溫度",
+    forecastHumidity: "平均濕度",
+    forecastTemperatureChart: "逐時氣溫",
+    forecastRainChart: "逐時降雨機率",
+    forecastPreviousDay: "前一天",
+    forecastNextDay: "下一天",
+    forecastHourlyChartLabel: "當日{metric}",
+    forecastNoHourlyData: "目前沒有這一天的逐時資料。",
     footerNote: "把天氣收進日常，讓出門從容一點。",
     weatherCredit: "氣象資料由 Open-Meteo 提供",
     uvAnswerUnavailable: "目前無法取得紫外線資料。長時間戶外活動請做好防曬與遮蔽。",
@@ -966,6 +1032,9 @@ function changeLanguage(language) {
   if (radarFrames.length) setRadarFrames(radarFrames);
   elements.assistantVoiceMessage.textContent = "";
   renderAssistantChatHistory();
+  if (elements.forecastDetailDialog.open && weatherContext) {
+    renderForecastDetail(selectedForecastIndex);
+  }
 }
 
 const CITY_ALIASES = new Map([
@@ -1030,6 +1099,9 @@ const elements = {
   currentTemperature: document.querySelector("#current-temperature"),
   currentCondition: document.querySelector("#current-condition"),
   feelsLike: document.querySelector("#feels-like"),
+  sidebarLocations: document.querySelector("#sidebar-locations"),
+  hourlyList: document.querySelector("#hourly-list"),
+  hourlySummary: document.querySelector("#hourly-summary"),
   assistantSection: document.querySelector(".assistant-section"),
   clothingAdvice: document.querySelector("#clothing-advice"),
   sunAdvice: document.querySelector("#sun-advice"),
@@ -1056,6 +1128,23 @@ const elements = {
   uvIndex: document.querySelector("#uv-index"),
   uvNote: document.querySelector("#uv-note"),
   forecastList: document.querySelector("#forecast-list"),
+  forecastDetailDialog: document.querySelector("#forecast-detail-dialog"),
+  forecastDetailDate: document.querySelector("#forecast-detail-date"),
+  forecastDetailIcon: document.querySelector("#forecast-detail-icon"),
+  forecastDetailCondition: document.querySelector("#forecast-detail-condition"),
+  forecastDetailTemperatures: document.querySelector("#forecast-detail-temperatures"),
+  forecastDetailRainTotal: document.querySelector("#forecast-detail-rain-total"),
+  forecastDetailRainChance: document.querySelector("#forecast-detail-rain-chance"),
+  forecastDetailWind: document.querySelector("#forecast-detail-wind"),
+  forecastDetailUv: document.querySelector("#forecast-detail-uv"),
+  forecastDetailFeelsLike: document.querySelector("#forecast-detail-feels-like"),
+  forecastDetailHumidity: document.querySelector("#forecast-detail-humidity"),
+  forecastTemperatureChart: document.querySelector("#forecast-temperature-chart"),
+  forecastRainChart: document.querySelector("#forecast-rain-chart"),
+  forecastDetailHourly: document.querySelector("#forecast-detail-hourly"),
+  forecastDetailClose: document.querySelector("#forecast-detail-close"),
+  forecastDetailPrevious: document.querySelector("#forecast-detail-previous"),
+  forecastDetailNext: document.querySelector("#forecast-detail-next"),
   pageMessage: document.querySelector("#page-message"),
   radarMap: document.querySelector("#radar-map"),
   radarStatus: document.querySelector("#radar-status"),
@@ -1138,6 +1227,8 @@ let assistantController;
 let geminiApiKeyForSession = "";
 const assistantChatTurns = [];
 const conversationHistory = [];
+const sidebarPlaces = [];
+let selectedForecastIndex = 0;
 
 const WEATHER_BACKGROUND_VERTEX_SHADER = `
   attribute float aSize;
@@ -3055,28 +3146,223 @@ function formatPlaceDate(date, timeZone) {
   }).format(date);
 }
 
+function createForecastChart(hourly, valueKey, maxValue, metric) {
+  const namespace = "http://www.w3.org/2000/svg";
+  const width = 360;
+  const left = 18;
+  const right = 350;
+  const top = 10;
+  const bottom = 82;
+  const values = hourly.map((hour) => hour[valueKey]);
+  const validValues = values.filter(Number.isFinite);
+  if (validValues.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "forecast-detail-empty";
+    empty.textContent = t("forecastNoHourlyData");
+    return empty;
+  }
+
+  const minValue = valueKey === "precipitation_probability"
+    ? 0
+    : Math.min(...validValues) - 2;
+  const upperValue = valueKey === "precipitation_probability"
+    ? maxValue
+    : Math.max(...validValues) + 2;
+  const valueRange = Math.max(1, upperValue - minValue);
+  const points = values.flatMap((value, index) => {
+    if (!Number.isFinite(value)) return [];
+    return [{
+      x: left + (index / Math.max(1, values.length - 1)) * (right - left),
+      y: bottom - ((value - minValue) / valueRange) * (bottom - top),
+      value,
+    }];
+  });
+  const svg = document.createElementNS(namespace, "svg");
+  svg.classList.add("forecast-chart");
+  svg.setAttribute("viewBox", `0 0 ${width} 112`);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", t("forecastHourlyChartLabel", { metric }));
+  for (let row = 0; row < 4; row += 1) {
+    const y = top + (row / 3) * (bottom - top);
+    const gridline = document.createElementNS(namespace, "line");
+    gridline.setAttribute("x1", String(left));
+    gridline.setAttribute("x2", String(right));
+    gridline.setAttribute("y1", String(y));
+    gridline.setAttribute("y2", String(y));
+    gridline.classList.add("forecast-chart-gridline");
+    svg.append(gridline);
+  }
+  const line = document.createElementNS(namespace, "polyline");
+  line.setAttribute("points", points.map((point) => `${point.x},${point.y}`).join(" "));
+  line.classList.add(
+    valueKey === "precipitation_probability"
+      ? "forecast-chart-line-rain"
+      : "forecast-chart-line-temperature",
+  );
+  svg.append(line);
+  for (const hourIndex of [0, 6, 12, 18]) {
+    if (hourIndex >= values.length) continue;
+    const label = document.createElementNS(namespace, "text");
+    label.setAttribute(
+      "x",
+      String(left + (hourIndex / Math.max(1, values.length - 1)) * (right - left)),
+    );
+    label.setAttribute("y", "105");
+    label.setAttribute("text-anchor", "middle");
+    label.classList.add("forecast-chart-label");
+    label.textContent = `${String(hourIndex).padStart(2, "0")}:00`;
+    svg.append(label);
+  }
+  const lastLabel = document.createElementNS(namespace, "text");
+  lastLabel.setAttribute("x", String(right));
+  lastLabel.setAttribute("y", "9");
+  lastLabel.setAttribute("text-anchor", "end");
+  lastLabel.classList.add("forecast-chart-value");
+  lastLabel.textContent =
+    `${Math.round(points.at(-1)?.value)}${valueKey === "precipitation_probability" ? "%" : "°"}`;
+  svg.append(lastLabel);
+  return svg;
+}
+
+function renderForecastDetail(index) {
+  if (!weatherContext) return;
+  const { daily, data } = weatherContext;
+  const date = daily.time[index];
+  if (!date) return;
+  selectedForecastIndex = index;
+  const condition = getWeatherDescription(daily.weather_code[index]);
+  const dateObject = new Date(`${date}T00:00:00Z`);
+  const hourlyData = data.hourly.time.flatMap((time, hourIndex) =>
+    time.startsWith(date)
+      ? [{
+          time,
+          temperature_2m: data.hourly.temperature_2m[hourIndex],
+          apparent_temperature: data.hourly.apparent_temperature?.[hourIndex],
+          weather_code: data.hourly.weather_code[hourIndex],
+          precipitation_probability: data.hourly.precipitation_probability?.[hourIndex],
+          precipitation: data.hourly.precipitation?.[hourIndex],
+          relative_humidity_2m: data.hourly.relative_humidity_2m?.[hourIndex],
+          wind_speed_10m: data.hourly.wind_speed_10m?.[hourIndex],
+        }]
+      : [],
+  );
+  const afternoonHour = hourlyData
+    .filter((hour) => Number.isFinite(hour.apparent_temperature))
+    .sort(
+      (first, second) =>
+        Math.abs(Number(first.time.slice(11, 13)) - 14) -
+        Math.abs(Number(second.time.slice(11, 13)) - 14),
+    )[0];
+  const humidityReadings = hourlyData
+    .map((hour) => hour.relative_humidity_2m)
+    .filter(Number.isFinite);
+  const averageHumidity = humidityReadings.length
+    ? humidityReadings.reduce((sum, value) => sum + value, 0) / humidityReadings.length
+    : undefined;
+  const formatMetric = (value, unit, digits = 0) =>
+    Number.isFinite(value)
+      ? `${formatNumber(value, { maximumFractionDigits: digits })}${unit}`
+      : "—";
+
+  elements.forecastDetailDate.textContent = new Intl.DateTimeFormat(getLocale(), {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(dateObject);
+  elements.forecastDetailIcon.textContent = condition.icon;
+  elements.forecastDetailCondition.textContent = condition.text;
+  elements.forecastDetailTemperatures.textContent =
+    `${t("high")} ${formatMetric(daily.temperature_2m_max[index], "°")} · ` +
+    `${t("low")} ${formatMetric(daily.temperature_2m_min[index], "°")}`;
+  elements.forecastDetailRainTotal.textContent = formatMetric(
+    daily.precipitation_sum?.[index],
+    " mm",
+    1,
+  );
+  elements.forecastDetailRainChance.textContent = formatMetric(
+    daily.precipitation_probability_max?.[index],
+    "%",
+  );
+  elements.forecastDetailWind.textContent = formatMetric(
+    daily.wind_speed_10m_max?.[index],
+    " km/h",
+  );
+  elements.forecastDetailUv.textContent = formatMetric(daily.uv_index_max?.[index], "");
+  elements.forecastDetailFeelsLike.textContent = formatMetric(
+    afternoonHour?.apparent_temperature,
+    "°",
+  );
+  elements.forecastDetailHumidity.textContent = formatMetric(averageHumidity, "%");
+  elements.forecastTemperatureChart.replaceChildren(
+    createForecastChart(hourlyData, "temperature_2m", 100, t("forecastTemperatureChart")),
+  );
+  elements.forecastRainChart.replaceChildren(
+    createForecastChart(
+      hourlyData,
+      "precipitation_probability",
+      100,
+      t("forecastRainChart"),
+    ),
+  );
+
+  const hourlyFragment = document.createDocumentFragment();
+  for (const hourIndex of [0, 6, 12, 18]) {
+    const hour = hourlyData.find((item) => Number(item.time.slice(11, 13)) === hourIndex);
+    if (!hour) continue;
+    const item = document.createElement("div");
+    const timeLabel = document.createElement("span");
+    const icon = document.createElement("span");
+    const temperature = document.createElement("strong");
+    item.className = "forecast-detail-hour";
+    timeLabel.textContent = `${String(hourIndex).padStart(2, "0")}:00`;
+    icon.textContent = getWeatherDescription(hour.weather_code).icon;
+    icon.setAttribute("aria-hidden", "true");
+    temperature.textContent = formatMetric(hour.temperature_2m, "°");
+    item.append(timeLabel, icon, temperature);
+    hourlyFragment.append(item);
+  }
+  elements.forecastDetailHourly.replaceChildren(hourlyFragment);
+  elements.forecastDetailPrevious.disabled = index === 0;
+  elements.forecastDetailNext.disabled = index === daily.time.length - 1;
+}
+
 function renderForecast(daily) {
   const fragment = document.createDocumentFragment();
+  const lows = daily.temperature_2m_min.filter(Number.isFinite);
+  const highs = daily.temperature_2m_max.filter(Number.isFinite);
+  const rangeMin = lows.length ? Math.min(...lows) : 0;
+  const rangeMax = highs.length ? Math.max(...highs) : rangeMin + 1;
+  const totalRange = Math.max(1, rangeMax - rangeMin);
 
   for (let index = 0; index < daily.time.length; index += 1) {
-    const card = document.createElement("article");
+    const card = document.createElement("button");
     const day = document.createElement("p");
     const icon = document.createElement("span");
     const temperatures = document.createElement("div");
     const high = document.createElement("span");
     const low = document.createElement("span");
+    const range = document.createElement("span");
+    const rain = document.createElement("span");
     const condition = getWeatherDescription(daily.weather_code[index]);
     const date = new Date(`${daily.time[index]}T00:00:00Z`);
 
     card.className = "forecast-card";
-    day.className = "forecast-day";
-    day.textContent =
+    card.type = "button";
+    const formattedDay =
       index === 0
         ? t("today")
         : new Intl.DateTimeFormat(getLocale(), {
-            weekday: "short",
+            weekday: "long",
             timeZone: "UTC",
           }).format(date);
+    card.setAttribute(
+      "aria-label",
+      `${formattedDay}, ${condition.text}, ${t("high")} ${Math.round(daily.temperature_2m_max[index])}°, ${t("low")} ${Math.round(daily.temperature_2m_min[index])}°`,
+    );
+    day.className = "forecast-day";
+    day.textContent = formattedDay;
     icon.className = "forecast-icon";
     icon.setAttribute("aria-hidden", "true");
     icon.textContent = condition.icon;
@@ -3085,16 +3371,119 @@ function renderForecast(daily) {
     high.textContent = `${Math.round(daily.temperature_2m_max[index])}°`;
     low.className = "forecast-low";
     low.textContent = `${Math.round(daily.temperature_2m_min[index])}°`;
+    range.className = "forecast-temperature-range";
+    range.setAttribute("aria-hidden", "true");
+    const start = ((daily.temperature_2m_min[index] - rangeMin) / totalRange) * 100;
+    const end = ((daily.temperature_2m_max[index] - rangeMin) / totalRange) * 100;
+    range.style.setProperty("--range-start", `${start}%`);
+    range.style.setProperty("--range-end", `${end}%`);
+    rain.className = "forecast-rain";
+    const rainProbability = daily.precipitation_probability_max?.[index];
+    rain.textContent =
+      Number.isFinite(rainProbability) && rainProbability > 0
+        ? `${Math.round(rainProbability)}%`
+        : "";
     temperatures.setAttribute(
       "aria-label",
       `${condition.text}, ${t("high")} ${high.textContent}, ${t("low")} ${low.textContent}`,
     );
-    temperatures.append(high, low);
-    card.append(day, icon, temperatures);
+    temperatures.append(low, range, high);
+    card.append(day, icon, rain, temperatures);
+    card.addEventListener("click", () => {
+      renderForecastDetail(index);
+      if (!elements.forecastDetailDialog.open) elements.forecastDetailDialog.showModal();
+    });
     fragment.append(card);
   }
 
   elements.forecastList.replaceChildren(fragment);
+}
+
+function renderHourlyForecast(hourly, currentTime, timeZone) {
+  const startIndex = hourly.time.findIndex((time) => time >= currentTime);
+  const safeStartIndex = startIndex < 0 ? 0 : startIndex;
+  const endIndex = Math.min(safeStartIndex + 24, hourly.time.length);
+  const fragment = document.createDocumentFragment();
+  const timeFormatter = new Intl.DateTimeFormat(getLocale(), {
+    hour: "numeric",
+    timeZone,
+  });
+  let expectedRainTime;
+
+  for (let index = safeStartIndex; index < endIndex; index += 1) {
+    const item = document.createElement("article");
+    const hour = document.createElement("p");
+    const icon = document.createElement("span");
+    const temperature = document.createElement("p");
+    const rain = document.createElement("p");
+    const forecastTime = new Date(`${hourly.time[index]}:00Z`);
+    const probability = hourly.precipitation_probability?.[index];
+    const condition = getWeatherDescription(hourly.weather_code[index]);
+
+    item.className = "hourly-item";
+    hour.className = "hourly-time";
+    hour.textContent = index === safeStartIndex ? t("now") : timeFormatter.format(forecastTime);
+    icon.className = "hourly-icon";
+    icon.setAttribute("aria-label", condition.text);
+    icon.textContent = condition.icon;
+    temperature.className = "hourly-temperature";
+    temperature.textContent = `${Math.round(hourly.temperature_2m[index])}°`;
+    rain.className = "hourly-rain";
+    rain.textContent = Number.isFinite(probability) && probability > 0
+      ? `${Math.round(probability)}%`
+      : "";
+    if (expectedRainTime === undefined && Number.isFinite(probability) && probability >= 35) {
+      expectedRainTime = timeFormatter.format(forecastTime);
+    }
+
+    item.append(hour, icon, temperature, rain);
+    fragment.append(item);
+  }
+
+  elements.hourlyList.replaceChildren(fragment);
+  elements.hourlySummary.textContent = expectedRainTime
+    ? t("hourlyRainExpected", { time: expectedRainTime })
+    : t("hourlyNoRainExpected");
+}
+
+function renderSidebarLocations(place, current) {
+  const key = `${place.latitude},${place.longitude}`;
+  const existingIndex = sidebarPlaces.findIndex(
+    (item) => `${item.place.latitude},${item.place.longitude}` === key,
+  );
+  if (existingIndex >= 0) sidebarPlaces.splice(existingIndex, 1);
+  sidebarPlaces.unshift({ place, current });
+  sidebarPlaces.length = Math.min(sidebarPlaces.length, 7);
+
+  const fragment = document.createDocumentFragment();
+  for (const [index, item] of sidebarPlaces.entries()) {
+    const button = document.createElement("button");
+    const heading = document.createElement("span");
+    const temperature = document.createElement("span");
+    const detail = document.createElement("span");
+    const condition = document.createElement("span");
+
+    button.className = "sidebar-location";
+    button.type = "button";
+    button.setAttribute(
+      "aria-current",
+      String(index === 0),
+    );
+    heading.className = "sidebar-location-name";
+    heading.textContent = getLocationName(item.place);
+    temperature.className = "sidebar-location-temperature";
+    temperature.textContent = `${Math.round(item.current.temperature_2m)}°`;
+    detail.className = "sidebar-location-detail";
+    detail.textContent = getLocationDetail(item.place);
+    condition.className = "sidebar-location-condition";
+    condition.textContent = getWeatherDescription(item.current.weather_code).text;
+    button.append(heading, temperature, detail, condition);
+    button.addEventListener("click", () => {
+      if (index > 0) void loadWeather(item.place);
+    });
+    fragment.append(button);
+  }
+  elements.sidebarLocations.replaceChildren(fragment);
 }
 
 function renderWeather(place, data) {
@@ -3118,6 +3507,7 @@ function renderWeather(place, data) {
 
   elements.locationName.textContent = getLocationName(place);
   elements.locationDetail.textContent = getLocationDetail(place);
+  renderSidebarLocations(place, current);
   elements.updatedAt.textContent = t("updatedAt", {
     time: clockFormatter.format(currentTime),
   });
@@ -3144,6 +3534,7 @@ function renderWeather(place, data) {
   );
   setWeatherBackground(current.weather_code, current.is_day);
   renderForecast(data.daily);
+  renderHourlyForecast(data.hourly, current.time, timezone);
 }
 
 function stopRadarPlayback() {
@@ -3327,6 +3718,24 @@ elements.languageSelect.addEventListener("change", (event) => {
   changeLanguage(event.target.value);
 });
 
+elements.forecastDetailClose.addEventListener("click", () => {
+  elements.forecastDetailDialog.close();
+});
+elements.forecastDetailDialog.addEventListener("click", (event) => {
+  if (event.target === elements.forecastDetailDialog) {
+    elements.forecastDetailDialog.close();
+  }
+});
+elements.forecastDetailPrevious.addEventListener("click", () => {
+  if (selectedForecastIndex > 0) renderForecastDetail(selectedForecastIndex - 1);
+});
+elements.forecastDetailNext.addEventListener("click", () => {
+  const lastIndex = (weatherContext?.daily.time.length ?? 0) - 1;
+  if (selectedForecastIndex < lastIndex) {
+    renderForecastDetail(selectedForecastIndex + 1);
+  }
+});
+
 elements.assistantPersonaTabs.addEventListener("click", (event) => {
   const tab = event.target.closest('[role="tab"]');
   if (!tab || !elements.assistantPersonaTabs.contains(tab)) return;
@@ -3417,6 +3826,7 @@ document.addEventListener("click", (event) => {
 
 async function loadWeather(place) {
   const currentRequestId = ++requestId;
+  if (elements.forecastDetailDialog.open) elements.forecastDetailDialog.close();
   if (voiceConversationActive) endVoiceConversation();
   assistantQueryId += 1;
   assistantController?.abort();
@@ -3445,12 +3855,14 @@ async function loadWeather(place) {
     longitude: String(place.longitude),
     current:
       "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,uv_index,visibility",
+    hourly:
+      "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,precipitation,precipitation_probability",
     daily:
-      "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+      "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,uv_index_max",
     temperature_unit: "celsius",
     wind_speed_unit: "kmh",
     timezone: "auto",
-    forecast_days: "7",
+    forecast_days: "10",
   });
 
   try {
