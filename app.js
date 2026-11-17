@@ -22,6 +22,12 @@ const translations = {
     searchCity: "Tìm thành phố",
     searchPlaceholder: "Tìm thành phố, ví dụ: Hà Nội, Tokyo",
     searchButton: "Tìm kiếm",
+    addLocation: "Thêm",
+    locationAdded: "Đã thêm",
+    locationAlreadySaved: "Đã lưu",
+    saveLocationError: "Không thể lưu địa điểm này trên thiết bị.",
+    savedWeatherUnavailable: "Không tải được thời tiết",
+    savedWeatherError: "Không thể tải thời tiết cho {city}.",
     searchHint: "Tìm một thành phố để khám phá thời tiết nơi đó.",
     myLocations: "Địa điểm của tôi",
     sidebarHint: "Tìm kiếm thành phố để thêm địa điểm",
@@ -130,6 +136,12 @@ const translations = {
     searchCity: "Search for a city",
     searchPlaceholder: "Search a city, e.g. London, Tokyo",
     searchButton: "Search",
+    addLocation: "Add",
+    locationAdded: "Added",
+    locationAlreadySaved: "Saved",
+    saveLocationError: "Could not save this location on your device.",
+    savedWeatherUnavailable: "Weather unavailable",
+    savedWeatherError: "Could not load weather for {city}.",
     searchHint: "Find a city and discover what the sky is like there.",
     myLocations: "My Locations",
     sidebarHint: "Search for a city to add a location",
@@ -241,6 +253,12 @@ const translations = {
     searchCity: "搜尋城市",
     searchPlaceholder: "搜尋城市，例如：臺北、東京",
     searchButton: "搜尋",
+    addLocation: "新增",
+    locationAdded: "已新增",
+    locationAlreadySaved: "已儲存",
+    saveLocationError: "無法在這部裝置上儲存此位置。",
+    savedWeatherUnavailable: "無法取得天氣",
+    savedWeatherError: "無法載入「{city}」的天氣。",
     searchHint: "試試搜尋一座城市，看看那裡的天空。",
     weatherSection: "目前天氣與未來預報",
     yourSky: "你所在的天空",
@@ -362,6 +380,7 @@ function applyTranslations() {
     }
   });
   elements.languageSelect.value = currentLanguage;
+  updateAddLocationButton();
 }
 
 function changeLanguage(language) {
@@ -428,6 +447,7 @@ const elements = {
   languageSelect: document.querySelector("#language-select"),
   searchForm: document.querySelector("#search-form"),
   searchInput: document.querySelector("#city-search"),
+  searchAddButton: document.querySelector("#search-add-button"),
   suggestions: document.querySelector("#suggestions"),
   locationName: document.querySelector("#location-name"),
   locationDetail: document.querySelector("#location-detail"),
@@ -439,6 +459,7 @@ const elements = {
   currentCondition: document.querySelector("#current-condition"),
   feelsLike: document.querySelector("#feels-like"),
   sidebarLocations: document.querySelector("#sidebar-locations"),
+  sidebarStatus: document.querySelector("#sidebar-status"),
   hourlyList: document.querySelector("#hourly-list"),
   hourlySummary: document.querySelector("#hourly-summary"),
   humidity: document.querySelector("#humidity"),
@@ -494,8 +515,77 @@ let radarTimeZone = "UTC";
 let radarTileHost = RADAR_TILE_URL;
 let weatherBackground;
 let weatherContext;
-const sidebarPlaces = [];
+const SAVED_LOCATIONS_KEY = "saved_weather_locations";
+const sidebarPlaces = loadSavedLocations();
 let selectedForecastIndex = 0;
+
+function normalizePlace(place) {
+  if (
+    !place ||
+    typeof place.name !== "string" ||
+    !place.name.trim() ||
+    !Number.isFinite(place.latitude) ||
+    place.latitude < -90 ||
+    place.latitude > 90 ||
+    !Number.isFinite(place.longitude) ||
+    place.longitude < -180 ||
+    place.longitude > 180
+  ) {
+    return undefined;
+  }
+
+  return {
+    name: place.name,
+    latitude: place.latitude,
+    longitude: place.longitude,
+    country_code: typeof place.country_code === "string" ? place.country_code : "",
+    country: typeof place.country === "string" ? place.country : "",
+    admin1: typeof place.admin1 === "string" ? place.admin1 : "",
+    admin2: typeof place.admin2 === "string" ? place.admin2 : "",
+    timezone: typeof place.timezone === "string" ? place.timezone : "",
+  };
+}
+
+function getPlaceKey(place) {
+  return `${place.latitude.toFixed(4)},${place.longitude.toFixed(4)}`;
+}
+
+function loadSavedLocations() {
+  const saved = localStorage.getItem(SAVED_LOCATIONS_KEY);
+  if (!saved) return [];
+
+  try {
+    const parsed = JSON.parse(saved);
+    if (!Array.isArray(parsed)) {
+      throw new TypeError("Saved weather locations must be an array.");
+    }
+
+    const locations = [];
+    const seen = new Set();
+    for (const candidate of parsed) {
+      const place = normalizePlace(candidate);
+      if (!place || seen.has(getPlaceKey(place))) continue;
+      seen.add(getPlaceKey(place));
+      locations.push({ place, current: undefined, error: false, loading: false });
+    }
+    return locations;
+  } catch (error) {
+    console.error("Could not read saved weather locations.", error);
+    return [];
+  }
+}
+
+function persistSavedLocations() {
+  localStorage.setItem(
+    SAVED_LOCATIONS_KEY,
+    JSON.stringify(sidebarPlaces.map((item) => item.place)),
+  );
+}
+
+function findSavedLocation(place) {
+  const key = getPlaceKey(place);
+  return sidebarPlaces.find((item) => getPlaceKey(item.place) === key);
+}
 
 const WEATHER_BACKGROUND_VERTEX_SHADER = `
   attribute float aSize;
@@ -923,6 +1013,16 @@ function getPreferredPlace(places) {
   );
 }
 
+function updateAddLocationButton(place = suggestions[activeSuggestion] ?? getPreferredPlace(suggestions)) {
+  const savedLocation = place ? findSavedLocation(place) : undefined;
+  const label = savedLocation
+    ? t("locationAlreadySaved")
+    : t("addLocation");
+  elements.searchAddButton.disabled = !place || Boolean(savedLocation);
+  elements.searchAddButton.querySelector("[data-i18n]").textContent = label;
+  elements.searchAddButton.setAttribute("aria-label", label);
+}
+
 async function fetchJson(url, signal, serviceName = "天氣服務") {
   const response = await fetch(url, { signal });
   if (!response.ok) {
@@ -973,6 +1073,7 @@ function renderSuggestions(places) {
   elements.suggestions.hidden = places.length === 0;
   elements.searchInput.setAttribute("aria-expanded", String(places.length > 0));
   elements.searchInput.removeAttribute("aria-activedescendant");
+  updateAddLocationButton();
 }
 
 function closeSuggestions() {
@@ -981,6 +1082,7 @@ function closeSuggestions() {
   elements.suggestions.hidden = true;
   elements.searchInput.setAttribute("aria-expanded", "false");
   elements.searchInput.removeAttribute("aria-activedescendant");
+  updateAddLocationButton();
 }
 
 function setActiveSuggestion(index) {
@@ -993,6 +1095,7 @@ function setActiveSuggestion(index) {
   const activeOption = options[activeSuggestion];
   elements.searchInput.setAttribute("aria-activedescendant", activeOption.id);
   activeOption.scrollIntoView({ block: "nearest" });
+  updateAddLocationButton(suggestions[activeSuggestion]);
 }
 
 function formatPlaceDate(date, timeZone) {
@@ -1304,17 +1407,9 @@ function renderHourlyForecast(hourly, currentTime, timeZone) {
     : t("hourlyNoRainExpected");
 }
 
-function renderSidebarLocations(place, current) {
-  const key = `${place.latitude},${place.longitude}`;
-  const existingIndex = sidebarPlaces.findIndex(
-    (item) => `${item.place.latitude},${item.place.longitude}` === key,
-  );
-  if (existingIndex >= 0) sidebarPlaces.splice(existingIndex, 1);
-  sidebarPlaces.unshift({ place, current });
-  sidebarPlaces.length = Math.min(sidebarPlaces.length, 7);
-
+function renderSidebarLocations() {
   const fragment = document.createDocumentFragment();
-  for (const [index, item] of sidebarPlaces.entries()) {
+  for (const item of sidebarPlaces) {
     const button = document.createElement("button");
     const heading = document.createElement("span");
     const temperature = document.createElement("span");
@@ -1325,28 +1420,99 @@ function renderSidebarLocations(place, current) {
     button.type = "button";
     button.setAttribute(
       "aria-current",
-      String(index === 0),
+      String(Boolean(weatherContext && getPlaceKey(weatherContext.place) === getPlaceKey(item.place))),
     );
     heading.className = "sidebar-location-name";
     heading.textContent = getLocationName(item.place);
     temperature.className = "sidebar-location-temperature";
-    temperature.textContent = `${Math.round(item.current.temperature_2m)}°`;
+    temperature.textContent = Number.isFinite(item.current?.temperature_2m)
+      ? `${Math.round(item.current.temperature_2m)}°`
+      : "--°";
     detail.className = "sidebar-location-detail";
     detail.textContent = getLocationDetail(item.place);
     condition.className = "sidebar-location-condition";
-    condition.textContent = getWeatherDescription(item.current.weather_code).text;
+    condition.textContent = item.error
+      ? t("savedWeatherUnavailable")
+      : item.current
+        ? getWeatherDescription(item.current.weather_code).text
+        : t("loadingWeather");
     button.append(heading, temperature, detail, condition);
     button.addEventListener("click", () => {
-      if (index > 0) void loadWeather(item.place);
+      if (!weatherContext || getPlaceKey(weatherContext.place) !== getPlaceKey(item.place)) {
+        void loadWeather(item.place);
+      }
     });
     fragment.append(button);
   }
   elements.sidebarLocations.replaceChildren(fragment);
 }
 
+function addSavedLocation(place) {
+  const normalizedPlace = normalizePlace(place);
+  if (!normalizedPlace) {
+    throw new TypeError("Cannot save an invalid weather location.");
+  }
+  const existing = findSavedLocation(normalizedPlace);
+  if (existing) return { item: existing, added: false };
+
+  const item = {
+    place: normalizedPlace,
+    current: undefined,
+    error: false,
+    loading: false,
+  };
+  sidebarPlaces.push(item);
+  try {
+    persistSavedLocations();
+  } catch (error) {
+    sidebarPlaces.pop();
+    throw error;
+  }
+  renderSidebarLocations();
+  return { item, added: true };
+}
+
+async function refreshSavedLocationWeather(item) {
+  if (item.loading) return;
+  item.loading = true;
+  item.error = false;
+  renderSidebarLocations();
+
+  const url = new URL(FORECAST_URL);
+  url.search = new URLSearchParams({
+    latitude: String(item.place.latitude),
+    longitude: String(item.place.longitude),
+    current: "temperature_2m,weather_code",
+    temperature_unit: "celsius",
+    timezone: "auto",
+  });
+
+  try {
+    const data = await fetchJson(url);
+    if (!data.current || !Number.isFinite(data.current.temperature_2m)) {
+      throw new Error(t("savedWeatherUnavailable"));
+    }
+    item.current = data.current;
+  } catch (error) {
+    item.error = true;
+    console.error(`Could not load saved weather for ${item.place.name}.`, error);
+    elements.sidebarStatus.textContent = t("savedWeatherError", {
+      city: getLocationName(item.place),
+    });
+  } finally {
+    item.loading = false;
+    renderSidebarLocations();
+  }
+}
+
 function renderWeather(place, data) {
   const current = data.current;
   weatherContext = { place, current, daily: data.daily, data };
+  const savedLocation = findSavedLocation(place);
+  if (savedLocation) {
+    savedLocation.current = current;
+    savedLocation.error = false;
+  }
   const condition = getWeatherDescription(current.weather_code);
   const timezone =
     data.timezone || place.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -1364,7 +1530,7 @@ function renderWeather(place, data) {
 
   elements.locationName.textContent = getLocationName(place);
   elements.locationDetail.textContent = getLocationDetail(place);
-  renderSidebarLocations(place, current);
+  renderSidebarLocations();
   elements.updatedAt.textContent = t("updatedAt", {
     time: clockFormatter.format(currentTime),
   });
@@ -1643,7 +1809,28 @@ async function submitSearch(query) {
   }
 }
 
+async function saveSuggestedLocation() {
+  const place = suggestions[activeSuggestion] ?? getPreferredPlace(suggestions);
+  if (!place) return;
+
+  try {
+    const result = addSavedLocation(place);
+    updateAddLocationButton(place);
+    elements.sidebarStatus.textContent = result.added
+      ? t("locationAdded")
+      : t("locationAlreadySaved");
+    if (result.added) await refreshSavedLocationWeather(result.item);
+  } catch (error) {
+    console.error("Could not save weather location.", error);
+    elements.sidebarStatus.textContent = t("saveLocationError");
+  }
+}
+
 createWeatherBackground();
+
+elements.searchAddButton.addEventListener("click", () => {
+  void saveSuggestedLocation();
+});
 
 elements.searchInput.addEventListener("input", () => {
   window.clearTimeout(debounceTimer);
@@ -1716,7 +1903,17 @@ async function initialize() {
     if (!taoyuan || taoyuan.country_code !== "TW") {
       throw new Error(t("defaultCityError"));
     }
+    try {
+      addSavedLocation(taoyuan);
+    } catch (error) {
+      console.error("Could not save the default weather location.", error);
+      elements.sidebarStatus.textContent = t("saveLocationError");
+    }
+    renderSidebarLocations();
     await loadWeather(taoyuan);
+    for (const item of sidebarPlaces) {
+      if (!item.current) void refreshSavedLocationWeather(item);
+    }
   } catch (error) {
     if (error.name === "AbortError") return;
     elements.currentCard.setAttribute("aria-busy", "false");
@@ -1727,4 +1924,5 @@ async function initialize() {
 }
 
 applyTranslations();
+renderSidebarLocations();
 initialize();

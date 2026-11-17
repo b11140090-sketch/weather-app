@@ -50,6 +50,7 @@
         <div class="sidebar-location-list" id="sidebar-locations" aria-live="polite">
           <p class="sidebar-empty" data-i18n="loadingWeather">Đang tải dữ liệu thời tiết…</p>
         </div>
+        <p class="sidebar-status" id="sidebar-status" role="status" aria-live="polite"></p>
         <p class="sidebar-footnote" data-i18n="sidebarHint">Tìm kiếm thành phố để thêm địa điểm</p>
       </aside>
 
@@ -71,6 +72,10 @@
               aria-controls="suggestions"
               aria-expanded="false"
             >
+            <button class="search-add-button" id="search-add-button" type="button" disabled>
+              <span aria-hidden="true">＋</span>
+              <span data-i18n="addLocation">Thêm</span>
+            </button>
             <button class="search-button" type="submit">
               <span data-i18n="searchButton">Tìm kiếm</span>
               <span aria-hidden="true">↗</span>
