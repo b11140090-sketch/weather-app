@@ -560,52 +560,9 @@ function changeLanguage(language) {
   elements.languageMenu.hidden = true;
   elements.languageTrigger.setAttribute("aria-expanded", "false");
   if (weatherContext) renderWeather(weatherContext.place, weatherContext.data);
-  if (weatherContext) void relocalizeCurrentPlace(weatherContext.place);
   if (radarFrames.length) setRadarFrames(radarFrames);
   if (elements.forecastDetailDialog.open && weatherContext) {
     renderForecastDetail(selectedForecastIndex);
-  }
-}
-
-async function relocalizeCurrentPlace(place) {
-  languagePlaceController?.abort();
-  const controller = new AbortController();
-  languagePlaceController = controller;
-  try {
-    const results = await searchPlaces(
-      place.search_name ?? place.name,
-      controller.signal,
-    );
-    if (languagePlaceController !== controller) return;
-    const localized = results
-      .map((candidate) => ({
-        candidate,
-        distance: Math.hypot(
-          candidate.latitude - place.latitude,
-          candidate.longitude - place.longitude,
-        ),
-      }))
-      .filter(({ distance }) => distance < 0.03)
-      .sort((a, b) => a.distance - b.distance)[0]?.candidate;
-    if (!localized) return;
-
-    const savedLocation = sidebarPlaces.find(
-      (item) =>
-        Math.hypot(
-          item.place.latitude - place.latitude,
-          item.place.longitude - place.longitude,
-        ) < 0.03,
-    );
-    if (savedLocation) {
-      savedLocation.place = normalizePlace(localized);
-      persistSavedLocations();
-    }
-    await loadWeather(localized);
-  } catch (error) {
-    if (error.name === "AbortError") return;
-    console.error("Could not update the city name for the selected language.", error);
-    elements.pageMessage.textContent =
-      error instanceof Error ? error.message : t("citySearchFailed");
   }
 }
 
@@ -769,7 +726,6 @@ let suggestions = [];
 let activeSuggestion = -1;
 let addCandidate;
 let suggestionController;
-let languagePlaceController;
 let weatherController;
 let debounceTimer;
 let requestId = 0;
@@ -789,24 +745,26 @@ const sidebarPlaces = loadSavedLocations();
 let selectedForecastIndex = 0;
 
 function normalizePlace(place) {
+  const latitude = parseCoordinate(place?.latitude);
+  const longitude = parseCoordinate(place?.longitude);
   if (
     !place ||
     typeof place.name !== "string" ||
     !place.name.trim() ||
-    !Number.isFinite(place.latitude) ||
-    place.latitude < -90 ||
-    place.latitude > 90 ||
-    !Number.isFinite(place.longitude) ||
-    place.longitude < -180 ||
-    place.longitude > 180
+    !Number.isFinite(latitude) ||
+    latitude < -90 ||
+    latitude > 90 ||
+    !Number.isFinite(longitude) ||
+    longitude < -180 ||
+    longitude > 180
   ) {
     return undefined;
   }
 
   return {
     name: place.name,
-    latitude: place.latitude,
-    longitude: place.longitude,
+    latitude,
+    longitude,
     country_code: typeof place.country_code === "string" ? place.country_code : "",
     country: typeof place.country === "string" ? place.country : "",
     admin1: typeof place.admin1 === "string" ? place.admin1 : "",
@@ -816,12 +774,24 @@ function normalizePlace(place) {
   };
 }
 
+function parseCoordinate(value) {
+  if (typeof value === "number") return value;
+  if (typeof value === "string" && value.trim()) return Number(value);
+  return Number.NaN;
+}
+
 function getPlaceKey(place) {
   return `${place.latitude.toFixed(4)},${place.longitude.toFixed(4)}`;
 }
 
 function loadSavedLocations() {
-  const saved = localStorage.getItem(SAVED_LOCATIONS_KEY);
+  let saved;
+  try {
+    saved = localStorage.getItem(SAVED_LOCATIONS_KEY);
+  } catch (error) {
+    console.error("Could not read saved weather locations from local storage.", error);
+    return [];
+  }
   if (!saved) return [];
 
   try {
@@ -832,11 +802,29 @@ function loadSavedLocations() {
 
     const locations = [];
     const seen = new Set();
+    let needsMigration = false;
     for (const candidate of parsed) {
       const place = normalizePlace(candidate);
-      if (!place || seen.has(getPlaceKey(place))) continue;
+      if (!place) {
+        needsMigration = true;
+        continue;
+      }
+      if (seen.has(getPlaceKey(place))) {
+        needsMigration = true;
+        continue;
+      }
       seen.add(getPlaceKey(place));
       locations.push({ place, current: undefined, error: false, loading: false });
+    }
+    if (needsMigration) {
+      try {
+        localStorage.setItem(
+          SAVED_LOCATIONS_KEY,
+          JSON.stringify(locations.map((item) => item.place)),
+        );
+      } catch (error) {
+        console.error("Could not migrate saved weather locations.", error);
+      }
     }
     return locations;
   } catch (error) {
@@ -1293,7 +1281,24 @@ function updateAddLocationButton(place = addCandidate) {
 async function fetchJson(url, signal, serviceName = "天氣服務") {
   const response = await fetch(url, { signal });
   if (!response.ok) {
-    throw new Error(t("errorPrefix", { status: response.status }));
+    const body = await response.text();
+    let detail = body.trim();
+    if (detail) {
+      try {
+        const parsed = JSON.parse(detail);
+        detail =
+          (typeof parsed.reason === "string" && parsed.reason) ||
+          (typeof parsed.message === "string" && parsed.message) ||
+          (typeof parsed.error === "string" && parsed.error) ||
+          detail;
+      } catch {
+        // Keep the response body as-is when the service did not return JSON.
+      }
+    }
+    const statusText = response.statusText ? ` ${response.statusText}` : "";
+    throw new Error(
+      `${serviceName}: HTTP ${response.status}${statusText}${detail ? ` — ${detail}` : ""}`,
+    );
   }
   return response.json();
 }
@@ -1305,7 +1310,9 @@ async function searchPlaces(query, signal) {
   url.search = new URLSearchParams({
     name: searchName,
     count: "7",
-    language: languageByCode.get(currentLanguage)?.apiLanguage ?? "en",
+    language: (languageByCode.get(currentLanguage)?.apiLanguage ?? "en")
+      .split("-")[0]
+      .toLowerCase(),
     format: "json",
   });
   const data = await fetchJson(url, signal, "城市搜尋服務");
@@ -2089,9 +2096,9 @@ async function loadWeather(place) {
     latitude: String(place.latitude),
     longitude: String(place.longitude),
     current:
-      "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,uv_index,dew_point_2m,visibility,precipitation,surface_pressure",
+      "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m",
     hourly:
-      "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,precipitation,precipitation_probability",
+      "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,precipitation,precipitation_probability,visibility,dew_point_2m,uv_index",
     daily:
       "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset",
     temperature_unit: "celsius",
@@ -2103,7 +2110,23 @@ async function loadWeather(place) {
   try {
     const data = await fetchJson(url, weatherController.signal);
     if (currentRequestId !== requestId) return;
-    renderWeather(place, data);
+    const currentHour = data.hourly?.time?.findIndex(
+      (time) => time.slice(0, 13) === data.current?.time?.slice(0, 13),
+    ) ?? -1;
+    if (currentHour < 0) {
+      throw new Error("Open-Meteo hourly data does not include the current hour.");
+    }
+    const hourlyCurrentFields = [
+      "visibility",
+      "dew_point_2m",
+      "uv_index",
+      "precipitation_probability",
+    ];
+    const current = { ...data.current };
+    for (const field of hourlyCurrentFields) {
+      current[field] = data.hourly[field]?.[currentHour];
+    }
+    renderWeather(place, { ...data, current });
   } catch (error) {
     if (error.name === "AbortError" || currentRequestId !== requestId) return;
     elements.currentCard.setAttribute("aria-busy", "false");
@@ -2244,25 +2267,27 @@ document.addEventListener("click", (event) => {
 window.addEventListener("pagehide", () => {
   weatherController?.abort();
   radarController?.abort();
-  languagePlaceController?.abort();
 });
 
 async function initialize() {
   elements.searchInput.value = "桃園";
   try {
-    const places = await searchPlaces(DEFAULT_CITY);
-    const taoyuan = getPreferredPlace(places);
-    if (!taoyuan || taoyuan.country_code !== "TW") {
-      throw new Error(t("defaultCityError"));
-    }
-    try {
-      addSavedLocation(taoyuan);
-    } catch (error) {
-      console.error("Could not save the default weather location.", error);
-      elements.sidebarStatus.textContent = t("saveLocationError");
+    let initialPlace = sidebarPlaces[0]?.place;
+    if (!initialPlace) {
+      const places = await searchPlaces(DEFAULT_CITY);
+      initialPlace = getPreferredPlace(places);
+      if (!initialPlace || initialPlace.country_code !== "TW") {
+        throw new Error(t("defaultCityError"));
+      }
+      try {
+        addSavedLocation(initialPlace);
+      } catch (error) {
+        console.error("Could not save the default weather location.", error);
+        elements.sidebarStatus.textContent = t("saveLocationError");
+      }
     }
     renderSidebarLocations();
-    await loadWeather(taoyuan);
+    await loadWeather(initialPlace);
     for (const item of sidebarPlaces) {
       if (!item.current) void refreshSavedLocationWeather(item);
     }
