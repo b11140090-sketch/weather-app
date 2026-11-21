@@ -78,7 +78,7 @@
         </header>
 
         <section class="weather-dashboard" aria-label="Weather dashboard" data-i18n="weatherSection" data-i18n-attr="aria-label">
-          <section class="hero-weather" aria-live="polite">
+          <section class="hero-weather" aria-live="polite" role="button" tabindex="0" data-detail-metric="temperature" aria-haspopup="dialog" data-i18n="detailTemperature" data-i18n-attr="aria-label">
             <div class="hero-copy">
               <p class="location-detail" id="location-detail">—</p>
               <h1 id="location-name">桃園</h1>
@@ -117,7 +117,7 @@
                 </div>
               </section>
 
-              <article class="metric-card glass-card uv-card">
+              <article class="metric-card glass-card uv-card" data-detail-metric="uv" role="button" tabindex="0" aria-haspopup="dialog">
                 <h2 class="card-title"><span aria-hidden="true">☼</span><span data-i18n="uvIndex">UV INDEX</span></h2>
                 <p class="metric-value" id="uv-index">--</p>
                 <p class="metric-note" id="uv-note" data-i18n="sunProtection">Sun protection</p>
@@ -125,7 +125,7 @@
                 <div class="scale-ends"><span data-i18n="low">Low</span><span data-i18n="high">High</span></div>
               </article>
 
-              <article class="metric-card glass-card sun-card">
+              <article class="metric-card glass-card sun-card" data-detail-metric="sun" role="button" tabindex="0" aria-haspopup="dialog">
                 <h2 class="card-title"><span aria-hidden="true">☀</span><span data-i18n="sunriseSunset">SUNRISE · SUNSET</span></h2>
                 <div class="sun-times"><span id="sunrise-time">--:--</span><span id="sunset-time">--:--</span></div>
                 <svg class="sun-arc" viewBox="0 0 300 92" role="img" aria-label="Sun path" data-i18n="sunriseSunset" data-i18n-attr="aria-label">
@@ -136,7 +136,7 @@
                 <div class="sun-labels"><span data-i18n="sunrise">Sunrise</span><span data-i18n="sunset">Sunset</span></div>
               </article>
 
-              <article class="metric-card glass-card wind-card">
+              <article class="metric-card glass-card wind-card" data-detail-metric="wind" role="button" tabindex="0" aria-haspopup="dialog">
                 <h2 class="card-title"><span aria-hidden="true">➤</span><span data-i18n="windSpeed">WIND</span></h2>
                 <div class="compass" id="compass">
                   <span class="compass-north" id="compass-north">N</span><span class="compass-east" id="compass-east">E</span><span class="compass-south" id="compass-south">S</span><span class="compass-west" id="compass-west">W</span>
@@ -146,31 +146,31 @@
                 <p class="metric-note" id="wind-note">—</p>
               </article>
 
-              <article class="metric-card glass-card">
+              <article class="metric-card glass-card" data-detail-metric="humidity" role="button" tabindex="0" aria-haspopup="dialog">
                 <h2 class="card-title"><span aria-hidden="true">◉</span><span data-i18n="humidity">HUMIDITY</span></h2>
                 <p class="metric-value" id="humidity">--<small>%</small></p>
                 <p class="metric-note" id="dew-point-note">—</p>
               </article>
 
-              <article class="metric-card glass-card">
+              <article class="metric-card glass-card" data-detail-metric="visibility" role="button" tabindex="0" aria-haspopup="dialog">
                 <h2 class="card-title"><span aria-hidden="true">◌</span><span data-i18n="visibility">VISIBILITY</span></h2>
                 <p class="metric-value" id="visibility">--<small> km</small></p>
                 <p class="metric-note" id="visibility-note">—</p>
               </article>
 
-              <article class="metric-card glass-card">
+              <article class="metric-card glass-card" data-detail-metric="precipitation" role="button" tabindex="0" aria-haspopup="dialog">
                 <h2 class="card-title"><span aria-hidden="true">〰</span><span data-i18n="precipitation">PRECIPITATION</span></h2>
                 <p class="metric-value" id="precipitation">--<small> mm</small></p>
                 <p class="metric-note" id="precipitation-note">—</p>
               </article>
 
-              <article class="metric-card glass-card">
+              <article class="metric-card glass-card" data-detail-metric="feels" role="button" tabindex="0" aria-haspopup="dialog">
                 <h2 class="card-title"><span aria-hidden="true">🌡</span><span data-i18n="feelsLike">FEELS LIKE</span></h2>
                 <p class="metric-value" id="feels-like">--<small>°</small></p>
                 <p class="metric-note" id="feels-note">—</p>
               </article>
 
-              <article class="metric-card glass-card pressure-card">
+              <article class="metric-card glass-card pressure-card" data-detail-metric="pressure" role="button" tabindex="0" aria-haspopup="dialog">
                 <h2 class="card-title"><span aria-hidden="true">◉</span><span data-i18n="pressure">PRESSURE</span></h2>
                 <div class="pressure-gauge">
                   <svg viewBox="0 0 120 70" aria-hidden="true"><path class="gauge-track" d="M12 60 A48 48 0 0 1 108 60"></path><path class="gauge-value" id="pressure-gauge-value" d="M12 60 A48 48 0 0 1 108 60"></path><line id="pressure-needle" x1="60" y1="60" x2="60" y2="21"></line><circle cx="60" cy="60" r="4"></circle></svg>
@@ -186,25 +186,27 @@
       </main>
     </div>
 
-    <dialog class="forecast-detail-dialog" id="forecast-detail-dialog" aria-labelledby="forecast-detail-date">
+    <dialog class="forecast-detail-dialog" id="forecast-detail-dialog" aria-labelledby="forecast-detail-title">
       <div class="forecast-detail-shell">
         <header class="forecast-detail-heading">
-          <div><p class="section-kicker" data-i18n="forecastDetailTitle">Daily details</p><h2 id="forecast-detail-date">—</h2></div>
+          <div class="detail-title"><span class="forecast-detail-icon" id="forecast-detail-icon" aria-hidden="true">☀</span><h2 id="forecast-detail-title">—</h2></div>
           <button class="forecast-detail-close" id="forecast-detail-close" type="button" aria-label="Close" data-i18n="forecastDetailClose" data-i18n-attr="aria-label">×</button>
         </header>
-        <div class="forecast-detail-summary"><span class="forecast-detail-icon" id="forecast-detail-icon"></span><div><p class="forecast-detail-condition" id="forecast-detail-condition"></p><p class="forecast-detail-temperatures" id="forecast-detail-temperatures"></p></div></div>
-        <div class="forecast-detail-stats">
-          <article><span data-i18n="forecastRainTotal">Precipitation</span><strong id="forecast-detail-rain-total">—</strong></article>
-          <article><span data-i18n="forecastRainChance">Rain chance</span><strong id="forecast-detail-rain-chance">—</strong></article>
-          <article><span data-i18n="forecastWind">Peak wind</span><strong id="forecast-detail-wind">—</strong></article>
-          <article><span data-i18n="forecastUv">Max UV</span><strong id="forecast-detail-uv">—</strong></article>
-          <article><span data-i18n="forecastFeelsLike">Feels like</span><strong id="forecast-detail-feels-like">—</strong></article>
-          <article><span data-i18n="forecastHumidity">Humidity</span><strong id="forecast-detail-humidity">—</strong></article>
-        </div>
-        <section class="forecast-detail-chart-section"><h3 id="forecast-temperature-chart-title" data-i18n="forecastTemperatureChart">Hourly temperature</h3><div id="forecast-temperature-chart"></div></section>
-        <section class="forecast-detail-chart-section"><h3 id="forecast-rain-chart-title" data-i18n="forecastRainChart">Hourly rain chance</h3><div id="forecast-rain-chart"></div></section>
-        <div class="forecast-detail-hourly" id="forecast-detail-hourly"></div>
-        <footer class="forecast-detail-navigation"><button id="forecast-detail-previous" type="button" data-i18n="forecastPreviousDay">Previous day</button><button id="forecast-detail-next" type="button" data-i18n="forecastNextDay">Next day</button></footer>
+        <div class="detail-day-strip" id="forecast-detail-days" role="group" aria-label="Choose forecast day"></div>
+        <footer class="forecast-detail-navigation"><button id="forecast-detail-previous" type="button" aria-label="Previous day" data-i18n="forecastPreviousDay" data-i18n-attr="aria-label">‹</button><h3 id="forecast-detail-date">—</h3><button id="forecast-detail-next" type="button" aria-label="Next day" data-i18n="forecastNextDay" data-i18n-attr="aria-label">›</button></footer>
+        <section class="detail-metric" aria-live="polite">
+          <strong id="forecast-detail-value">—</strong>
+          <p id="forecast-detail-secondary">—</p>
+        </section>
+        <div class="detail-chart-frame" id="forecast-detail-chart"></div>
+        <section class="detail-analysis">
+          <h3 data-i18n="dailySummary">Daily summary</h3>
+          <p id="forecast-detail-summary">—</p>
+        </section>
+        <section class="detail-analysis">
+          <h3 data-i18n="dailyComparison">Daily comparison</h3>
+          <p id="forecast-detail-comparison">—</p>
+        </section>
       </div>
     </dialog>
   </body>

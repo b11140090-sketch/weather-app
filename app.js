@@ -504,6 +504,63 @@ for (const language of LANGUAGES) {
 translations["zh-TW"] = { ...translations.zh, ...languageByCode.get("zh-TW").translations };
 translations["zh-CN"] = { ...translations["zh-CN"], ...languageByCode.get("zh-CN").translations };
 
+const DETAIL_TRANSLATIONS = {
+  vi: ["Nhiệt độ", "Tóm tắt hàng ngày", "So sánh hàng ngày", "Trong ngày, {metric} dao động từ {min} đến {max}, trung bình {average}.", "Trung bình cao hơn {difference} so với ngày trước.", "Trung bình thấp hơn {difference} so với ngày trước.", "Mức trung bình gần như không đổi so với ngày trước.", "Chưa có dữ liệu ngày trước để so sánh. {metric} được ghi nhận theo từng giờ.", "Điểm sương", "Gió giật", "Mặt trời mọc {sunrise}, lặn {sunset}.", "Thời lượng ban ngày khoảng {hours} giờ.", "Chọn ngày dự báo"],
+  en: ["Temperature", "Daily summary", "Daily comparison", "Today, {metric} ranged from {min} to {max}, averaging {average}.", "The daily average is {difference} higher than the previous day.", "The daily average is {difference} lower than the previous day.", "The daily average is nearly unchanged from the previous day.", "No previous-day reading is available. {metric} is measured throughout the day.", "Dew point", "Wind gust", "Sunrise at {sunrise}; sunset at {sunset}.", "Daylight lasts about {hours} hours.", "Choose forecast day"],
+  "zh-TW": ["氣溫", "每日摘要", "每日比較", "今天{metric}介於{min}至{max}，平均為{average}。", "每日平均比前一天高{difference}。", "每日平均比前一天低{difference}。", "每日平均與前一天相近。", "沒有前一天的資料可供比較；{metric}為全天逐時觀測值。", "露點", "陣風", "日出時間為{sunrise}，日落時間為{sunset}。", "白晝約{hours}小時。", "選擇預報日期"],
+  ja: ["気温", "1日の概要", "前日との比較", "今日の{metric}は{min}から{max}の範囲で、平均は{average}です。", "日平均は前日より{difference}高くなっています。", "日平均は前日より{difference}低くなっています。", "日平均は前日とほぼ同じです。", "前日の比較データはありません。{metric}は1日を通して毎時観測されます。", "露点", "突風", "日の出は{sunrise}、日の入りは{sunset}です。", "日照時間は約{hours}時間です。", "予報日を選択"],
+  ko: ["기온", "일일 요약", "전날 비교", "오늘 {metric}은(는) {min}에서 {max} 사이이며 평균은 {average}입니다.", "일평균이 전날보다 {difference} 높습니다.", "일평균이 전날보다 {difference} 낮습니다.", "일평균은 전날과 거의 같습니다.", "전날 비교 데이터가 없습니다. {metric}은(는) 하루 동안 매시간 측정됩니다.", "이슬점", "돌풍", "일출은 {sunrise}, 일몰은 {sunset}입니다.", "낮 길이는 약 {hours}시간입니다.", "예보 날짜 선택"],
+  "zh-CN": ["气温", "每日摘要", "每日比较", "今天{metric}在{min}至{max}之间，平均为{average}。", "日平均比前一天高{difference}。", "日平均比前一天低{difference}。", "日平均与前一天基本持平。", "没有前一天的数据可供比较；{metric}为全天逐小时观测值。", "露点", "阵风", "日出时间为{sunrise}，日落时间为{sunset}。", "白昼约{hours}小时。", "选择预报日期"],
+  es: ["Temperatura", "Resumen diario", "Comparación diaria", "Hoy, {metric} osciló entre {min} y {max}, con una media de {average}.", "La media diaria es {difference} más alta que ayer.", "La media diaria es {difference} más baja que ayer.", "La media diaria apenas cambia respecto a ayer.", "No hay datos del día anterior para comparar. {metric} se mide cada hora.", "Punto de rocío", "Ráfaga de viento", "Amanecer a las {sunrise}; atardecer a las {sunset}.", "El día dura unas {hours} horas.", "Elegir día del pronóstico"],
+  fr: ["Température", "Résumé quotidien", "Comparaison quotidienne", "Aujourd’hui, {metric} a varié de {min} à {max}, avec une moyenne de {average}.", "La moyenne du jour est supérieure de {difference} à celle d’hier.", "La moyenne du jour est inférieure de {difference} à celle d’hier.", "La moyenne du jour est presque identique à celle d’hier.", "Aucune donnée de la veille n’est disponible. {metric} est mesuré chaque heure.", "Point de rosée", "Rafale", "Lever du soleil à {sunrise} ; coucher à {sunset}.", "La durée du jour est d’environ {hours} heures.", "Choisir un jour"],
+  de: ["Temperatur", "Tagesübersicht", "Tagesvergleich", "Heute lag {metric} zwischen {min} und {max}; der Durchschnitt beträgt {average}.", "Der Tagesdurchschnitt liegt {difference} über dem Vortag.", "Der Tagesdurchschnitt liegt {difference} unter dem Vortag.", "Der Tagesdurchschnitt ist nahezu unverändert.", "Für den Vergleich liegen keine Vortagsdaten vor. {metric} wird stündlich gemessen.", "Taupunkt", "Windböe", "Sonnenaufgang um {sunrise}, Sonnenuntergang um {sunset}.", "Der Tag dauert etwa {hours} Stunden.", "Vorhersagetag auswählen"],
+  pt: ["Temperatura", "Resumo diário", "Comparação diária", "Hoje, {metric} variou entre {min} e {max}, com média de {average}.", "A média diária está {difference} acima da do dia anterior.", "A média diária está {difference} abaixo da do dia anterior.", "A média diária está praticamente igual à do dia anterior.", "Não há dados do dia anterior para comparar. {metric} é medido a cada hora.", "Ponto de orvalho", "Rajada de vento", "Nascer do sol às {sunrise}; pôr do sol às {sunset}.", "O dia dura cerca de {hours} horas.", "Escolher dia da previsão"],
+  ru: ["Температура", "Сводка за день", "Сравнение с предыдущим днём", "Сегодня {metric} меняется от {min} до {max}, среднее значение — {average}.", "Среднее за день на {difference} выше, чем накануне.", "Среднее за день на {difference} ниже, чем накануне.", "Среднее за день почти не изменилось.", "Нет данных за предыдущий день для сравнения. {metric} измеряется каждый час.", "Точка росы", "Порыв ветра", "Восход в {sunrise}, закат в {sunset}.", "Световой день длится около {hours} ч.", "Выбрать день прогноза"],
+  it: ["Temperatura", "Riepilogo giornaliero", "Confronto giornaliero", "Oggi {metric} varia da {min} a {max}, con una media di {average}.", "La media giornaliera è {difference} più alta rispetto al giorno precedente.", "La media giornaliera è {difference} più bassa rispetto al giorno precedente.", "La media giornaliera è quasi invariata rispetto al giorno precedente.", "Non ci sono dati del giorno precedente da confrontare. {metric} viene misurato ogni ora.", "Punto di rugiada", "Raffica di vento", "Alba alle {sunrise}; tramonto alle {sunset}.", "La durata del giorno è di circa {hours} ore.", "Scegli il giorno"],
+  ar: ["درجة الحرارة", "ملخص يومي", "مقارنة يومية", "تراوحت {metric} اليوم بين {min} و{max}، بمتوسط {average}.", "المتوسط اليومي أعلى من اليوم السابق بمقدار {difference}.", "المتوسط اليومي أقل من اليوم السابق بمقدار {difference}.", "المتوسط اليومي مماثل تقريبًا لليوم السابق.", "لا تتوفر بيانات اليوم السابق للمقارنة. تُقاس {metric} كل ساعة.", "نقطة الندى", "هبة رياح", "الشروق {sunrise} والغروب {sunset}.", "يستمر النهار نحو {hours} ساعة.", "اختر يوم التوقعات"],
+  hi: ["तापमान", "दैनिक सारांश", "दैनिक तुलना", "आज {metric} {min} से {max} के बीच रहा; औसत {average} है।", "दैनिक औसत पिछले दिन से {difference} अधिक है।", "दैनिक औसत पिछले दिन से {difference} कम है।", "दैनिक औसत पिछले दिन के लगभग समान है।", "तुलना के लिए पिछले दिन का डेटा उपलब्ध नहीं है। {metric} हर घंटे मापा जाता है।", "ओसांक", "हवा का झोंका", "सूर्योदय {sunrise} पर और सूर्यास्त {sunset} पर।", "दिन लगभग {hours} घंटे का है।", "पूर्वानुमान का दिन चुनें"],
+  th: ["อุณหภูมิ", "สรุปรายวัน", "เปรียบเทียบรายวัน", "วันนี้{metric}อยู่ระหว่าง {min} ถึง {max} โดยเฉลี่ย {average}", "ค่าเฉลี่ยรายวันสูงกว่าวันก่อน {difference}", "ค่าเฉลี่ยรายวันต่ำกว่าวันก่อน {difference}", "ค่าเฉลี่ยรายวันใกล้เคียงกับวันก่อน", "ไม่มีข้อมูลวันก่อนสำหรับเปรียบเทียบ โดยวัด{metric}ทุกชั่วโมง", "จุดน้ำค้าง", "ลมกระโชก", "พระอาทิตย์ขึ้นเวลา {sunrise} และตกเวลา {sunset}", "ช่วงกลางวันยาวประมาณ {hours} ชั่วโมง", "เลือกวันพยากรณ์"],
+  id: ["Suhu", "Ringkasan harian", "Perbandingan harian", "Hari ini, {metric} berkisar antara {min} hingga {max}, dengan rata-rata {average}.", "Rata-rata harian {difference} lebih tinggi daripada hari sebelumnya.", "Rata-rata harian {difference} lebih rendah daripada hari sebelumnya.", "Rata-rata harian hampir sama dengan hari sebelumnya.", "Data hari sebelumnya tidak tersedia untuk dibandingkan. {metric} diukur setiap jam.", "Titik embun", "Hembusan angin", "Matahari terbit pukul {sunrise}; terbenam pukul {sunset}.", "Panjang siang sekitar {hours} jam.", "Pilih hari prakiraan"],
+  ms: ["Suhu", "Ringkasan harian", "Perbandingan harian", "Hari ini, {metric} antara {min} hingga {max}, dengan purata {average}.", "Purata harian {difference} lebih tinggi berbanding hari sebelumnya.", "Purata harian {difference} lebih rendah berbanding hari sebelumnya.", "Purata harian hampir sama dengan hari sebelumnya.", "Data hari sebelumnya tiada untuk perbandingan. {metric} diukur setiap jam.", "Takat embun", "Tiupan angin", "Matahari terbit pada {sunrise}; terbenam pada {sunset}.", "Waktu siang kira-kira {hours} jam.", "Pilih hari ramalan"],
+  tr: ["Sıcaklık", "Günlük özet", "Günlük karşılaştırma", "Bugün {metric} {min} ile {max} arasında, ortalama {average} oldu.", "Günlük ortalama önceki günden {difference} daha yüksek.", "Günlük ortalama önceki günden {difference} daha düşük.", "Günlük ortalama önceki günle hemen hemen aynı.", "Karşılaştırma için önceki gün verisi yok. {metric} gün boyunca saatlik ölçülür.", "Çiy noktası", "Rüzgâr hamlesi", "Gün doğumu {sunrise}, gün batımı {sunset}.", "Gündüz yaklaşık {hours} saat sürer.", "Tahmin günü seç"],
+  nl: ["Temperatuur", "Dagoverzicht", "Dagvergelijking", "Vandaag lag {metric} tussen {min} en {max}, met een gemiddelde van {average}.", "Het daggemiddelde is {difference} hoger dan de vorige dag.", "Het daggemiddelde is {difference} lager dan de vorige dag.", "Het daggemiddelde is vrijwel gelijk aan de vorige dag.", "Er zijn geen gegevens van de vorige dag om te vergelijken. {metric} wordt elk uur gemeten.", "Dauwpunt", "Windstoot", "Zonsopkomst om {sunrise}; zonsondergang om {sunset}.", "De dag duurt ongeveer {hours} uur.", "Kies een dag"],
+  pl: ["Temperatura", "Podsumowanie dnia", "Porównanie dnia", "Dziś {metric} wynosiła od {min} do {max}, a średnia to {average}.", "Średnia dobowa jest o {difference} wyższa niż poprzedniego dnia.", "Średnia dobowa jest o {difference} niższa niż poprzedniego dnia.", "Średnia dobowa jest niemal taka sama jak poprzedniego dnia.", "Brak danych z poprzedniego dnia do porównania. {metric} jest mierzona co godzinę.", "Punkt rosy", "Poryw wiatru", "Wschód słońca o {sunrise}, zachód o {sunset}.", "Dzień trwa około {hours} godz.", "Wybierz dzień prognozy"],
+  sv: ["Temperatur", "Dagens sammanfattning", "Jämförelse per dag", "I dag varierade {metric} mellan {min} och {max}, med ett medelvärde på {average}.", "Dagens medelvärde är {difference} högre än föregående dag.", "Dagens medelvärde är {difference} lägre än föregående dag.", "Dagens medelvärde är nästan oförändrat.", "Data från föregående dag saknas. {metric} mäts varje timme.", "Daggpunkt", "Vindby", "Soluppgång {sunrise}; solnedgång {sunset}.", "Dagen är cirka {hours} timmar lång.", "Välj prognosdag"],
+  no: ["Temperatur", "Dagsoppsummering", "Daglig sammenligning", "I dag varierte {metric} fra {min} til {max}, med et gjennomsnitt på {average}.", "Dagsgjennomsnittet er {difference} høyere enn dagen før.", "Dagsgjennomsnittet er {difference} lavere enn dagen før.", "Dagsgjennomsnittet er nesten uendret fra dagen før.", "Ingen data fra dagen før er tilgjengelig. {metric} måles hver time.", "Duggpunkt", "Vindkast", "Soloppgang kl. {sunrise}; solnedgang kl. {sunset}.", "Dagen varer omtrent {hours} timer.", "Velg prognosedag"],
+  da: ["Temperatur", "Dagsoversigt", "Daglig sammenligning", "I dag lå {metric} mellem {min} og {max}, med et gennemsnit på {average}.", "Dagens gennemsnit er {difference} højere end dagen før.", "Dagens gennemsnit er {difference} lavere end dagen før.", "Dagens gennemsnit er næsten uændret fra dagen før.", "Der mangler data fra dagen før til sammenligning. {metric} måles hver time.", "Dugpunkt", "Vindstød", "Solopgang kl. {sunrise}; solnedgang kl. {sunset}.", "Dagen varer cirka {hours} timer.", "Vælg prognosedag"],
+  fi: ["Lämpötila", "Päivän yhteenveto", "Päivävertailu", "Tänään {metric} vaihteli välillä {min}–{max}, keskiarvon ollessa {average}.", "Päivän keskiarvo on {difference} korkeampi kuin edellisenä päivänä.", "Päivän keskiarvo on {difference} matalampi kuin edellisenä päivänä.", "Päivän keskiarvo on lähes sama kuin edellisenä päivänä.", "Edellisen päivän vertailutietoja ei ole. {metric} mitataan tunneittain.", "Kastepiste", "Tuulenpuuska", "Auringonnousu {sunrise}; auringonlasku {sunset}.", "Päivän pituus on noin {hours} tuntia.", "Valitse ennustepäivä"],
+  el: ["Θερμοκρασία", "Ημερήσια σύνοψη", "Ημερήσια σύγκριση", "Σήμερα η {metric} κυμάνθηκε από {min} έως {max}, με μέσο όρο {average}.", "Ο ημερήσιος μέσος όρος είναι {difference} υψηλότερος από την προηγούμενη ημέρα.", "Ο ημερήσιος μέσος όρος είναι {difference} χαμηλότερος από την προηγούμενη ημέρα.", "Ο ημερήσιος μέσος όρος είναι σχεδόν αμετάβλητος.", "Δεν υπάρχουν δεδομένα προηγούμενης ημέρας για σύγκριση. Η {metric} μετριέται κάθε ώρα.", "Σημείο δρόσου", "Ριπή ανέμου", "Ανατολή στις {sunrise}· δύση στις {sunset}.", "Η ημέρα διαρκεί περίπου {hours} ώρες.", "Επιλογή ημέρας πρόγνωσης"],
+  cs: ["Teplota", "Denní shrnutí", "Denní srovnání", "Dnes se {metric} pohybovala mezi {min} a {max}, průměr činil {average}.", "Denní průměr je o {difference} vyšší než předchozí den.", "Denní průměr je o {difference} nižší než předchozí den.", "Denní průměr je téměř stejný jako předchozí den.", "Údaje z předchozího dne nejsou k dispozici. {metric} se měří každou hodinu.", "Rosný bod", "Poryv větru", "Východ slunce v {sunrise}, západ v {sunset}.", "Den trvá přibližně {hours} hodin.", "Vybrat den předpovědi"],
+  hu: ["Hőmérséklet", "Napi összefoglaló", "Napi összehasonlítás", "Ma a(z) {metric} {min} és {max} között alakult, az átlag {average}.", "A napi átlag {difference} értékkel magasabb az előző napinál.", "A napi átlag {difference} értékkel alacsonyabb az előző napinál.", "A napi átlag szinte változatlan az előző naphoz képest.", "Az összehasonlításhoz nincs előző napi adat. A(z) {metric} óránkénti mérés.", "Harmatpont", "Széllökés", "Napkelte: {sunrise}; napnyugta: {sunset}.", "A nappal körülbelül {hours} órás.", "Előrejelzési nap kiválasztása"],
+  ro: ["Temperatură", "Rezumat zilnic", "Comparație zilnică", "Astăzi, {metric} a variat între {min} și {max}, cu media {average}.", "Media zilei este cu {difference} mai mare decât în ziua precedentă.", "Media zilei este cu {difference} mai mică decât în ziua precedentă.", "Media zilei este aproape neschimbată față de ziua precedentă.", "Nu există date din ziua precedentă pentru comparație. {metric} se măsoară orar.", "Punct de rouă", "Rafală de vânt", "Răsărit la {sunrise}; apus la {sunset}.", "Ziua durează aproximativ {hours} ore.", "Alege ziua prognozei"],
+  uk: ["Температура", "Підсумок за день", "Порівняння за день", "Сьогодні {metric} змінюється від {min} до {max}, середнє значення — {average}.", "Середнє за день на {difference} вище, ніж попереднього дня.", "Середнє за день на {difference} нижче, ніж попереднього дня.", "Середнє за день майже не змінилося.", "Немає даних за попередній день для порівняння. {metric} вимірюється щогодини.", "Точка роси", "Порив вітру", "Схід сонця о {sunrise}, захід о {sunset}.", "Світловий день триває близько {hours} год.", "Виберіть день прогнозу"],
+  he: ["טמפרטורה", "סיכום יומי", "השוואה יומית", "היום {metric} נעה בין {min} ל-{max}, והממוצע הוא {average}.", "הממוצע היומי גבוה ב-{difference} מהיום הקודם.", "הממוצע היומי נמוך ב-{difference} מהיום הקודם.", "הממוצע היומי כמעט לא השתנה לעומת היום הקודם.", "אין נתונים מהיום הקודם להשוואה. {metric} נמדדת מדי שעה.", "נקודת טל", "משב רוח", "זריחה ב-{sunrise}; שקיעה ב-{sunset}.", "אורך היום הוא כ-{hours} שעות.", "בחירת יום תחזית"],
+};
+const DETAIL_TRANSLATION_KEYS = [
+  "detailTemperature", "dailySummary", "dailyComparison", "detailSummaryRange",
+  "detailCompareHigher", "detailCompareLower", "detailCompareSame", "detailCompareFirst",
+  "detailDewPoint", "detailWindGust", "detailSunSummary", "detailSunComparison",
+  "chooseForecastDay",
+];
+for (const language of LANGUAGES) {
+  const values = DETAIL_TRANSLATIONS[language.code];
+  if (values) Object.assign(
+    translations[language.code],
+    Object.fromEntries(DETAIL_TRANSLATION_KEYS.map((key, index) => [key, values[index]])),
+  );
+}
+const NOW_LABELS = {
+  vi: "Bây giờ", en: "Now", "zh-TW": "現在", ja: "現在", ko: "현재",
+  "zh-CN": "现在", es: "Ahora", fr: "Maintenant", de: "Jetzt", pt: "Agora",
+  ru: "Сейчас", it: "Adesso", ar: "الآن", hi: "अभी", th: "ตอนนี้",
+  id: "Sekarang", ms: "Sekarang", tr: "Şimdi", nl: "Nu", pl: "Teraz",
+  sv: "Nu", no: "Nå", da: "Nu", fi: "Nyt", el: "Τώρα",
+  cs: "Nyní", hu: "Most", ro: "Acum", uk: "Зараз", he: "עכשיו",
+};
+for (const [language, label] of Object.entries(NOW_LABELS)) {
+  translations[language].now = label;
+}
+
 const SAVED_LANGUAGE = localStorage.getItem("selected_lang");
 let currentLanguage = languageByCode.has(SAVED_LANGUAGE)
   ? SAVED_LANGUAGE
@@ -562,7 +619,7 @@ function changeLanguage(language) {
   if (weatherContext) renderWeather(weatherContext.place, weatherContext.data);
   if (radarFrames.length) setRadarFrames(radarFrames);
   if (elements.forecastDetailDialog.open && weatherContext) {
-    renderForecastDetail(selectedForecastIndex);
+    renderForecastDetail(selectedForecastIndex, selectedDetailMetric);
   }
 }
 
@@ -693,19 +750,15 @@ const elements = {
   radarPlaceName: document.querySelector("#radar-place-name"),
   forecastList: document.querySelector("#forecast-list"),
   forecastDetailDialog: document.querySelector("#forecast-detail-dialog"),
+  forecastDetailTitle: document.querySelector("#forecast-detail-title"),
   forecastDetailDate: document.querySelector("#forecast-detail-date"),
   forecastDetailIcon: document.querySelector("#forecast-detail-icon"),
-  forecastDetailCondition: document.querySelector("#forecast-detail-condition"),
-  forecastDetailTemperatures: document.querySelector("#forecast-detail-temperatures"),
-  forecastDetailRainTotal: document.querySelector("#forecast-detail-rain-total"),
-  forecastDetailRainChance: document.querySelector("#forecast-detail-rain-chance"),
-  forecastDetailWind: document.querySelector("#forecast-detail-wind"),
-  forecastDetailUv: document.querySelector("#forecast-detail-uv"),
-  forecastDetailFeelsLike: document.querySelector("#forecast-detail-feels-like"),
-  forecastDetailHumidity: document.querySelector("#forecast-detail-humidity"),
-  forecastTemperatureChart: document.querySelector("#forecast-temperature-chart"),
-  forecastRainChart: document.querySelector("#forecast-rain-chart"),
-  forecastDetailHourly: document.querySelector("#forecast-detail-hourly"),
+  forecastDetailDays: document.querySelector("#forecast-detail-days"),
+  forecastDetailValue: document.querySelector("#forecast-detail-value"),
+  forecastDetailSecondary: document.querySelector("#forecast-detail-secondary"),
+  forecastDetailChart: document.querySelector("#forecast-detail-chart"),
+  forecastDetailSummary: document.querySelector("#forecast-detail-summary"),
+  forecastDetailComparison: document.querySelector("#forecast-detail-comparison"),
   forecastDetailClose: document.querySelector("#forecast-detail-close"),
   forecastDetailPrevious: document.querySelector("#forecast-detail-previous"),
   forecastDetailNext: document.querySelector("#forecast-detail-next"),
@@ -743,6 +796,7 @@ let weatherContext;
 const SAVED_LOCATIONS_KEY = "saved_weather_locations";
 const sidebarPlaces = loadSavedLocations();
 let selectedForecastIndex = 0;
+let selectedDetailMetric = "temperature";
 
 function normalizePlace(place) {
   const latitude = parseCoordinate(place?.latitude);
@@ -1024,18 +1078,32 @@ function createWeatherBackground() {
       render(clock.getElapsedTime());
     }
 
-    function setMode(nextMode) {
-      if (mode === nextMode) return;
+    let activeWindSpeed = 0;
+    function setMode(nextMode, windSpeed = 0) {
+      if (mode === nextMode && activeWindSpeed === windSpeed) return;
       mode = nextMode;
+      activeWindSpeed = Number.isFinite(windSpeed) ? windSpeed : 0;
       canvas.dataset.weatherMode = mode;
-      const isRain = mode === "rain";
-      const isSun = mode === "sun";
-      const isCloud = mode === "clouds";
+      const isRain = mode.startsWith("rain-") || mode === "storm";
+      const isSnow = mode === "snow";
+      const isFog = mode.startsWith("fog");
+      const isSun = mode === "clear-day";
+      const isNight = mode.includes("night");
+      const isCloud = mode.includes("cloud") || isFog;
+      const rainDensity = mode === "storm" || mode === "rain-heavy"
+        ? 1
+        : mode === "rain"
+          ? 0.7
+          : 0.38;
       const count = isRain
-        ? Math.min(210, Math.round((width * height) / 4200))
-        : isSun
-          ? Math.min(120, Math.round((width * height) / 7000))
-          : Math.min(36, Math.round((width * height) / 28000));
+        ? Math.min(280, Math.round((width * height) / 4200 * rainDensity))
+        : isSnow
+          ? Math.min(150, Math.round((width * height) / 8000))
+          : isSun
+            ? Math.min(120, Math.round((width * height) / 7000))
+            : isNight
+            ? Math.min(240, Math.round((width * height) / 4500))
+              : Math.min(isFog ? 52 : 42, Math.round((width * height) / (isFog ? 18000 : 24000)));
       const positions = new Float32Array(count * 3);
       const sizes = new Float32Array(count);
       const opacities = new Float32Array(count);
@@ -1047,25 +1115,43 @@ function createWeatherBackground() {
         positions[offset + 1] = (Math.random() - 0.5) * height;
         positions[offset + 2] = 0;
         sizes[index] = isRain
-          ? 14 + Math.random() * 22
-          : isSun
+          ? 14 + Math.random() * (mode === "storm" || mode === "rain-heavy" ? 30 : 22)
+          : isSnow
+            ? 2 + Math.random() * 6
+            : isFog
+              ? 90 + Math.random() * 160
+              : isCloud
+                ? 70 + Math.random() * 130
+                : isSun
             ? 1.3 + Math.random() * 3
-            : 90 + Math.random() * 150;
+                : 1.5 + Math.random() * (isNight ? 3.5 : 3);
         opacities[index] = isRain
-          ? 0.2 + Math.random() * 0.42
-          : isSun
+          ? 0.24 + Math.random() * (mode === "storm" || mode === "rain-heavy" ? 0.56 : 0.38)
+          : isSnow
+            ? 0.3 + Math.random() * 0.6
+            : isFog
+              ? 0.04 + Math.random() * 0.07
+              : isCloud
+                ? 0.06 + Math.random() * 0.08
+                : isSun
             ? 0.25 + Math.random() * 0.65
-            : 0.09 + Math.random() * 0.1;
+                  : 0.4 + Math.random() * 0.6;
         velocities[index * 2] = isRain
-          ? -18 - Math.random() * 32
-          : isCloud
-            ? 3 + Math.random() * 8
-            : (Math.random() - 0.5) * 2;
+          ? -(12 + activeWindSpeed * 1.2 + Math.random() * 26)
+          : isSnow
+            ? (Math.random() - 0.5) * 18
+            : isCloud
+              ? 3 + Math.random() * (isFog ? 11 : 8)
+              : (Math.random() - 0.5) * (isNight ? 0.15 : 2);
         velocities[index * 2 + 1] = isRain
-          ? -190 - Math.random() * 260
-          : isSun
+          ? -(150 + rainDensity * 140 + Math.random() * (mode === "storm" ? 320 : 220))
+          : isSnow
+            ? -(12 + Math.random() * 28)
+            : isFog
+              ? (Math.random() - 0.5) * 2
+              : isSun
             ? 2 + Math.random() * 8
-            : (Math.random() - 0.5) * 3;
+                  : (Math.random() - 0.5) * (isNight ? 0.12 : 3);
       }
 
       particles.geometry.dispose();
@@ -1074,17 +1160,35 @@ function createWeatherBackground() {
       geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
       geometry.setAttribute("aOpacity", new THREE.BufferAttribute(opacities, 1));
       particles.geometry = geometry;
-      particles.material.uniforms.uMode.value = isSun ? 0 : isRain ? 1 : 2;
+      particles.material.uniforms.uMode.value = isSun || isNight ? 0 : isRain ? 1 : 2;
       particles.material.uniforms.uColor.value.set(
-        isSun ? "#ffe5b1" : isRain ? "#b9d4f5" : "#aebcdb",
+        isSun
+          ? "#ffe5b1"
+          : isNight
+            ? "#dce9ff"
+            : isSnow
+              ? "#eaf7ff"
+              : isFog
+                ? "#d7e1eb"
+                : isRain
+                  ? "#b9d4f5"
+                  : "#aebcdb",
       );
 
       sprites.forEach((sprite, index) => {
         const isFlare = isSun && index < 2;
-        const isMist = isCloud && index >= 2;
+        const isMist = (isCloud || isRain) && index >= 2;
         sprite.visible = isFlare || isMist;
-        sprite.material.opacity = isFlare ? 0.12 + index * 0.025 : isMist ? 0.5 : 0;
-        sprite.material.color.set(isFlare ? "#f2d5a5" : "#a9b8d5");
+        sprite.material.opacity = isFlare
+          ? 0.12 + index * 0.025
+          : isFog
+            ? 0.34
+            : isMist
+              ? isRain ? 0.23 : 0.36
+              : 0;
+        sprite.material.color.set(
+          isFlare ? "#f2d5a5" : isFog ? "#d7e1eb" : "#a9b8d5",
+        );
         sprite.scale.set(
           isFlare ? width * (0.66 + index * 0.14) : width * 0.67,
           isFlare ? height * (0.55 + index * 0.1) : height * 0.37,
@@ -1099,6 +1203,12 @@ function createWeatherBackground() {
       });
 
       particles.userData.velocities = velocities;
+      particles.userData.baseOpacities = opacities;
+      if (mode === "storm") {
+        document.body.style.setProperty("--storm-flash-delay", `${-Math.random() * 8}s`);
+      } else if (mode === "clear-night") {
+        document.body.style.setProperty("--meteor-delay", `${-Math.random() * 12}s`);
+      }
       render(clock.getElapsedTime());
     }
 
@@ -1113,7 +1223,7 @@ function createWeatherBackground() {
           const offset = index * 3;
           positions.array[offset] += velocities[index * 2] * delta;
           positions.array[offset + 1] += velocities[index * 2 + 1] * delta;
-          if (mode === "rain") {
+          if (mode.startsWith("rain-") || mode === "storm") {
             if (positions.array[offset + 1] < -halfHeight - 24) {
               positions.array[offset + 1] = halfHeight + Math.random() * 40;
               positions.array[offset] = (Math.random() - 0.5) * width;
@@ -1140,14 +1250,25 @@ function createWeatherBackground() {
       pointer.x += (pointer.targetX - pointer.x) * 0.025;
       pointer.y += (pointer.targetY - pointer.y) * 0.025;
       scene.position.set(pointer.x, pointer.y, 0);
-      if (mode === "sun") {
+      if (mode === "clear-day") {
         sprites.slice(0, 2).forEach((sprite, index) => {
           sprite.material.opacity = 0.1 + (Math.sin(time * 0.35 + index) + 1) * 0.035;
         });
-      } else if (mode === "clouds") {
+      } else if (mode?.includes("cloud") || mode?.startsWith("fog")) {
         sprites.slice(2).forEach((sprite, index) => {
           sprite.position.x += Math.sin(time * 0.08 + index) * 0.08;
         });
+      }
+      if (mode?.includes("night")) {
+        const opacity = particles.geometry.attributes.aOpacity;
+        const baseOpacities = particles.userData.baseOpacities;
+        if (opacity && baseOpacities) {
+          for (let index = 0; index < opacity.count; index += 1) {
+            opacity.array[index] = baseOpacities[index] *
+              (0.52 + (Math.sin(time * 1.7 + index * 13.17) + 1) * 0.24);
+          }
+          opacity.needsUpdate = true;
+        }
       }
       renderer.render(scene, camera);
     }
@@ -1199,15 +1320,30 @@ function createWeatherBackground() {
   }
 }
 
-function setWeatherBackground(weatherCode, isDay) {
-  const isRain =
-    (weatherCode >= 51 && weatherCode <= 67) ||
-    (weatherCode >= 80 && weatherCode <= 82) ||
-    (weatherCode >= 95 && weatherCode <= 99);
-  const isClear = weatherCode >= 0 && weatherCode <= 1;
-  const mode = isRain ? "rain" : isClear && isDay !== 1 ? "night" : isClear ? "sun" : "clouds";
+function setWeatherBackground(weatherCode, isDay, windSpeed = 0) {
+  const night = isDay !== 1;
+  let mode;
+  if (weatherCode >= 95 && weatherCode <= 99) {
+    mode = "storm";
+  } else if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) {
+    mode = "snow";
+  } else if (weatherCode === 45 || weatherCode === 48) {
+    mode = night ? "fog-night" : "fog-day";
+  } else if (weatherCode >= 51 && weatherCode <= 67 || weatherCode >= 80 && weatherCode <= 82) {
+    mode = [51, 56, 61, 66, 80].includes(weatherCode)
+      ? "rain-light"
+      : [55, 57, 65, 67, 81].includes(weatherCode)
+        ? "rain"
+        : "rain-heavy";
+  } else if (weatherCode === 2 || weatherCode === 3) {
+    mode = night ? "clouds-night" : "clouds-day";
+  } else if (weatherCode === 0 || weatherCode === 1) {
+    mode = night ? "clear-night" : "clear-day";
+  } else {
+    mode = night ? "clouds-night" : "clouds-day";
+  }
   document.body.dataset.weather = mode;
-  if (weatherBackground) weatherBackground.setMode(mode === "night" ? "clouds" : mode);
+  if (weatherBackground) weatherBackground.setMode(mode, windSpeed);
 }
 
 function getWeatherDescription(code) {
@@ -1383,186 +1519,383 @@ function formatPlaceDate(date, timeZone) {
   }).format(date);
 }
 
-function createForecastChart(hourly, valueKey, maxValue, metric) {
+const DETAIL_METRICS = {
+  temperature: { title: "detailTemperature", icon: "🌡️", field: "temperature_2m", unit: "°", color: "#FBBF24" },
+  feels: { title: "feelsLike", icon: "🌡️", field: "apparent_temperature", unit: "°", color: "#FBBF24" },
+  uv: { title: "uvIndex", icon: "☼", field: "uv_index", unit: "", color: "uv" },
+  wind: { title: "windSpeed", icon: "➤", field: "wind_speed_10m", unit: " km/h", color: "#38BDF8" },
+  humidity: { title: "humidity", icon: "◉", field: "relative_humidity_2m", unit: "%", color: "#38BDF8" },
+  visibility: { title: "visibility", icon: "◌", field: "visibility", unit: " km", color: "#38BDF8" },
+  precipitation: { title: "precipitation", icon: "💧", field: "precipitation", unit: " mm", color: "#38BDF8" },
+  pressure: { title: "pressure", icon: "◉", field: "surface_pressure", unit: " hPa", color: "#A78BFA" },
+  sun: { title: "sunriseSunset", icon: "☀", field: "sun_position", unit: "%", color: "#FBBF24" },
+};
+
+function getDetailMetricValue(metricKey, hour, sunrise, sunset) {
+  const field = DETAIL_METRICS[metricKey].field;
+  if (metricKey === "visibility") return Number.isFinite(hour.visibility) ? hour.visibility / 1000 : undefined;
+  if (metricKey !== "sun") return Number.isFinite(hour[field]) ? hour[field] : undefined;
+  if (!sunrise || !sunset) return undefined;
+  const minutes = Number(hour.time.slice(11, 13)) * 60 + Number(hour.time.slice(14, 16));
+  const sunriseMinutes = Number(sunrise.slice(11, 13)) * 60 + Number(sunrise.slice(14, 16));
+  const sunsetMinutes = Number(sunset.slice(11, 13)) * 60 + Number(sunset.slice(14, 16));
+  if (minutes < sunriseMinutes || minutes > sunsetMinutes || sunsetMinutes <= sunriseMinutes) return 0;
+  return Math.sin(Math.PI * (minutes - sunriseMinutes) / (sunsetMinutes - sunriseMinutes)) * 100;
+}
+
+function formatDetailValue(value, metric, digits = 0) {
+  if (!Number.isFinite(value)) return "—";
+  return `${formatNumber(value, { maximumFractionDigits: digits, minimumFractionDigits: digits })}${metric.unit}`;
+}
+
+function createDetailChart(hourly, metricKey, sunrise, sunset, currentTime, timeZone) {
   const namespace = "http://www.w3.org/2000/svg";
-  const width = 360;
-  const left = 18;
-  const right = 350;
-  const top = 10;
-  const bottom = 82;
-  const values = hourly.map((hour) => hour[valueKey]);
+  const metric = DETAIL_METRICS[metricKey];
+  const width = 520;
+  const left = 42;
+  const right = 470;
+  const top = 56;
+  const bottom = 199;
+  const values = hourly.map((hour) => getDetailMetricValue(metricKey, hour, sunrise, sunset));
   const validValues = values.filter(Number.isFinite);
-  if (validValues.length === 0) {
+  if (!validValues.length) {
     const empty = document.createElement("p");
     empty.className = "forecast-detail-empty";
     empty.textContent = t("forecastNoHourlyData");
     return empty;
   }
-
-  const minValue = valueKey === "precipitation_probability"
+  const minValue = Math.min(...validValues);
+  const maxValue = Math.max(...validValues);
+  const padding = Math.max((maxValue - minValue) * 0.14, metricKey === "precipitation" ? 0.25 : 1);
+  const lower = metricKey === "uv" || metricKey === "precipitation" || metricKey === "sun"
     ? 0
-    : Math.min(...validValues) - 2;
-  const upperValue = valueKey === "precipitation_probability"
-    ? maxValue
-    : Math.max(...validValues) + 2;
-  const valueRange = Math.max(1, upperValue - minValue);
-  const points = values.flatMap((value, index) => {
-    if (!Number.isFinite(value)) return [];
-    return [{
-      x: left + (index / Math.max(1, values.length - 1)) * (right - left),
-      y: bottom - ((value - minValue) / valueRange) * (bottom - top),
-      value,
-    }];
+    : minValue - padding;
+  const upper = maxValue + padding || 1;
+  const range = Math.max(1, upper - lower);
+  const pointFor = (value, index) => ({
+    x: left + (index / Math.max(1, values.length - 1)) * (right - left),
+    y: bottom - ((value - lower) / range) * (bottom - top),
+    value,
   });
-  const svg = document.createElementNS(namespace, "svg");
-  svg.classList.add("forecast-chart");
-  svg.setAttribute("viewBox", `0 0 ${width} 112`);
-  svg.setAttribute("role", "img");
-  svg.setAttribute("aria-label", t("forecastHourlyChartLabel", { metric }));
-  for (let row = 0; row < 4; row += 1) {
-    const y = top + (row / 3) * (bottom - top);
-    const gridline = document.createElementNS(namespace, "line");
-    gridline.setAttribute("x1", String(left));
-    gridline.setAttribute("x2", String(right));
-    gridline.setAttribute("y1", String(y));
-    gridline.setAttribute("y2", String(y));
-    gridline.classList.add("forecast-chart-gridline");
-    svg.append(gridline);
-  }
-  const line = document.createElementNS(namespace, "polyline");
-  line.setAttribute("points", points.map((point) => `${point.x},${point.y}`).join(" "));
-  line.classList.add(
-    valueKey === "precipitation_probability"
-      ? "forecast-chart-line-rain"
-      : "forecast-chart-line-temperature",
+  const points = values.flatMap((value, index) =>
+    Number.isFinite(value) ? [pointFor(value, index)] : [],
   );
-  svg.append(line);
-  for (const hourIndex of [0, 6, 12, 18]) {
-    if (hourIndex >= values.length) continue;
+  const svg = document.createElementNS(namespace, "svg");
+  svg.classList.add("detail-chart");
+  svg.setAttribute("viewBox", `0 0 ${width} 255`);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", t("forecastHourlyChartLabel", { metric: t(metric.title) }));
+  const defs = document.createElementNS(namespace, "defs");
+  const gradient = document.createElementNS(namespace, "linearGradient");
+  gradient.id = "detail-chart-gradient";
+  gradient.setAttribute("x1", "0");
+  gradient.setAttribute("x2", "0");
+  gradient.setAttribute("y1", "0");
+  gradient.setAttribute("y2", "1");
+  const stops = metric.color === "uv"
+    ? [[0, "#A78BFA"], [0.35, "#F472B6"], [0.68, "#FBBF24"], [1, "#38BDF8"]]
+    : [[0, metric.color], [1, metric.color]];
+  for (const [offset, color] of stops) {
+    const stop = document.createElementNS(namespace, "stop");
+    stop.setAttribute("offset", `${offset * 100}%`);
+    stop.setAttribute("stop-color", color);
+    stop.setAttribute("stop-opacity", offset === 0 ? "0.45" : "0.04");
+    gradient.append(stop);
+  }
+  defs.append(gradient);
+  svg.append(defs);
+
+  for (let row = 0; row <= 4; row += 1) {
+    const y = top + (row / 4) * (bottom - top);
+    const grid = document.createElementNS(namespace, "line");
+    grid.setAttribute("x1", String(left));
+    grid.setAttribute("x2", String(right));
+    grid.setAttribute("y1", String(y));
+    grid.setAttribute("y2", String(y));
+    grid.classList.add("detail-chart-grid");
+    svg.append(grid);
     const label = document.createElementNS(namespace, "text");
-    label.setAttribute(
-      "x",
-      String(left + (hourIndex / Math.max(1, values.length - 1)) * (right - left)),
-    );
-    label.setAttribute("y", "105");
-    label.setAttribute("text-anchor", "middle");
-    label.classList.add("forecast-chart-label");
-    label.textContent = `${String(hourIndex).padStart(2, "0")}:00`;
+    label.setAttribute("x", "480");
+    label.setAttribute("y", String(y + 4));
+    label.classList.add("detail-chart-axis-label");
+    const axisValue = upper - (row / 4) * (upper - lower);
+    label.textContent = formatNumber(Math.abs(axisValue) < 0.5 ? 0 : axisValue, {
+      maximumFractionDigits: 0,
+    });
     svg.append(label);
   }
-  const lastLabel = document.createElementNS(namespace, "text");
-  lastLabel.setAttribute("x", String(right));
-  lastLabel.setAttribute("y", "9");
-  lastLabel.setAttribute("text-anchor", "end");
-  lastLabel.classList.add("forecast-chart-value");
-  lastLabel.textContent =
-    `${Math.round(points.at(-1)?.value)}${valueKey === "precipitation_probability" ? "%" : "°"}`;
-  svg.append(lastLabel);
+  for (const hourIndex of [0, 6, 12, 18, 23]) {
+    const x = left + (hourIndex / Math.max(1, values.length - 1)) * (right - left);
+    const grid = document.createElementNS(namespace, "line");
+    grid.setAttribute("x1", String(x));
+    grid.setAttribute("x2", String(x));
+    grid.setAttribute("y1", String(top));
+    grid.setAttribute("y2", String(bottom));
+    grid.classList.add("detail-chart-grid", "detail-chart-grid-vertical");
+    svg.append(grid);
+    if (hourIndex === 23) continue;
+    const label = document.createElementNS(namespace, "text");
+    label.setAttribute("x", String(x));
+    label.setAttribute("y", "239");
+    label.setAttribute("text-anchor", hourIndex === 0 ? "start" : "middle");
+    label.classList.add("detail-chart-time");
+    const date = new Date(Date.UTC(2026, 0, 1, hourIndex));
+    label.textContent = new Intl.DateTimeFormat(getLocale(), {
+      hour: "numeric",
+      timeZone: "UTC",
+    }).format(date);
+    svg.append(label);
+  }
+
+  const pathData = points.reduce((path, point, index) => {
+    if (index === 0) return `M ${point.x} ${point.y}`;
+    const previous = points[index - 1];
+    const middle = (previous.x + point.x) / 2;
+    return `${path} C ${middle} ${previous.y}, ${middle} ${point.y}, ${point.x} ${point.y}`;
+  }, "");
+  const area = document.createElementNS(namespace, "path");
+  area.setAttribute(
+    "d",
+    `${pathData} L ${points.at(-1).x} ${bottom} L ${points[0].x} ${bottom} Z`,
+  );
+  area.setAttribute("fill", "url(#detail-chart-gradient)");
+  svg.append(area);
+  const line = document.createElementNS(namespace, "path");
+  line.setAttribute("d", pathData);
+  line.setAttribute("class", "detail-chart-line");
+  line.style.stroke = metric.color === "uv" ? "url(#detail-chart-spectrum)" : metric.color;
+  if (metric.color === "uv") {
+    const spectrum = document.createElementNS(namespace, "linearGradient");
+    spectrum.id = "detail-chart-spectrum";
+    for (const [offset, color] of [[0, "#38BDF8"], [0.34, "#FBBF24"], [0.67, "#F472B6"], [1, "#A78BFA"]]) {
+      const stop = document.createElementNS(namespace, "stop");
+      stop.setAttribute("offset", `${offset * 100}%`);
+      stop.setAttribute("stop-color", color);
+      spectrum.append(stop);
+    }
+    defs.append(spectrum);
+  }
+  svg.append(line);
+
+  for (let hourIndex = 0; hourIndex < hourly.length; hourIndex += 2) {
+    const x = left + (hourIndex / Math.max(1, values.length - 1)) * (right - left);
+    const icon = document.createElementNS(namespace, metricKey === "uv" ? "circle" : "text");
+    if (metricKey === "uv") {
+      icon.setAttribute("cx", String(x));
+      icon.setAttribute("cy", "30");
+      icon.setAttribute("r", "3.5");
+      icon.setAttribute("fill", metric.color);
+    } else {
+      icon.setAttribute("x", String(x));
+      icon.setAttribute("y", "34");
+      icon.setAttribute("text-anchor", "middle");
+      icon.classList.add("detail-chart-icon");
+      if (metricKey === "wind") {
+        icon.textContent = "➤";
+        const direction = hourly[hourIndex].wind_direction_10m;
+        if (Number.isFinite(direction)) {
+          icon.setAttribute("transform", `rotate(${direction - 90} ${x} 30)`);
+        }
+      } else {
+        icon.textContent = metricKey === "precipitation" ? "●" : getWeatherDescription(hourly[hourIndex].weather_code).icon;
+      }
+    }
+    svg.append(icon);
+  }
+
+  const nowIndex = currentTime
+    ? hourly.findIndex((hour) => hour.time.slice(0, 13) === currentTime.slice(0, 13))
+    : -1;
+  if (nowIndex >= 0 && Number.isFinite(values[nowIndex])) {
+    const point = pointFor(values[nowIndex], nowIndex);
+    const marker = document.createElementNS(namespace, "circle");
+    marker.setAttribute("cx", String(point.x));
+    marker.setAttribute("cy", String(point.y));
+    marker.setAttribute("r", "5");
+    marker.classList.add("detail-chart-current");
+    svg.append(marker);
+  }
   return svg;
 }
 
-function renderForecastDetail(index) {
-  if (!weatherContext) return;
-  const { daily, data } = weatherContext;
+function renderDetailDayStrip(daily) {
+  const fragment = document.createDocumentFragment();
+  for (let index = 0; index < daily.time.length; index += 1) {
+    const button = document.createElement("button");
+    const weekday = document.createElement("span");
+    const day = document.createElement("span");
+    const date = new Date(`${daily.time[index]}T12:00:00Z`);
+    button.type = "button";
+    button.className = "detail-day";
+    button.setAttribute("aria-pressed", String(index === selectedForecastIndex));
+    button.setAttribute("aria-label", new Intl.DateTimeFormat(getLocale(), {
+      weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
+    }).format(date));
+    weekday.textContent = new Intl.DateTimeFormat(getLocale(), {
+      weekday: "short", timeZone: "UTC",
+    }).format(date);
+    day.textContent = formatNumber(date.getUTCDate());
+    weekday.className = "detail-day-weekday";
+    day.className = "detail-day-number";
+    button.append(weekday, day);
+    button.addEventListener("click", () => renderForecastDetail(index));
+    fragment.append(button);
+  }
+  elements.forecastDetailDays.replaceChildren(fragment);
+  elements.forecastDetailDays.setAttribute("aria-label", t("chooseForecastDay"));
+  elements.forecastDetailDays.querySelector('[aria-pressed="true"]')?.scrollIntoView({
+    block: "nearest",
+    inline: "center",
+  });
+}
+
+function renderForecastDetail(index, metricKey = selectedDetailMetric) {
+  if (!weatherContext || !DETAIL_METRICS[metricKey]) return;
+  const { daily, data, current, place } = weatherContext;
   const date = daily.time[index];
   if (!date) return;
   selectedForecastIndex = index;
-  const condition = getWeatherDescription(daily.weather_code[index]);
-  const dateObject = new Date(`${date}T00:00:00Z`);
-  const hourlyData = data.hourly.time.flatMap((time, hourIndex) =>
+  selectedDetailMetric = metricKey;
+  const metric = DETAIL_METRICS[metricKey];
+  const timeZone = data.timezone || place.timezone || "UTC";
+  const hourly = data.hourly.time.flatMap((time, hourIndex) =>
     time.startsWith(date)
       ? [{
           time,
-          temperature_2m: data.hourly.temperature_2m[hourIndex],
+          temperature_2m: data.hourly.temperature_2m?.[hourIndex],
           apparent_temperature: data.hourly.apparent_temperature?.[hourIndex],
-          weather_code: data.hourly.weather_code[hourIndex],
-          precipitation_probability: data.hourly.precipitation_probability?.[hourIndex],
-          precipitation: data.hourly.precipitation?.[hourIndex],
           relative_humidity_2m: data.hourly.relative_humidity_2m?.[hourIndex],
+          dew_point_2m: data.hourly.dew_point_2m?.[hourIndex],
+          precipitation: data.hourly.precipitation?.[hourIndex],
+          precipitation_probability: data.hourly.precipitation_probability?.[hourIndex],
+          surface_pressure: data.hourly.surface_pressure?.[hourIndex],
+          visibility: data.hourly.visibility?.[hourIndex],
           wind_speed_10m: data.hourly.wind_speed_10m?.[hourIndex],
+          wind_direction_10m: data.hourly.wind_direction_10m?.[hourIndex],
+          wind_gusts_10m: data.hourly.wind_gusts_10m?.[hourIndex],
+          uv_index: data.hourly.uv_index?.[hourIndex],
+          weather_code: data.hourly.weather_code?.[hourIndex],
         }]
       : [],
   );
-  const afternoonHour = hourlyData
-    .filter((hour) => Number.isFinite(hour.apparent_temperature))
-    .sort(
-      (first, second) =>
-        Math.abs(Number(first.time.slice(11, 13)) - 14) -
-        Math.abs(Number(second.time.slice(11, 13)) - 14),
-    )[0];
-  const humidityReadings = hourlyData
-    .map((hour) => hour.relative_humidity_2m)
+  const sunrise = daily.sunrise?.[index];
+  const sunset = daily.sunset?.[index];
+  const values = hourly.map((hour) => getDetailMetricValue(metricKey, hour, sunrise, sunset))
     .filter(Number.isFinite);
-  const averageHumidity = humidityReadings.length
-    ? humidityReadings.reduce((sum, value) => sum + value, 0) / humidityReadings.length
+  if (!values.length) return;
+  const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const minimum = Math.min(...values);
+  const maximum = Math.max(...values);
+  const digits = metricKey === "precipitation" || metricKey === "visibility" ? 1 : 0;
+  const format = (value) => formatDetailValue(value, metric, digits);
+  const dateObject = new Date(`${date}T12:00:00Z`);
+  const clockFormatter = new Intl.DateTimeFormat(getLocale(), {
+    hour: "numeric", minute: "2-digit", timeZone: "UTC",
+  });
+  const formatClock = (time) => {
+    if (!time) return "—";
+    const [hour, minute] = time.slice(11, 16).split(":").map(Number);
+    return clockFormatter.format(new Date(Date.UTC(2026, 0, 1, hour, minute)));
+  };
+  const currentValue = index === 0
+    ? getDetailMetricValue(metricKey, {
+        ...current,
+        time: current.time,
+        visibility: current.visibility,
+      }, sunrise, sunset)
     : undefined;
-  const formatMetric = (value, unit, digits = 0) =>
-    Number.isFinite(value)
-      ? `${formatNumber(value, { maximumFractionDigits: digits })}${unit}`
-      : "—";
-
-  elements.forecastDetailDate.textContent = new Intl.DateTimeFormat(getLocale(), {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(dateObject);
-  elements.forecastDetailIcon.textContent = condition.icon;
-  elements.forecastDetailCondition.textContent = condition.text;
-  elements.forecastDetailTemperatures.textContent =
-    `${t("high")} ${formatMetric(daily.temperature_2m_max[index], "°")} · ` +
-    `${t("low")} ${formatMetric(daily.temperature_2m_min[index], "°")}`;
-  elements.forecastDetailRainTotal.textContent = formatMetric(
-    daily.precipitation_sum?.[index],
-    " mm",
-    1,
-  );
-  elements.forecastDetailRainChance.textContent = formatMetric(
-    daily.precipitation_probability_max?.[index],
-    "%",
-  );
-  elements.forecastDetailWind.textContent = formatMetric(
-    daily.wind_speed_10m_max?.[index],
-    " km/h",
-  );
-  elements.forecastDetailUv.textContent = formatMetric(daily.uv_index_max?.[index], "");
-  elements.forecastDetailFeelsLike.textContent = formatMetric(
-    afternoonHour?.apparent_temperature,
-    "°",
-  );
-  elements.forecastDetailHumidity.textContent = formatMetric(averageHumidity, "%");
-  elements.forecastTemperatureChart.replaceChildren(
-    createForecastChart(hourlyData, "temperature_2m", 100, t("forecastTemperatureChart")),
-  );
-  elements.forecastRainChart.replaceChildren(
-    createForecastChart(
-      hourlyData,
-      "precipitation_probability",
-      100,
-      t("forecastRainChart"),
-    ),
-  );
-
-  const hourlyFragment = document.createDocumentFragment();
-  for (const hourIndex of [0, 6, 12, 18]) {
-    const hour = hourlyData.find((item) => Number(item.time.slice(11, 13)) === hourIndex);
-    if (!hour) continue;
-    const item = document.createElement("div");
-    const timeLabel = document.createElement("span");
-    const icon = document.createElement("span");
-    const temperature = document.createElement("strong");
-    item.className = "forecast-detail-hour";
-    timeLabel.textContent = `${String(hourIndex).padStart(2, "0")}:00`;
-    icon.textContent = getWeatherDescription(hour.weather_code).icon;
-    icon.setAttribute("aria-hidden", "true");
-    temperature.textContent = formatMetric(hour.temperature_2m, "°");
-    item.append(timeLabel, icon, temperature);
-    hourlyFragment.append(item);
+  const mainValue = metricKey === "sun"
+    ? `${formatClock(sunrise)} · ${formatClock(sunset)}`
+    : format(Number.isFinite(currentValue) ? currentValue : average);
+  let secondary = t("detailSummaryRange", {
+    metric: t(metric.title),
+    min: format(minimum),
+    max: format(maximum),
+    average: format(average),
+  });
+  if (metricKey === "humidity") {
+    const dewValues = hourly.map((hour) => hour.dew_point_2m).filter(Number.isFinite);
+    if (dewValues.length) {
+      const dewPoint = dewValues.reduce((sum, value) => sum + value, 0) / dewValues.length;
+      secondary = `${t("detailDewPoint")}: ${formatDetailValue(dewPoint, { unit: "°" })}`;
+    }
+  } else if (metricKey === "wind") {
+    const gust = Math.max(...hourly.map((hour) => hour.wind_gusts_10m).filter(Number.isFinite));
+    if (Number.isFinite(gust)) {
+      secondary = `${t("detailWindGust")}: ${formatDetailValue(gust, { unit: " km/h" })} · ${t("detailSummaryRange", {
+        metric: t(metric.title), min: format(minimum), max: format(maximum), average: format(average),
+      })}`;
+    }
+  } else if (metricKey === "sun") {
+    secondary = t("detailSunSummary", {
+      sunrise: formatClock(sunrise),
+      sunset: formatClock(sunset),
+    });
   }
-  elements.forecastDetailHourly.replaceChildren(hourlyFragment);
+
+  elements.forecastDetailTitle.textContent = t(metric.title);
+  elements.forecastDetailIcon.textContent = metric.icon;
+  elements.forecastDetailDate.textContent = new Intl.DateTimeFormat(getLocale(), {
+    weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
+  }).format(dateObject);
+  elements.forecastDetailValue.textContent = mainValue;
+  elements.forecastDetailSecondary.textContent = secondary;
+  elements.forecastDetailSummary.textContent = metricKey === "sun"
+    ? t("detailSunSummary", { sunrise: formatClock(sunrise), sunset: formatClock(sunset) })
+    : t("detailSummaryRange", {
+        metric: t(metric.title), min: format(minimum), max: format(maximum), average: format(average),
+      });
+
+  if (index > 0) {
+    const previousDate = daily.time[index - 1];
+    const previousValues = data.hourly.time.flatMap((time, hourIndex) => {
+      if (!time.startsWith(previousDate)) return [];
+      const previousHour = {
+        time,
+        ...Object.fromEntries(Object.keys(data.hourly).filter((key) => key !== "time")
+          .map((key) => [key, data.hourly[key]?.[hourIndex]])),
+      };
+      return [getDetailMetricValue(
+        metricKey,
+        previousHour,
+        daily.sunrise?.[index - 1],
+        daily.sunset?.[index - 1],
+      )].filter(Number.isFinite);
+    });
+    const previousAverage = previousValues.length
+      ? previousValues.reduce((sum, value) => sum + value, 0) / previousValues.length
+      : average;
+    const difference = average - previousAverage;
+    const text = Math.abs(difference) < (metricKey === "precipitation" ? 0.1 : 0.5)
+      ? t("detailCompareSame")
+      : t(difference > 0 ? "detailCompareHigher" : "detailCompareLower", {
+          difference: formatDetailValue(Math.abs(difference), metric, digits),
+        });
+    elements.forecastDetailComparison.textContent = metricKey === "sun"
+      ? t("detailSunComparison", {
+          hours: formatNumber((sunset && sunrise)
+            ? (Number(sunset.slice(11, 13)) * 60 + Number(sunset.slice(14, 16)) -
+              Number(sunrise.slice(11, 13)) * 60 - Number(sunrise.slice(14, 16))) / 60
+            : 0, { maximumFractionDigits: 1 }),
+        })
+      : text;
+  } else {
+    elements.forecastDetailComparison.textContent = t("detailCompareFirst", {
+      metric: t(metric.title),
+    });
+  }
+  elements.forecastDetailChart.replaceChildren(
+    createDetailChart(hourly, metricKey, sunrise, sunset, current.time, timeZone),
+  );
+  renderDetailDayStrip(daily);
   elements.forecastDetailPrevious.disabled = index === 0;
   elements.forecastDetailNext.disabled = index === daily.time.length - 1;
+}
+
+function openForecastDetail(index, metricKey = "temperature") {
+  if (!weatherContext) return;
+  renderForecastDetail(index, metricKey);
+  if (!elements.forecastDetailDialog.open) elements.forecastDetailDialog.showModal();
 }
 
 function renderForecast(daily) {
@@ -1629,8 +1962,7 @@ function renderForecast(daily) {
     track.append(range, currentMarker);
     card.append(day, icon, rain, low, track, high);
     card.addEventListener("click", () => {
-      renderForecastDetail(index);
-      if (!elements.forecastDetailDialog.open) elements.forecastDetailDialog.showModal();
+      openForecastDetail(index, "temperature");
     });
     fragment.append(card);
   }
@@ -1638,35 +1970,105 @@ function renderForecast(daily) {
   elements.forecastList.replaceChildren(fragment);
 }
 
-function renderHourlyForecast(hourly, currentTime, timeZone) {
-  const startIndex = hourly.time.findIndex((time) => time >= currentTime);
-  const safeStartIndex = startIndex < 0 ? 0 : startIndex;
+function renderHourlyForecast(hourly, currentTime, utcOffsetSeconds, daily) {
+  const offsetMilliseconds = (Number(utcOffsetSeconds) || 0) * 1000;
+  const toTimestamp = (localTime) => Date.parse(`${localTime}:00Z`) - offsetMilliseconds;
+  const currentTimestamp = toTimestamp(currentTime.slice(0, 13));
+  const startIndex = hourly.time.findIndex(
+    (time) => toTimestamp(time) === currentTimestamp,
+  );
+  const safeStartIndex = startIndex < 0
+    ? hourly.time.findIndex((time) => time.slice(0, 13) >= currentTime.slice(0, 13))
+    : startIndex;
+  if (safeStartIndex < 0) {
+    elements.hourlyList.replaceChildren();
+    elements.hourlySummary.textContent = t("forecastNoHourlyData");
+    return;
+  }
   const endIndex = Math.min(safeStartIndex + 24, hourly.time.length);
   const fragment = document.createDocumentFragment();
   const timeFormatter = new Intl.DateTimeFormat(getLocale(), {
     hour: "numeric",
-    timeZone,
+    timeZone: "UTC",
+  });
+  const solarTimeFormatter = new Intl.DateTimeFormat(getLocale(), {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "UTC",
   });
   let expectedRainTime;
+  const timeline = [];
 
   for (let index = safeStartIndex; index < endIndex; index += 1) {
+    timeline.push({ time: hourly.time[index], index, type: "hour" });
+  }
+  const visibleStart = hourly.time[safeStartIndex];
+  const visibleEnd = hourly.time[endIndex - 1];
+  for (const [dayIndex, date] of (daily?.time ?? []).entries()) {
+    for (const [type, field] of [["sunrise", "sunrise"], ["sunset", "sunset"]]) {
+      const eventTime = daily[field]?.[dayIndex];
+      if (
+        eventTime &&
+        eventTime >= currentTime.slice(0, 16) &&
+        eventTime >= visibleStart &&
+        eventTime <= `${visibleEnd.slice(0, 13)}:59`
+      ) {
+        timeline.push({ time: eventTime.slice(0, 16), type });
+      }
+    }
+  }
+  timeline.sort((first, second) => first.time.localeCompare(second.time));
+
+  for (const entry of timeline) {
+    if (entry.type !== "hour") {
+      const event = document.createElement("article");
+      const icon = document.createElement("span");
+      const label = document.createElement("p");
+      const time = document.createElement("p");
+      const localTime = new Date(`${entry.time}:00Z`);
+      event.className = `hourly-event hourly-event-${entry.type}`;
+      icon.className = "hourly-event-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = entry.type === "sunrise" ? "🌅" : "🌇";
+      label.className = "hourly-event-label";
+      label.textContent = t(entry.type);
+      time.className = "hourly-event-time";
+      time.textContent = solarTimeFormatter.format(localTime);
+      event.setAttribute(
+        "aria-label",
+        `${label.textContent} ${time.textContent}`,
+      );
+      event.append(icon, label, time);
+      fragment.append(event);
+      continue;
+    }
     const item = document.createElement("article");
     const hour = document.createElement("p");
     const icon = document.createElement("span");
     const temperature = document.createElement("p");
     const rain = document.createElement("p");
-    const forecastTime = new Date(`${hourly.time[index]}:00Z`);
-    const probability = hourly.precipitation_probability?.[index];
-    const condition = getWeatherDescription(hourly.weather_code[index]);
+    const forecastTime = new Date(`${hourly.time[entry.index]}:00Z`);
+    const probability = hourly.precipitation_probability?.[entry.index];
+    const condition = getWeatherDescription(hourly.weather_code[entry.index]);
+    const localDate = hourly.time[entry.index].slice(0, 10);
+    const solarDayIndex = daily?.time?.indexOf(localDate) ?? -1;
+    if (
+      Number(hourly.weather_code[entry.index]) <= 1 &&
+      solarDayIndex >= 0 &&
+      (hourly.time[entry.index] < daily.sunrise?.[solarDayIndex] ||
+        hourly.time[entry.index] >= daily.sunset?.[solarDayIndex])
+    ) {
+      condition.icon = "🌙";
+    }
 
     item.className = "hourly-item";
     hour.className = "hourly-time";
-    hour.textContent = index === safeStartIndex ? t("now") : timeFormatter.format(forecastTime);
+    hour.textContent = entry.index === safeStartIndex ? t("now") : timeFormatter.format(forecastTime);
     icon.className = "hourly-icon";
     icon.setAttribute("aria-label", condition.text);
     icon.textContent = condition.icon;
     temperature.className = "hourly-temperature";
-    temperature.textContent = `${Math.round(hourly.temperature_2m[index])}°`;
+    temperature.textContent = `${Math.round(hourly.temperature_2m[entry.index])}°`;
     rain.className = "hourly-rain";
     rain.textContent = Number.isFinite(probability) && probability > 0
       ? `${Math.round(probability)}%`
@@ -1871,9 +2273,14 @@ function renderWeather(place, data) {
   elements.sunArcDot.setAttribute("cy", String(sunY));
   elements.sunArcProgress.style.strokeDashoffset = String(500 * (1 - sunProgress));
   elements.currentCard.setAttribute("aria-busy", "false");
-  setWeatherBackground(current.weather_code, current.is_day);
+  setWeatherBackground(current.weather_code, current.is_day, current.wind_speed_10m);
   renderForecast(data.daily);
-  renderHourlyForecast(data.hourly, current.time, timezone);
+  renderHourlyForecast(
+    data.hourly,
+    current.time,
+    data.utc_offset_seconds,
+    data.daily,
+  );
 }
 
 function stopRadarPlayback() {
@@ -2069,15 +2476,33 @@ elements.forecastDetailDialog.addEventListener("click", (event) => {
     elements.forecastDetailDialog.close();
   }
 });
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && elements.forecastDetailDialog.open) {
+    event.preventDefault();
+    elements.forecastDetailDialog.close();
+  }
+});
 elements.forecastDetailPrevious.addEventListener("click", () => {
-  if (selectedForecastIndex > 0) renderForecastDetail(selectedForecastIndex - 1);
+  if (selectedForecastIndex > 0) {
+    renderForecastDetail(selectedForecastIndex - 1, selectedDetailMetric);
+  }
 });
 elements.forecastDetailNext.addEventListener("click", () => {
   const lastIndex = (weatherContext?.daily.time.length ?? 0) - 1;
   if (selectedForecastIndex < lastIndex) {
-    renderForecastDetail(selectedForecastIndex + 1);
+    renderForecastDetail(selectedForecastIndex + 1, selectedDetailMetric);
   }
 });
+for (const card of document.querySelectorAll("[data-detail-metric]")) {
+  const open = () => openForecastDetail(0, card.dataset.detailMetric);
+  card.addEventListener("click", open);
+  card.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      open();
+    }
+  });
+}
 
 async function loadWeather(place) {
   const currentRequestId = ++requestId;
@@ -2098,7 +2523,7 @@ async function loadWeather(place) {
     current:
       "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m",
     hourly:
-      "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,precipitation,precipitation_probability,visibility,dew_point_2m,uv_index",
+      "temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,precipitation,precipitation_probability,surface_pressure,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,weather_code",
     daily:
       "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset",
     temperature_unit: "celsius",
@@ -2121,6 +2546,7 @@ async function loadWeather(place) {
       "dew_point_2m",
       "uv_index",
       "precipitation_probability",
+      "wind_gusts_10m",
     ];
     const current = { ...data.current };
     for (const field of hourlyCurrentFields) {
