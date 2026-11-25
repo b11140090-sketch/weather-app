@@ -1895,7 +1895,10 @@ function renderForecastDetail(index, metricKey = selectedDetailMetric) {
 function openForecastDetail(index, metricKey = "temperature") {
   if (!weatherContext) return;
   renderForecastDetail(index, metricKey);
-  if (!elements.forecastDetailDialog.open) elements.forecastDetailDialog.showModal();
+  if (!elements.forecastDetailDialog.open) {
+    elements.forecastDetailDialog.showModal();
+    elements.forecastDetailDialog.scrollTop = 0;
+  }
 }
 
 function renderForecast(daily) {

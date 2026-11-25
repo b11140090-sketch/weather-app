@@ -316,11 +316,18 @@ button { color: inherit; }
 }
 .forecast-row:hover { filter: brightness(1.15); }
 .forecast-detail-dialog {
+  position: fixed;
+  inset: 16px 0 auto;
+  z-index: 9999;
   width: min(480px, calc(100vw - 24px));
   max-width: 480px;
-  max-height: min(92vh, 900px);
+  max-height: calc((100vh - 48px) / 1.5);
+  max-height: calc((100dvh - 48px) / 1.5);
+  box-sizing: border-box;
+  margin: 0 auto;
   padding: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   border: 1px solid rgb(255 255 255 / 22%);
   border-radius: 20px;
   color: #fff;
@@ -334,20 +341,24 @@ button { color: inherit; }
 }
 .forecast-detail-shell { padding: 16px 18px 20px; }
 .forecast-detail-heading {
-  position: relative;
+  position: sticky;
+  z-index: 1;
+  top: 0;
   display: flex;
-  min-height: 34px;
+  min-height: 52px;
   align-items: center;
   justify-content: center;
   margin-bottom: 13px;
+  padding: 12px 38px 8px;
+  background: rgb(12 18 30 / 96%);
 }
-.detail-title { display: flex; align-items: center; gap: 8px; }
-.detail-title h2 { margin: 0; color: #fff; font-size: 16px; font-weight: 650; }
+.detail-title { display: flex; min-width: 0; align-items: center; justify-content: center; gap: 8px; }
+.detail-title h2 { margin: 0; color: #fff; font-size: 16px; font-weight: 650; text-align: center; overflow-wrap: anywhere; }
 .forecast-detail-icon { color: #fff; font-size: 18px; }
 .forecast-detail-close {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 9px;
+  right: 6px;
   width: 30px;
   height: 30px;
   border: 1px solid rgb(255 255 255 / 30%);
@@ -586,8 +597,8 @@ body { font-size: 16px; }
 .card-title { font-size: 11px; }
 @media (max-width: 660px) {
   .forecast-detail-dialog {
-    width: calc(66.667vw - 16px);
-    max-width: calc(66.667vw - 16px);
+    width: calc(66.667vw - 32px);
+    max-width: calc(66.667vw - 32px);
   }
   .forecast-row { grid-template-columns: 35px 20px 25px minmax(0, .55fr) minmax(30px, 1fr) minmax(25px, .55fr); }
 }
